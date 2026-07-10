@@ -1,49 +1,78 @@
 import 'package:flutter/material.dart';
 
 import '../theme/notebook_theme.dart';
+import 'notebook_page.dart';
 
 /// The bordered title row at the top of every page (`.page-header` in
-/// notebook.css) — a bottom ink rule, a Caveat title, and optional trailing
-/// controls (calendar toggle, menu button, etc).
+/// notebook.css). Occupies exactly two ruled lines so its bottom ink rule
+/// lands on the paper's grid, with the title resting on the line like
+/// handwriting.
 class NotebookHeader extends StatelessWidget {
-  const NotebookHeader({
-    super.key,
-    required this.title,
-    this.leading,
-    this.trailing,
-    this.large = false,
-  });
+  const NotebookHeader({super.key, required this.title, this.leading, this.trailing});
 
   final String title;
   final Widget? leading;
   final Widget? trailing;
-  final bool large;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(bottom: 6),
+      height: 2 * kNotebookLine,
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: NotebookColors.ink, width: 2)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           ?leading,
           Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontFamily: 'Caveat',
-                fontSize: large ? 34 : 26,
-                fontWeight: FontWeight.w700,
-                color: NotebookColors.ink,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700,
+                  color: NotebookColors.ink,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
           ),
           ?trailing,
         ],
+      ),
+    );
+  }
+}
+
+/// The "← back" line that sits above a subpage's header, like the web
+/// app's `.back-link`.
+class BackLine extends StatelessWidget {
+  const BackLine({super.key, this.label = '← back'});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: kNotebookLine,
+      alignment: Alignment.bottomLeft,
+      child: InkWell(
+        onTap: () => Navigator.of(context).pop(),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 3, right: 12),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: NotebookColors.inkSoft,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/completion.dart' as models;
@@ -6,8 +7,10 @@ import '../data/models/exercise.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../widgets/glyph_button.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
+import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
 import 'manage_routine_screen.dart';
 
@@ -29,28 +32,45 @@ class _RoutineScreenState extends State<RoutineScreen> {
     _provider = RoutineDetailProvider(widget.routineId)..load();
   }
 
+  @override
+  void dispose() {
+    _provider.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openManage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ManageRoutineScreen(routineId: widget.routineId)),
+    );
+    _provider.load();
+  }
+
   Future<void> _finish() async {
+    HapticFeedback.mediumImpact();
     final stats = await _provider.finishWorkout();
     if (!mounted) return;
-    await showDialog<void>(
+    await showPaperDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: NotebookColors.paper,
-        title: const Text(
-          'Workout complete',
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 26, fontWeight: FontWeight.w700),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _statRow('Exercises completed', '${stats.exercisesCompleted}'),
-            _statRow('Total duration', formatDuration(stats.durationSeconds)),
-            _statRow('Time paused', formatDuration(stats.pausedSeconds)),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Got it')),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Workout complete',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              color: NotebookColors.ink,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _statRow('Exercises completed', '${stats.exercisesCompleted}'),
+          _statRow('Total duration', formatDuration(stats.durationSeconds)),
+          _statRow('Time paused', formatDuration(stats.pausedSeconds)),
+          const SizedBox(height: 12),
+          PenButton(label: 'Got it', onPressed: () => Navigator.pop(context)),
         ],
       ),
     );
@@ -58,15 +78,40 @@ class _RoutineScreenState extends State<RoutineScreen> {
 
   Widget _statRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontFamily: 'Caveat', fontSize: 19, color: NotebookColors.inkSoft)),
-          Text(value, style: const TextStyle(fontFamily: 'Caveat', fontSize: 22, fontWeight: FontWeight.w700)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 19,
+              color: NotebookColors.inkSoft,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: NotebookColors.ink,
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _deleteCompletion(models.Completion completion) async {
+    final confirmed = await showPaperConfirm(
+      context,
+      title: 'Remove session?',
+      message: 'Remove this session from the log?',
+      confirmLabel: 'Remove',
+    );
+    if (confirmed) await _provider.deleteCompletion(completion.id);
   }
 
   @override
@@ -75,111 +120,82 @@ class _RoutineScreenState extends State<RoutineScreen> {
       value: _provider,
       child: Scaffold(
         body: SafeArea(
-          child: NotebookPage(
-            child: Consumer<RoutineDetailProvider>(
-              builder: (context, provider, _) {
-                if (provider.loading || provider.routine == null) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final routine = provider.routine!;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    NotebookHeader(
-                      title: routine.name,
-                      leading: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: NotebookColors.inkSoft),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit_note, color: NotebookColors.inkSoft),
-                        tooltip: 'Manage routine',
-                        onPressed: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ManageRoutineScreen(routineId: widget.routineId),
+          child: Consumer<RoutineDetailProvider>(
+            builder: (context, provider, _) {
+              final routine = provider.routine;
+              return Column(
+                children: [
+                  Expanded(
+                    child: NotebookPage(
+                      child: routine == null
+                          ? const SizedBox.shrink()
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const BackLine(label: '← back to notebook'),
+                                NotebookHeader(
+                                  title: routine.name,
+                                  trailing: GlyphButton(
+                                    glyph: '✐',
+                                    semanticLabel: 'Manage routine',
+                                    onTap: _openManage,
+                                  ),
+                                ),
+                                if (routine.description.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      routine.description,
+                                      style: const TextStyle(
+                                        fontFamily: 'Caveat',
+                                        fontSize: 17,
+                                        color: NotebookColors.inkSoft,
+                                      ),
+                                    ),
+                                  ),
+                                if (!routine.isStarted)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: PenButton(
+                                        label: 'Start workout',
+                                        onPressed: provider.startWorkout,
+                                      ),
+                                    ),
+                                  ),
+                                const HeadingLine('Exercises'),
+                                if (provider.exercises.isEmpty)
+                                  const MutedLine('No exercises yet — add one via ✐ above.')
+                                else
+                                  ...provider.exercises.map(
+                                    (ex) => _ExerciseRow(
+                                      exercise: ex,
+                                      onToggle: () {
+                                        HapticFeedback.lightImpact();
+                                        provider.toggleExercise(ex.id);
+                                      },
+                                    ),
+                                  ),
+                                const HeadingLine('Logged sessions'),
+                                if (provider.completions.isEmpty)
+                                  const MutedLine('No sessions logged yet.')
+                                else
+                                  ...provider.completions.map(
+                                    (c) => _CompletionRow(
+                                      completion: c,
+                                      onDelete: () => _deleteCompletion(c),
+                                    ),
+                                  ),
+                              ],
                             ),
-                          );
-                          provider.load();
-                        },
-                      ),
                     ),
-                    if (routine.description.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          routine.description,
-                          style: const TextStyle(
-                            fontFamily: 'Caveat',
-                            fontSize: 18,
-                            color: NotebookColors.inkSoft,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 10),
-                    _PlayerControls(provider: provider, onFinish: _finish),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: ListView(
-                        children: [
-                          const Text(
-                            'Exercises',
-                            style: TextStyle(
-                              fontFamily: 'Caveat',
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: NotebookColors.ink,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          if (provider.exercises.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                              child: Text(
-                                'No exercises yet — add one from Manage.',
-                                style: TextStyle(fontFamily: 'Caveat', fontSize: 19, color: NotebookColors.inkSoft),
-                              ),
-                            )
-                          else
-                            ...provider.exercises.map(
-                              (ex) => _ExerciseRow(
-                                exercise: ex,
-                                onToggle: () => provider.toggleExercise(ex.id),
-                              ),
-                            ),
-                          const SizedBox(height: 22),
-                          const Text(
-                            'Logged sessions',
-                            style: TextStyle(
-                              fontFamily: 'Caveat',
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: NotebookColors.ink,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          if (provider.completions.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                              child: Text(
-                                'No sessions logged for this routine yet.',
-                                style: TextStyle(fontFamily: 'Caveat', fontSize: 19, color: NotebookColors.inkSoft),
-                              ),
-                            )
-                          else
-                            ...provider.completions.map(
-                              (c) => _CompletionRow(
-                                completion: c,
-                                onDelete: () => provider.deleteCompletion(c.id),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                  if (routine != null && routine.isStarted)
+                    _WorkoutBar(provider: provider, onFinish: _finish),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -187,60 +203,70 @@ class _RoutineScreenState extends State<RoutineScreen> {
   }
 }
 
-class _PlayerControls extends StatelessWidget {
-  const _PlayerControls({required this.provider, required this.onFinish});
+/// Sticky bar shown during an active workout: pulsing dot, live elapsed
+/// clock, pause/resume, and a prominent Finish — reachable one-handed,
+/// unlike header controls.
+class _WorkoutBar extends StatelessWidget {
+  const _WorkoutBar({required this.provider, required this.onFinish});
 
   final RoutineDetailProvider provider;
   final VoidCallback onFinish;
 
   @override
   Widget build(BuildContext context) {
-    final routine = provider.routine!;
-    if (!routine.isStarted) {
-      return Row(
+    final paused = provider.routine!.isPaused;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: NotebookColors.paper,
+        border: Border.all(color: NotebookColors.ink, width: 2),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(5),
+          topRight: Radius.circular(7),
+          bottomRight: Radius.circular(6),
+          bottomLeft: Radius.circular(5),
+        ),
+        boxShadow: const [
+          BoxShadow(color: NotebookColors.shadow, blurRadius: 8, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
         children: [
-          PlayerButton(
-            icon: Icons.play_arrow,
-            tooltip: 'Start workout',
-            onPressed: provider.startWorkout,
+          if (!paused) const _PulsingDot(),
+          if (!paused) const SizedBox(width: 8),
+          Text(
+            paused ? 'paused' : formatClock(provider.liveElapsedSeconds),
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              fontStyle: paused ? FontStyle.italic : FontStyle.normal,
+              color: paused ? NotebookColors.inkSoft : NotebookColors.ink,
+            ),
           ),
+          const Spacer(),
+          PlayerButton(
+            icon: paused ? Icons.play_arrow : Icons.pause,
+            tooltip: paused ? 'Resume' : 'Pause',
+            onPressed: paused ? provider.resumeWorkout : provider.pauseWorkout,
+          ),
+          const SizedBox(width: 10),
+          PenButtonFilled(label: 'Finish', onPressed: onFinish),
         ],
-      );
-    }
-    if (routine.isPaused) {
-      return Row(
-        children: [
-          const _PulsingLabel(text: 'paused', icon: Icons.pause),
-          const SizedBox(width: 8),
-          PlayerButton(icon: Icons.play_arrow, tooltip: 'Resume', onPressed: provider.resumeWorkout),
-          const SizedBox(width: 6),
-          PlayerButton(icon: Icons.stop, tooltip: 'Finish workout', soft: true, onPressed: onFinish),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        _PulsingLabel(text: 'started at ${formatStartedAt(routine.startedAt!)}'),
-        const SizedBox(width: 8),
-        PlayerButton(icon: Icons.pause, tooltip: 'Pause', onPressed: provider.pauseWorkout),
-        const SizedBox(width: 6),
-        PlayerButton(icon: Icons.stop, tooltip: 'Finish workout', soft: true, onPressed: onFinish),
-      ],
+      ),
     );
   }
 }
 
-class _PulsingLabel extends StatefulWidget {
-  const _PulsingLabel({required this.text, this.icon});
-
-  final String text;
-  final IconData? icon;
+class _PulsingDot extends StatefulWidget {
+  const _PulsingDot();
 
   @override
-  State<_PulsingLabel> createState() => _PulsingLabelState();
+  State<_PulsingDot> createState() => _PulsingDotState();
 }
 
-class _PulsingLabelState extends State<_PulsingLabel> with SingleTickerProviderStateMixin {
+class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1400),
@@ -254,34 +280,15 @@ class _PulsingLabelState extends State<_PulsingLabel> with SingleTickerProviderS
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Row(
-        children: [
-          FadeTransition(
-            opacity: Tween(begin: 1.0, end: 0.3).animate(_controller),
-            child: widget.icon != null
-                ? Icon(widget.icon, size: 12, color: NotebookColors.inkSoft)
-                : const Icon(Icons.fiber_manual_record, size: 10, color: NotebookColors.ink),
-          ),
-          const SizedBox(width: 5),
-          Flexible(
-            child: Text(
-              widget.text,
-              style: const TextStyle(
-                fontFamily: 'Caveat',
-                fontSize: 17,
-                fontStyle: FontStyle.italic,
-                color: NotebookColors.inkSoft,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+    return FadeTransition(
+      opacity: Tween(begin: 1.0, end: 0.3).animate(_controller),
+      child: const Icon(Icons.fiber_manual_record, size: 10, color: NotebookColors.ink),
     );
   }
 }
 
+/// An exercise line: hand-drawn ink checkbox that gets a ✓ scribble,
+/// name struck through when done. The whole line is the tap target.
 class _ExerciseRow extends StatelessWidget {
   const _ExerciseRow({required this.exercise, required this.onToggle});
 
@@ -290,20 +297,72 @@ class _ExerciseRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onToggle,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Text(
-          exercise.name,
-          style: TextStyle(
-            fontFamily: 'Caveat',
-            fontSize: 21,
-            color: exercise.isDone ? NotebookColors.inkSoft : NotebookColors.ink,
-            decoration: exercise.isDone ? TextDecoration.lineThrough : null,
-          ),
+    return SizedBox(
+      height: kNotebookLine,
+      child: InkWell(
+        onTap: onToggle,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: _InkCheckbox(checked: exercise.isDone),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  exercise.name,
+                  style: TextStyle(
+                    fontFamily: 'Caveat',
+                    fontSize: 20,
+                    color: exercise.isDone ? NotebookColors.inkSoft : NotebookColors.ink,
+                    decoration: exercise.isDone ? TextDecoration.lineThrough : null,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _InkCheckbox extends StatelessWidget {
+  const _InkCheckbox({required this.checked});
+
+  final bool checked;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        border: Border.all(color: NotebookColors.ink, width: 2),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(3),
+          topRight: Radius.circular(5),
+          bottomRight: Radius.circular(4),
+          bottomLeft: Radius.circular(4),
+        ),
+      ),
+      child: checked
+          ? const Center(
+              child: Text(
+                '✓',
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1,
+                  fontWeight: FontWeight.w700,
+                  color: NotebookColors.ink,
+                ),
+              ),
+            )
+          : null,
     );
   }
 }
@@ -316,29 +375,39 @@ class _CompletionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+    return SizedBox(
+      height: kNotebookLine,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(fontFamily: 'Caveat', fontSize: 17, color: NotebookColors.ink),
-                children: [
-                  TextSpan(text: formatCompletionDt(completion.completedOn)),
-                  if (completion.durationMinutes != null && completion.durationMinutes! >= 0)
-                    TextSpan(
-                      text: '  (${formatDurationMinutes(completion.durationMinutes!)})',
-                      style: const TextStyle(color: NotebookColors.inkSoft),
-                    ),
-                ],
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Text.rich(
+                TextSpan(
+                  style: const TextStyle(
+                    fontFamily: 'Caveat',
+                    fontSize: 18,
+                    color: NotebookColors.ink,
+                  ),
+                  children: [
+                    TextSpan(text: formatCompletionDt(completion.completedOn)),
+                    if (completion.durationMinutes != null && completion.durationMinutes! >= 0)
+                      TextSpan(
+                        text: '  (${formatDurationMinutes(completion.durationMinutes!)})',
+                        style: const TextStyle(color: NotebookColors.inkSoft),
+                      ),
+                  ],
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.close, color: NotebookColors.inkSoft, size: 20),
-            tooltip: 'Remove session',
-            onPressed: onDelete,
+          GlyphButton(
+            glyph: '×',
+            size: 24,
+            semanticLabel: 'Remove session',
+            onTap: onDelete,
           ),
         ],
       ),

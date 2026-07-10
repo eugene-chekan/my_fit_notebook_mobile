@@ -60,6 +60,22 @@ class RoutineDetailProvider extends ChangeNotifier {
   int get elapsedSeconds => routine == null ? 0 : WorkoutService.calculateDurationSeconds(routine!);
   int get pausedSeconds => routine == null ? 0 : WorkoutService.calculatePausedSeconds(routine!);
 
+  /// Net active seconds right now, for the live workout clock. Unlike
+  /// [elapsedSeconds] (which mirrors the web app's minute-truncated math),
+  /// this keeps second precision so the timer visibly ticks.
+  int get liveElapsedSeconds {
+    final r = routine;
+    final startedAt = r?.startedAt;
+    if (r == null || startedAt == null) return 0;
+    try {
+      final total = DateTime.now().difference(DateTime.parse(startedAt)).inSeconds;
+      final net = total - WorkoutService.calculatePausedSeconds(r);
+      return net < 0 ? 0 : net;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   Future<void> startWorkout() async {
     await _workoutService.startWorkout(routineId);
     await load();

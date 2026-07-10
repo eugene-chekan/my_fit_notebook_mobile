@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../state/calendar_provider.dart';
 import '../theme/notebook_theme.dart';
+import '../utils/formatters.dart';
+import '../widgets/glyph_button.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 
@@ -29,6 +31,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   @override
+  void dispose() {
+    _provider.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _provider,
@@ -45,95 +53,93 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    NotebookHeader(
-                      title: 'Calendar',
-                      leading: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: NotebookColors.inkSoft),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.chevron_left, color: NotebookColors.inkSoft),
-                          onPressed: provider.previousMonth,
-                        ),
-                        Text(
-                          '${_monthNames[provider.month - 1]} ${provider.year}',
-                          style: const TextStyle(
-                            fontFamily: 'Caveat',
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: NotebookColors.ink,
+                    const BackLine(label: '← back to notebook'),
+                    const NotebookHeader(title: 'Calendar'),
+                    SizedBox(
+                      height: kNotebookLine + 8,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          GlyphButton(
+                            glyph: '←',
+                            size: 22,
+                            semanticLabel: 'Previous month',
+                            onTap: provider.previousMonth,
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.chevron_right, color: NotebookColors.inkSoft),
-                          onPressed: provider.nextMonth,
-                        ),
-                      ],
-                    ),
-                    if (provider.loading)
-                      const Expanded(child: Center(child: CircularProgressIndicator()))
-                    else
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Row(
-                              children: _dayNames
-                                  .map(
-                                    (d) => Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          d,
-                                          style: const TextStyle(
-                                            fontFamily: 'Caveat',
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.w700,
-                                            color: NotebookColors.inkSoft,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                            const SizedBox(height: 4),
-                            Expanded(
-                              child: GridView.builder(
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 7,
-                                  mainAxisSpacing: 2,
-                                  crossAxisSpacing: 2,
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.bottomCenter,
+                              padding: const EdgeInsets.only(bottom: 3),
+                              child: Text(
+                                '${_monthNames[provider.month - 1]} ${provider.year}',
+                                style: const TextStyle(
+                                  fontFamily: 'Caveat',
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                  color: NotebookColors.ink,
                                 ),
-                                itemCount: startOffset + daysInMonth,
-                                itemBuilder: (context, index) {
-                                  if (index < startOffset) return const SizedBox.shrink();
-                                  final day = index - startOffset + 1;
-                                  final date = DateTime(provider.year, provider.month, day);
-                                  final iso =
-                                      '${date.year.toString().padLeft(4, '0')}-'
-                                      '${date.month.toString().padLeft(2, '0')}-'
-                                      '${date.day.toString().padLeft(2, '0')}';
-                                  final names = provider.routinesByDate[iso];
-                                  final isToday = date.year == today.year &&
-                                      date.month == today.month &&
-                                      date.day == today.day;
-                                  return _DayCell(
-                                    day: day,
-                                    isToday: isToday,
-                                    trained: names != null,
-                                    onTap: names == null
-                                        ? null
-                                        : () => _showRoutines(context, iso, names),
-                                  );
-                                },
                               ),
                             ),
-                          ],
+                          ),
+                          GlyphButton(
+                            glyph: '→',
+                            size: 22,
+                            semanticLabel: 'Next month',
+                            onTap: provider.nextMonth,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: _dayNames
+                          .map(
+                            (d) => Expanded(
+                              child: Center(
+                                child: Text(
+                                  d,
+                                  style: const TextStyle(
+                                    fontFamily: 'Caveat',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: NotebookColors.inkSoft,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: 4),
+                    if (!provider.loading)
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 7,
+                          mainAxisSpacing: 3,
+                          crossAxisSpacing: 3,
                         ),
+                        itemCount: startOffset + daysInMonth,
+                        itemBuilder: (context, index) {
+                          if (index < startOffset) return const SizedBox.shrink();
+                          final day = index - startOffset + 1;
+                          final date = DateTime(provider.year, provider.month, day);
+                          final iso =
+                              '${date.year.toString().padLeft(4, '0')}-'
+                              '${date.month.toString().padLeft(2, '0')}-'
+                              '${date.day.toString().padLeft(2, '0')}';
+                          final names = provider.routinesByDate[iso];
+                          final isToday = date.year == today.year &&
+                              date.month == today.month &&
+                              date.day == today.day;
+                          return _DayCell(
+                            day: day,
+                            isToday: isToday,
+                            trained: names != null,
+                            onTap: names == null ? null : () => _showRoutines(context, iso, names),
+                          );
+                        },
                       ),
                   ],
                 );
@@ -150,21 +156,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: NotebookColors.paper,
+      shape: const RoundedRectangleBorder(
+        side: BorderSide(color: NotebookColors.ink, width: 2),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+      ),
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              iso,
-              style: const TextStyle(fontFamily: 'Caveat', fontSize: 22, fontWeight: FontWeight.w700),
+              formatCompletionDt(iso),
+              style: const TextStyle(
+                fontFamily: 'Caveat',
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: NotebookColors.ink,
+              ),
             ),
             const SizedBox(height: 8),
             for (final name in unique)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(name, style: const TextStyle(fontFamily: 'Caveat', fontSize: 20)),
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontFamily: 'Caveat',
+                    fontSize: 20,
+                    color: NotebookColors.ink,
+                  ),
+                ),
               ),
           ],
         ),
@@ -193,11 +215,11 @@ class _DayCell extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: trained ? NotebookColors.trainedFill : Colors.white.withValues(alpha: 0.12),
-          border: Border.all(color: NotebookColors.ink, width: 2),
+          border: Border.all(
+            color: isToday ? NotebookColors.inkSoft : NotebookColors.ink,
+            width: isToday ? 3 : 2,
+          ),
           borderRadius: BorderRadius.circular(4),
-          boxShadow: isToday
-              ? [const BoxShadow(color: NotebookColors.inkSoft, blurRadius: 0, spreadRadius: -2)]
-              : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -206,7 +228,7 @@ class _DayCell extends StatelessWidget {
               '$day',
               style: TextStyle(
                 fontFamily: 'Caveat',
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: isToday ? FontWeight.w700 : FontWeight.w600,
                 color: NotebookColors.ink,
               ),

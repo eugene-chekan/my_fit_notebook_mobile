@@ -44,4 +44,26 @@ String formatDuration(int seconds) {
   return '${hours}h ${mins}m ${secs}s';
 }
 
+/// "Friday, July 10, 2026" — the handwritten date in the page header,
+/// mirroring inject_notebook_date in the Flask app's app.py.
+String notebookDateLabel(DateTime d) {
+  const weekdays = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+  ];
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}, ${d.year}';
+}
+
+/// Live workout clock: "mm:ss", growing to "h:mm:ss" past an hour.
+String formatClock(int seconds) {
+  final h = seconds ~/ 3600;
+  final m = (seconds % 3600) ~/ 60;
+  final s = seconds % 60;
+  if (h > 0) return '$h:${_pad2(m)}:${_pad2(s)}';
+  return '${_pad2(m)}:${_pad2(s)}';
+}
+
 String _pad2(int n) => n.toString().padLeft(2, '0');

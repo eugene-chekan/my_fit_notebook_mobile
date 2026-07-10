@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../data/models/exercise.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
+import '../widgets/glyph_button.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
+import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
 
 class ManageRoutineScreen extends StatefulWidget {
@@ -44,6 +46,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _newExerciseController.dispose();
+    _provider.dispose();
     super.dispose();
   }
 
@@ -57,41 +60,86 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     if (name.trim().isEmpty) return;
     await _provider.addExercise(name);
     _newExerciseController.clear();
-    if (mounted) FocusScope.of(context).unfocus();
   }
 
   Future<void> _confirmDeleteRoutine() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete this routine?'),
-        content: const Text('This removes the routine, its exercises, and its session logs.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
-        ],
-      ),
+    final confirmed = await showPaperConfirm(
+      context,
+      title: 'Delete this routine?',
+      message: 'This removes the routine, its exercises, and its session log.',
     );
-    if (confirmed == true) {
+    if (confirmed) {
       await _provider.deleteRoutine();
-      if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
     }
+  }
+
+  Future<void> _confirmDeleteExercise(Exercise exercise) async {
+    final confirmed = await showPaperConfirm(
+      context,
+      title: 'Remove "${exercise.name}"?',
+      message: 'Remove this exercise from the routine?',
+      confirmLabel: 'Remove',
+    );
+    if (confirmed) await _provider.deleteExercise(exercise.id);
   }
 
   Future<void> _renameExercise(Exercise exercise) async {
     final controller = TextEditingController(text: exercise.name);
-    final name = await showDialog<String>(
+    final name = await showPaperDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename exercise'),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Save'),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Rename exercise',
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: NotebookColors.ink,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            maxLength: 200,
+            cursorColor: NotebookColors.ink,
+            style: const TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 20,
+              color: NotebookColors.ink,
+            ),
+            decoration: const InputDecoration(
+              isDense: true,
+              counterText: '',
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: NotebookColors.ink),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+              ),
+            ),
+            onSubmitted: (value) => Navigator.pop(context, value),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              PenButton(
+                label: 'Cancel',
+                small: true,
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(width: 8),
+              PenButton(
+                label: 'Save',
+                small: true,
+                onPressed: () => Navigator.pop(context, controller.text),
+              ),
+            ],
           ),
         ],
       ),
@@ -110,121 +158,72 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
           child: NotebookPage(
             child: Consumer<RoutineDetailProvider>(
               builder: (context, provider, _) {
-                if (provider.loading || provider.routine == null) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                if (provider.routine == null) return const SizedBox.shrink();
                 _syncFieldsOnce();
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    NotebookHeader(
-                      title: 'Manage routine',
-                      leading: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: NotebookColors.inkSoft),
-                        onPressed: () => Navigator.of(context).pop(),
+                    const BackLine(),
+                    const NotebookHeader(title: 'Manage routine'),
+                    const SizedBox(height: 8),
+                    const HeadingLine('Routine details'),
+                    _fieldLabel('Name'),
+                    TextField(
+                      controller: _nameController,
+                      maxLength: 200,
+                      cursorColor: NotebookColors.ink,
+                      style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
+                      decoration: _underlineDecoration(),
+                    ),
+                    const SizedBox(height: 10),
+                    _fieldLabel('Description'),
+                    TextField(
+                      controller: _descriptionController,
+                      maxLength: 1000,
+                      maxLines: 3,
+                      cursorColor: NotebookColors.ink,
+                      style: const TextStyle(fontFamily: 'Caveat', fontSize: 18),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        hintText: "What's this routine for?",
+                        hintStyle: const TextStyle(
+                          fontFamily: 'Caveat',
+                          color: NotebookColors.inkSoft,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: NotebookColors.inkSoft, width: 1.5),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: NotebookColors.ink, width: 2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                       ),
                     ),
-                    Expanded(
-                      child: ListView(
-                        children: [
-                          const SizedBox(height: 12),
-                          const _SectionTitle('Routine details'),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Name',
-                            style: TextStyle(fontFamily: 'Caveat', fontSize: 18, fontStyle: FontStyle.italic, color: NotebookColors.inkSoft),
-                          ),
-                          TextField(
-                            controller: _nameController,
-                            maxLength: 200,
-                            style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
-                            decoration: const InputDecoration(
-                              counterText: '',
-                              border: UnderlineInputBorder(borderSide: BorderSide(color: NotebookColors.ink)),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Description',
-                            style: TextStyle(fontFamily: 'Caveat', fontSize: 18, fontStyle: FontStyle.italic, color: NotebookColors.inkSoft),
-                          ),
-                          TextField(
-                            controller: _descriptionController,
-                            maxLength: 1000,
-                            maxLines: 3,
-                            style: const TextStyle(fontFamily: 'Caveat', fontSize: 18),
-                            decoration: const InputDecoration(
-                              hintText: "What's this routine for?",
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: PenButton(label: 'Save details', onPressed: _saveDetails),
-                          ),
-                          const SizedBox(height: 22),
-                          Row(
-                            children: [
-                              const Expanded(child: _SectionTitle('Exercises')),
-                              const Icon(Icons.drag_indicator, size: 16, color: NotebookColors.inkSoft),
-                              const SizedBox(width: 2),
-                              const Text(
-                                'drag to reorder',
-                                style: TextStyle(fontFamily: 'Caveat', fontSize: 15, color: NotebookColors.inkSoft),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _newExerciseController,
-                                  maxLength: 200,
-                                  style: const TextStyle(fontFamily: 'Caveat', fontSize: 19),
-                                  decoration: const InputDecoration(
-                                    hintText: 'Name…',
-                                    isDense: true,
-                                    counterText: '',
-                                    border: UnderlineInputBorder(borderSide: BorderSide(color: NotebookColors.ink)),
-                                  ),
-                                  onSubmitted: (_) => _addExercise(),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.check, color: NotebookColors.ink),
-                                tooltip: 'Add',
-                                onPressed: _addExercise,
-                              ),
-                            ],
-                          ),
-                          if (provider.exercises.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 6),
-                              child: Text(
-                                'No exercises yet — add one above.',
-                                style: TextStyle(fontFamily: 'Caveat', fontSize: 19, color: NotebookColors.inkSoft),
-                              ),
-                            )
-                          else
-                            _ReorderableExerciseList(
-                              exercises: provider.exercises,
-                              onReorder: (ids) => provider.reorderExercises(ids),
-                              onRename: _renameExercise,
-                              onDelete: (id) => provider.deleteExercise(id),
-                            ),
-                          const SizedBox(height: 28),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: PenButton(
-                              label: 'Delete routine',
-                              danger: true,
-                              onPressed: _confirmDeleteRoutine,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: PenButton(label: 'Save details', onPressed: _saveDetails),
+                    ),
+                    const SizedBox(height: 16),
+                    const HeadingLine('Exercises'),
+                    _addExerciseRow(),
+                    if (provider.exercises.isEmpty)
+                      const MutedLine('No exercises yet — add one above.')
+                    else
+                      _ReorderableExerciseList(
+                        exercises: provider.exercises,
+                        onReorder: (ids) => provider.reorderExercises(ids),
+                        onRename: _renameExercise,
+                        onDelete: _confirmDeleteExercise,
+                      ),
+                    const SizedBox(height: 28),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: PenButton(
+                        label: 'Delete routine',
+                        danger: true,
+                        onPressed: _confirmDeleteRoutine,
                       ),
                     ),
                   ],
@@ -236,22 +235,75 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       ),
     );
   }
-}
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+  Widget _fieldLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontFamily: 'Caveat',
+          fontSize: 17,
+          fontStyle: FontStyle.italic,
+          color: NotebookColors.inkSoft,
+        ),
+      ),
+    );
+  }
 
-  final String text;
+  InputDecoration _underlineDecoration() {
+    return const InputDecoration(
+      isDense: true,
+      counterText: '',
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: NotebookColors.ink),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontFamily: 'Caveat',
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        color: NotebookColors.ink,
+  Widget _addExerciseRow() {
+    return SizedBox(
+      height: kNotebookLine,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: TextField(
+                controller: _newExerciseController,
+                maxLength: 200,
+                cursorColor: NotebookColors.ink,
+                style: const TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 19,
+                  color: NotebookColors.ink,
+                ),
+                decoration: const InputDecoration(
+                  isCollapsed: true,
+                  counterText: '',
+                  hintText: '+ add an exercise…',
+                  hintStyle: TextStyle(
+                    fontFamily: 'Caveat',
+                    fontSize: 19,
+                    color: NotebookColors.inkSoft,
+                  ),
+                  border: InputBorder.none,
+                ),
+                onSubmitted: (_) => _addExercise(),
+              ),
+            ),
+          ),
+          GlyphButton(
+            glyph: '✓',
+            color: NotebookColors.ink,
+            semanticLabel: 'Add exercise',
+            onTap: _addExercise,
+          ),
+        ],
       ),
     );
   }
@@ -268,7 +320,7 @@ class _ReorderableExerciseList extends StatelessWidget {
   final List<Exercise> exercises;
   final void Function(List<int> orderedIds) onReorder;
   final void Function(Exercise exercise) onRename;
-  final void Function(int exerciseId) onDelete;
+  final void Function(Exercise exercise) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -284,26 +336,43 @@ class _ReorderableExerciseList extends StatelessWidget {
       },
       itemBuilder: (context, index) {
         final ex = exercises[index];
-        return Padding(
+        return SizedBox(
           key: ValueKey(ex.id),
-          padding: const EdgeInsets.symmetric(vertical: 1),
+          height: kNotebookLine,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Icon(Icons.drag_handle, size: 18, color: NotebookColors.inkSoft),
-              const SizedBox(width: 4),
-              Expanded(
+              const Padding(
+                padding: EdgeInsets.only(bottom: 5, right: 8),
                 child: Text(
-                  ex.name,
-                  style: const TextStyle(fontFamily: 'Caveat', fontSize: 20, color: NotebookColors.ink),
+                  '≡',
+                  style: TextStyle(fontSize: 18, height: 1, color: NotebookColors.inkSoft),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.edit, size: 18, color: NotebookColors.inkSoft),
-                onPressed: () => onRename(ex),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    ex.name,
+                    style: const TextStyle(
+                      fontFamily: 'Caveat',
+                      fontSize: 20,
+                      color: NotebookColors.ink,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
-              IconButton(
-                icon: const Icon(Icons.close, color: NotebookColors.inkSoft),
-                onPressed: () => onDelete(ex.id),
+              GlyphButton(
+                glyph: '✐',
+                semanticLabel: 'Rename ${ex.name}',
+                onTap: () => onRename(ex),
+              ),
+              GlyphButton(
+                glyph: '×',
+                size: 24,
+                semanticLabel: 'Remove ${ex.name}',
+                onTap: () => onDelete(ex),
               ),
             ],
           ),
