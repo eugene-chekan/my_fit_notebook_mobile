@@ -1,12 +1,21 @@
-# my_fit_notebook_mobile
+# My Fit Notebook — Mobile
 
-A new Flutter project.
+A local-first Flutter companion app for [my_fit_notebook](https://github.com/eugene-chekan/my_fit_notebook),
+built to work offline (no server required) and, eventually, sync with the
+self-hosted web app.
 
-## Getting Started
+## Learning Flutter alongside this codebase
 
-This project is a starting point for a Flutter application.
+New to Flutter/Dart? [`docs/`](docs/README.md) is a small course written
+against this exact codebase — each concept doc points straight at the real
+file that uses it, instead of a generic example.
 
-A few resources to get you started if this is your first Flutter project:
+## Getting started
+
+```bash
+flutter pub get
+flutter run
+```
 
 - [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
 - [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
