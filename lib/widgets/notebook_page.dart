@@ -9,8 +9,8 @@ const double kNotebookLine = 36.0;
 /// X position of the vertical margin rule. Page content starts right of it.
 const double _marginRuleX = 34.0;
 
-class _RuledPaperPainter extends CustomPainter {
-  const _RuledPaperPainter();
+class RuledPaperPainter extends CustomPainter {
+  const RuledPaperPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -34,7 +34,7 @@ class _RuledPaperPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RuledPaperPainter oldDelegate) => false;
+  bool shouldRepaint(covariant RuledPaperPainter oldDelegate) => false;
 }
 
 /// A full-bleed page of ruled notebook paper with a left margin rule — no
@@ -55,7 +55,7 @@ class NotebookPage extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: CustomPaint(
-            painter: const _RuledPaperPainter(),
+            painter: const RuledPaperPainter(),
             child: Padding(
               padding: padding ?? const EdgeInsets.fromLTRB(44, 4, 18, 28),
               child: child,

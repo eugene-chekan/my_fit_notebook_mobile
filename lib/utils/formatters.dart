@@ -57,6 +57,22 @@ String notebookDateLabel(DateTime d) {
   return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}, ${d.year}';
 }
 
+/// Whole years since a yyyy-MM-dd birth date; null when unset/malformed.
+int? ageFromBirthDate(String? birthIso) {
+  if (birthIso == null) return null;
+  try {
+    final birth = DateTime.parse(birthIso);
+    final now = DateTime.now();
+    var age = now.year - birth.year;
+    if (now.month < birth.month || (now.month == birth.month && now.day < birth.day)) {
+      age--;
+    }
+    return age < 0 ? null : age;
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Live workout clock: "mm:ss", growing to "h:mm:ss" past an hour.
 String formatClock(int seconds) {
   final h = seconds ~/ 3600;

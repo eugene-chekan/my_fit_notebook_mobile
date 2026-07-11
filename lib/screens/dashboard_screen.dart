@@ -13,6 +13,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import 'manage_routine_screen.dart';
+import 'profile_screen.dart';
 import 'routine_screen.dart';
 
 /// The main screen: two side-by-side notebook pages you swipe between —
@@ -29,6 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late final RoutinesProvider _routinesProvider;
   late final DashboardProvider _dashboardProvider;
   late final CalendarProvider _calendarProvider;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _pageController = PageController();
   final _nameController = TextEditingController();
   bool _adding = false;
@@ -74,6 +76,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _reloadAll();
   }
 
+  Future<void> _openProfile() async {
+    _scaffoldKey.currentState?.closeDrawer();
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+    );
+  }
+
+  Widget _menuButton() {
+    return GlyphButton(
+      glyph: '≡',
+      size: 26,
+      semanticLabel: 'Menu',
+      onTap: () => _scaffoldKey.currentState?.openDrawer(),
+    );
+  }
+
   Future<void> _confirmDelete(Routine routine) async {
     final confirmed = await showPaperConfirm(
       context,
@@ -115,6 +133,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ChangeNotifierProvider.value(value: _calendarProvider),
       ],
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: _NotebookDrawer(onProfile: _openProfile),
         body: SafeArea(
           child: Column(
             children: [
@@ -143,7 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const NotebookHeader(title: 'My fit notebook'),
+          NotebookHeader(title: 'My fit notebook', leading: _menuButton()),
           Container(
             height: kNotebookLine,
             alignment: Alignment.bottomRight,
@@ -214,7 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const NotebookHeader(title: 'Routines'),
+          NotebookHeader(title: 'Routines', leading: _menuButton()),
           Consumer<RoutinesProvider>(
             builder: (context, provider, _) {
               if (provider.loading) return const SizedBox.shrink();
@@ -384,6 +404,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// The side menu, styled as a narrower sheet of the same ruled paper.
+/// Currently just Profile; future secondary screens slot in as more lines.
+class _NotebookDrawer extends StatelessWidget {
+  const _NotebookDrawer({required this.onProfile});
+
+  final VoidCallback onProfile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: NotebookColors.paper,
+      shape: const RoundedRectangleBorder(
+        side: BorderSide(color: NotebookColors.ink, width: 2),
+      ),
+      child: CustomPaint(
+        painter: const RuledPaperPainter(),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(44, 4, 18, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  height: 2 * kNotebookLine,
+                  alignment: Alignment.bottomLeft,
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: NotebookColors.ink, width: 2),
+                    ),
+                  ),
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: const Text(
+                    'My fit notebook',
+                    style: TextStyle(
+                      fontFamily: 'Caveat',
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: NotebookColors.ink,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: kNotebookLine,
+                  child: InkWell(
+                    onTap: onProfile,
+                    child: Container(
+                      alignment: Alignment.bottomLeft,
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: const Text(
+                        'Profile',
+                        style: TextStyle(
+                          fontFamily: 'Caveat',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: NotebookColors.ink,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
