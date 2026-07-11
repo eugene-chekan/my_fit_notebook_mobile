@@ -123,10 +123,14 @@ class _RoutineScreenState extends State<RoutineScreen> {
           child: Consumer<RoutineDetailProvider>(
             builder: (context, provider, _) {
               final routine = provider.routine;
-              return Column(
+              final active = routine != null && routine.isStarted;
+              return Stack(
                 children: [
-                  Expanded(
+                  Positioned.fill(
                     child: NotebookPage(
+                      // Leave room at the bottom for the overlapping workout
+                      // strip so the last logged session isn't hidden.
+                      padding: EdgeInsets.fromLTRB(44, 4, 18, active ? 104 : 28),
                       child: routine == null
                           ? const SizedBox.shrink()
                           : Column(
@@ -191,8 +195,13 @@ class _RoutineScreenState extends State<RoutineScreen> {
                             ),
                     ),
                   ),
-                  if (routine != null && routine.isStarted)
-                    _WorkoutBar(provider: provider, onFinish: _finish),
+                  if (active)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: _WorkoutStrip(provider: provider, onFinish: _finish),
+                    ),
                 ],
               );
             },
@@ -203,11 +212,27 @@ class _RoutineScreenState extends State<RoutineScreen> {
   }
 }
 
-/// Sticky bar shown during an active workout: pulsing dot, live elapsed
-/// clock, pause/resume, and a prominent Finish — reachable one-handed,
-/// unlike header controls.
-class _WorkoutBar extends StatelessWidget {
-  const _WorkoutBar({required this.provider, required this.onFinish});
+/// A strip of paper laid over the bottom of the page during an active
+/// workout: pulsing dot, live elapsed clock, pause/resume, and a prominent
+/// Finish. It sits slightly askew with a shadow above so it reads as a
+/// separate torn sheet overlapping the notebook page, not a docked toolbar.
+class _WorkoutStrip extends StatelessWidget {
+  const _WorkoutStrip({required this.provider, required this.onFinish});
+
+  final RoutineDetailProvider provider;
+  final VoidCallback onFinish;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: -0.006, // barely askew, as if hand-placed
+      child: _WorkoutStripBody(provider: provider, onFinish: onFinish),
+    );
+  }
+}
+
+class _WorkoutStripBody extends StatelessWidget {
+  const _WorkoutStripBody({required this.provider, required this.onFinish});
 
   final RoutineDetailProvider provider;
   final VoidCallback onFinish;
@@ -216,19 +241,21 @@ class _WorkoutBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final paused = provider.routine!.isPaused;
     return Container(
-      margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      // The tiny askew rotation only exposes paper-colored corners against
+      // the (now paper) background, so no over-wide compensation is needed.
+      padding: const EdgeInsets.fromLTRB(20, 12, 16, 16),
       decoration: BoxDecoration(
         color: NotebookColors.paper,
-        border: Border.all(color: NotebookColors.ink, width: 2),
+        border: const Border(
+          top: BorderSide(color: NotebookColors.ink, width: 2),
+        ),
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(5),
-          topRight: Radius.circular(7),
-          bottomRight: Radius.circular(6),
-          bottomLeft: Radius.circular(5),
+          topLeft: Radius.circular(10),
+          topRight: Radius.circular(14),
         ),
         boxShadow: const [
-          BoxShadow(color: NotebookColors.shadow, blurRadius: 8, offset: Offset(0, 2)),
+          // Cast upward, onto the page, so the strip reads as sitting on top.
+          BoxShadow(color: NotebookColors.shadow, blurRadius: 12, offset: Offset(0, -4)),
         ],
       ),
       child: Row(

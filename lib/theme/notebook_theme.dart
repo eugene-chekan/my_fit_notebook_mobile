@@ -25,7 +25,7 @@ class NotebookTheme {
   static ThemeData get light {
     final base = ThemeData.light(useMaterial3: true);
     return base.copyWith(
-      scaffoldBackgroundColor: NotebookColors.desk,
+      scaffoldBackgroundColor: NotebookColors.paper,
       colorScheme: base.colorScheme.copyWith(
         primary: NotebookColors.ink,
         secondary: NotebookColors.inkSoft,

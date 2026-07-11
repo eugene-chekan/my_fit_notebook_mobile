@@ -37,11 +37,11 @@ class _RuledPaperPainter extends CustomPainter {
   bool shouldRepaint(covariant _RuledPaperPainter oldDelegate) => false;
 }
 
-/// A scrollable page of ruled notebook paper with an inked border and a
-/// left margin rule. The ruling is painted behind the scrolled *content*
-/// rather than the viewport, so lines move with the "writing" when you
-/// scroll — the same behavior as the CSS background on the web app's
-/// `.page`, which scrolls with the document.
+/// A full-bleed page of ruled notebook paper with a left margin rule — no
+/// frame or border, so the device screen *is* the page. The ruling is
+/// painted behind the scrolled *content* rather than the viewport, so
+/// lines move with the "writing" when you scroll, matching the CSS
+/// background on the web app's `.page`.
 class NotebookPage extends StatelessWidget {
   const NotebookPage({super.key, required this.child, this.padding});
 
@@ -50,38 +50,15 @@ class NotebookPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: NotebookColors.desk,
-      padding: const EdgeInsets.all(8),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: NotebookColors.ink, width: 2),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(2),
-            topRight: Radius.circular(3),
-            bottomRight: Radius.circular(4),
-            bottomLeft: Radius.circular(2),
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: NotebookColors.shadow,
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: CustomPaint(
-                painter: const _RuledPaperPainter(),
-                child: Padding(
-                  padding: padding ?? const EdgeInsets.fromLTRB(44, 0, 14, 28),
-                  child: child,
-                ),
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: CustomPaint(
+            painter: const _RuledPaperPainter(),
+            child: Padding(
+              padding: padding ?? const EdgeInsets.fromLTRB(44, 4, 18, 28),
+              child: child,
             ),
           ),
         ),
