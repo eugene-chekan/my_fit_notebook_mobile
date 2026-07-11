@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
+import '../state/calendar_provider.dart';
+import '../state/dashboard_provider.dart';
 import '../state/routines_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
 import '../widgets/glyph_button.dart';
+import '../widgets/month_calendar.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
-import 'calendar_screen.dart';
 import 'manage_routine_screen.dart';
 import 'routine_screen.dart';
 
+/// The main screen: two side-by-side notebook pages you swipe between —
+/// page 1 is the dashboard (week stats, streak, month calendar), page 2 is
+/// the routine list.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -21,21 +26,64 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late final RoutinesProvider _provider;
+  late final RoutinesProvider _routinesProvider;
+  late final DashboardProvider _dashboardProvider;
+  late final CalendarProvider _calendarProvider;
+  final _pageController = PageController();
   final _nameController = TextEditingController();
   bool _adding = false;
+  int _page = 0;
 
   @override
   void initState() {
     super.initState();
-    _provider = RoutinesProvider()..load();
+    _routinesProvider = RoutinesProvider()..load();
+    _dashboardProvider = DashboardProvider()..load();
+    _calendarProvider = CalendarProvider()..load();
   }
 
   @override
   void dispose() {
+    _pageController.dispose();
     _nameController.dispose();
-    _provider.dispose();
+    _routinesProvider.dispose();
+    _dashboardProvider.dispose();
+    _calendarProvider.dispose();
     super.dispose();
+  }
+
+  /// Everything on both pages derives from the completion log and routine
+  /// tables, so any return from a subscreen reloads all three providers.
+  void _reloadAll() {
+    _routinesProvider.load();
+    _dashboardProvider.load();
+    _calendarProvider.load();
+  }
+
+  Future<void> _openRoutine(Routine routine) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => RoutineScreen(routineId: routine.id)),
+    );
+    _reloadAll();
+  }
+
+  Future<void> _openManage(Routine routine) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ManageRoutineScreen(routineId: routine.id)),
+    );
+    _reloadAll();
+  }
+
+  Future<void> _confirmDelete(Routine routine) async {
+    final confirmed = await showPaperConfirm(
+      context,
+      title: 'Delete "${routine.name}"?',
+      message: 'This removes the routine, its exercises, and its session log.',
+    );
+    if (confirmed) {
+      await _routinesProvider.deleteRoutine(routine.id);
+      _reloadAll();
+    }
   }
 
   Future<void> _submitNewRoutine() async {
@@ -44,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() => _adding = false);
       return;
     }
-    await _provider.addRoutine(name);
+    await _routinesProvider.addRoutine(name);
     _nameController.clear();
     if (mounted) {
       setState(() => _adding = false);
@@ -58,78 +106,129 @@ class _DashboardScreenState extends State<DashboardScreen> {
     FocusScope.of(context).unfocus();
   }
 
-  Future<void> _openManage(Routine routine) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ManageRoutineScreen(routineId: routine.id)),
-    );
-    _provider.load();
-  }
-
-  Future<void> _confirmDelete(Routine routine) async {
-    final confirmed = await showPaperConfirm(
-      context,
-      title: 'Delete "${routine.name}"?',
-      message: 'This removes the routine, its exercises, and its session log.',
-    );
-    if (confirmed) await _provider.deleteRoutine(routine.id);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _provider,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: _routinesProvider),
+        ChangeNotifierProvider.value(value: _dashboardProvider),
+        ChangeNotifierProvider.value(value: _calendarProvider),
+      ],
       child: Scaffold(
         body: SafeArea(
-          child: NotebookPage(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const NotebookHeader(title: 'My fit notebook'),
-                _dateRow(context),
-                const HeadingLine('Routines'),
-                Consumer<RoutinesProvider>(
-                  builder: (context, provider, _) {
-                    if (provider.loading) return const SizedBox.shrink();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final routine in provider.routines)
-                          _routineRow(routine),
-                        _newRoutineRow(),
-                      ],
-                    );
-                  },
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (page) => setState(() => _page = page),
+                  children: [
+                    _dashboardPage(),
+                    _routinesPage(),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              _pageDots(),
+            ],
           ),
         ),
       ),
     );
   }
 
-  /// Handwritten date under the title — tapping it opens the calendar,
-  /// like the web header's date button.
-  Widget _dateRow(BuildContext context) {
-    return Container(
-      height: kNotebookLine,
-      alignment: Alignment.bottomRight,
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CalendarScreen()),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 3, left: 12),
-          child: Text(
-            notebookDateLabel(DateTime.now()),
-            style: const TextStyle(
-              fontFamily: 'Caveat',
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: NotebookColors.inkSoft,
+  // ── Page 1: dashboard ──
+
+  Widget _dashboardPage() {
+    return NotebookPage(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const NotebookHeader(title: 'My fit notebook'),
+          Container(
+            height: kNotebookLine,
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.only(bottom: 3),
+            child: Text(
+              notebookDateLabel(DateTime.now()),
+              style: const TextStyle(
+                fontFamily: 'Caveat',
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: NotebookColors.inkSoft,
+              ),
             ),
           ),
+          const HeadingLine('This week'),
+          Consumer<DashboardProvider>(
+            builder: (context, stats, _) {
+              if (stats.loading) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _statLine(
+                    stats.weekWorkouts == 0
+                        ? 'nothing logged yet — the page is blank'
+                        : '${stats.weekWorkouts} '
+                            '${stats.weekWorkouts == 1 ? 'workout' : 'workouts'}'
+                            '${stats.weekMinutes > 0 ? ' · ${formatDurationMinutes(stats.weekMinutes)}' : ''}',
+                    muted: stats.weekWorkouts == 0,
+                  ),
+                  if (stats.streakDays > 0)
+                    _statLine(
+                      '${stats.streakDays}-day streak — keep the ink flowing',
+                    ),
+                ],
+              );
+            },
+          ),
+          const HeadingLine('Training days'),
+          Consumer<CalendarProvider>(
+            builder: (context, calendar, _) => MonthCalendar(provider: calendar),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statLine(String text, {bool muted = false}) {
+    return Container(
+      height: kNotebookLine,
+      alignment: Alignment.bottomLeft,
+      padding: const EdgeInsets.only(bottom: 3),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Caveat',
+          fontSize: 20,
+          color: muted ? NotebookColors.inkSoft : NotebookColors.ink,
         ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  // ── Page 2: routines ──
+
+  Widget _routinesPage() {
+    return NotebookPage(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const NotebookHeader(title: 'Routines'),
+          Consumer<RoutinesProvider>(
+            builder: (context, provider, _) {
+              if (provider.loading) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 4),
+                  for (final routine in provider.routines) _routineRow(routine),
+                  _newRoutineRow(),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -142,9 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Expanded(
             child: InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => RoutineScreen(routineId: routine.id)),
-              ),
+              onTap: () => _openRoutine(routine),
               child: Container(
                 alignment: Alignment.bottomLeft,
                 padding: const EdgeInsets.only(bottom: 3),
@@ -188,8 +285,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// A faint "+ new routine…" line at the end of the list; tapping it turns
-  /// the line into an input, like starting a new entry on the page.
   Widget _newRoutineRow() {
     if (!_adding) {
       return SizedBox(
@@ -256,6 +351,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
             semanticLabel: 'Cancel',
             onTap: _cancelNewRoutine,
           ),
+        ],
+      ),
+    );
+  }
+
+  // ── Page indicator ──
+
+  Widget _pageDots() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (var i = 0; i < 2; i++)
+            GestureDetector(
+              onTap: () => _pageController.animateToPage(
+                i,
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOut,
+              ),
+              child: Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: i == _page
+                      ? NotebookColors.ink
+                      : NotebookColors.ink.withValues(alpha: 0.25),
+                ),
+              ),
+            ),
         ],
       ),
     );

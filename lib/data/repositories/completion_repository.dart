@@ -33,6 +33,28 @@ class CompletionRepository {
     return result;
   }
 
+  /// (workout count, total minutes) for completions on/after [fromIsoDate]
+  /// (yyyy-MM-dd) — backs the dashboard's "this week" stats.
+  Future<(int, int)> totalsSince(String fromIsoDate) async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+      'SELECT COUNT(*) AS c, COALESCE(SUM(duration_minutes), 0) AS m '
+      'FROM completions WHERE date(completed_on) >= ?',
+      [fromIsoDate],
+    );
+    return (rows.first['c'] as int, rows.first['m'] as int);
+  }
+
+  /// Every distinct trained date (yyyy-MM-dd), newest first — used for the
+  /// dashboard streak calculation.
+  Future<List<String>> distinctTrainedDates() async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+      'SELECT DISTINCT date(completed_on) AS d FROM completions ORDER BY d DESC',
+    );
+    return rows.map((r) => r['d'] as String).toList();
+  }
+
   Future<List<Completion>> listForRoutine(int routineId) async {
     final db = await _db;
     final rows = await db.rawQuery(

@@ -26,6 +26,27 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+
+      - name: Set up release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.jks
+            {
+              echo "storeFile=release.jks"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyPassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=$KEY_ALIAS"
+            } > android/key.properties
+            echo "Release keystore configured."
+          else
+            echo "No ANDROID_KEYSTORE_BASE64 secret — falling back to debug signing." >&2
+            echo "APKs from this build will NOT install over release-signed ones." >&2
+          fi
+
       - run: flutter build apk --release
 
       - uses: actions/upload-artifact@v4
