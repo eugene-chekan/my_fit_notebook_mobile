@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -130,7 +132,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                     child: NotebookPage(
                       // Leave room at the bottom for the overlapping workout
                       // strip so the last logged session isn't hidden.
-                      padding: EdgeInsets.fromLTRB(44, 4, 18, active ? 104 : 28),
+                      padding: EdgeInsets.fromLTRB(44, 4, 18, active ? 124 : 28),
                       child: routine == null
                           ? const SizedBox.shrink()
                           : Column(
@@ -196,10 +198,13 @@ class _RoutineScreenState extends State<RoutineScreen> {
                     ),
                   ),
                   if (active)
+                    // Over-wide and pushed past the bottom so the visible
+                    // tilt never exposes a gap at the screen edges; the
+                    // Stack clips the overflow.
                     Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                      left: -20,
+                      right: -20,
+                      bottom: -12,
                       child: _WorkoutStrip(provider: provider, onFinish: _finish),
                     ),
                 ],
@@ -212,10 +217,12 @@ class _RoutineScreenState extends State<RoutineScreen> {
   }
 }
 
-/// A strip of paper laid over the bottom of the page during an active
-/// workout: pulsing dot, live elapsed clock, pause/resume, and a prominent
-/// Finish. It sits slightly askew with a shadow above so it reads as a
-/// separate torn sheet overlapping the notebook page, not a docked toolbar.
+/// A torn strip of paper laid visibly askew over the bottom of the page
+/// during an active workout: pulsing dot, live elapsed clock, pause/resume,
+/// and a prominent Finish. The tear is a jagged path with its own painted
+/// shadow (a BoxShadow can't follow a clipped edge), on a slightly brighter
+/// paper tone so it reads as a separate sheet, and it carries one fragment
+/// of ruling from whatever page it was torn out of.
 class _WorkoutStrip extends StatelessWidget {
   const _WorkoutStrip({required this.provider, required this.onFinish});
 
@@ -224,41 +231,23 @@ class _WorkoutStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final paused = provider.routine!.isPaused;
     return Transform.rotate(
-      angle: -0.006, // barely askew, as if hand-placed
-      child: _WorkoutStripBody(provider: provider, onFinish: onFinish),
+      angle: -0.022, // ~1.3° — clearly hand-placed
+      child: CustomPaint(
+        painter: const _TornPaperPainter(),
+        child: Padding(
+          // Generous insets: the top clears the tear's jag band, the sides
+          // clear the off-screen bleed, the bottom clears the tilt.
+          padding: const EdgeInsets.fromLTRB(36, 28, 36, 24),
+          child: _stripContent(paused),
+        ),
+      ),
     );
   }
-}
 
-class _WorkoutStripBody extends StatelessWidget {
-  const _WorkoutStripBody({required this.provider, required this.onFinish});
-
-  final RoutineDetailProvider provider;
-  final VoidCallback onFinish;
-
-  @override
-  Widget build(BuildContext context) {
-    final paused = provider.routine!.isPaused;
-    return Container(
-      // The tiny askew rotation only exposes paper-colored corners against
-      // the (now paper) background, so no over-wide compensation is needed.
-      padding: const EdgeInsets.fromLTRB(20, 12, 16, 16),
-      decoration: BoxDecoration(
-        color: NotebookColors.paper,
-        border: const Border(
-          top: BorderSide(color: NotebookColors.ink, width: 2),
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(10),
-          topRight: Radius.circular(14),
-        ),
-        boxShadow: const [
-          // Cast upward, onto the page, so the strip reads as sitting on top.
-          BoxShadow(color: NotebookColors.shadow, blurRadius: 12, offset: Offset(0, -4)),
-        ],
-      ),
-      child: Row(
+  Widget _stripContent(bool paused) {
+    return Row(
         children: [
           if (!paused) const _PulsingDot(),
           if (!paused) const SizedBox(width: 8),
@@ -280,10 +269,55 @@ class _WorkoutStripBody extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           PenButtonFilled(label: 'Finish', onPressed: onFinish),
-        ],
-      ),
+      ],
     );
   }
+}
+
+/// Paints the torn strip: an upward shadow along the jagged tear, the strip
+/// fill in a slightly brighter paper tone, and one carried-over rule line.
+class _TornPaperPainter extends CustomPainter {
+  const _TornPaperPainter();
+
+  /// A touch brighter than the page so the strip reads as a separate sheet.
+  static const _stripPaper = Color(0xFFFDF9E9);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = _tornPath(size);
+    canvas.drawPath(
+      path.shift(const Offset(0, -5)),
+      Paint()
+        ..color = NotebookColors.shadow
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+    );
+    canvas.drawPath(path, Paint()..color = _stripPaper);
+
+    final linePaint = Paint()
+      ..color = NotebookColors.paperLine
+      ..strokeWidth = 1;
+    final y = size.height * 0.62;
+    canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+  }
+
+  /// Jagged-top outline. The fixed seed keeps the tear identical across
+  /// repaints — it's one specific torn strip, not a shimmering one.
+  Path _tornPath(Size size) {
+    final rnd = math.Random(1974);
+    final path = Path()..moveTo(0, size.height);
+    path.lineTo(0, 10 + rnd.nextDouble() * 8);
+    var x = 0.0;
+    while (x < size.width) {
+      x = math.min(x + 12 + rnd.nextDouble() * 22, size.width);
+      path.lineTo(x, 3 + rnd.nextDouble() * 14);
+    }
+    path.lineTo(size.width, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldRepaint(covariant _TornPaperPainter oldDelegate) => false;
 }
 
 class _PulsingDot extends StatefulWidget {
