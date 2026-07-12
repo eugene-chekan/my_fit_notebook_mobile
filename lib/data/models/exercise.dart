@@ -6,6 +6,7 @@ class Exercise {
     required this.name,
     required this.sortOrder,
     required this.isDone,
+    this.catalogId,
   });
 
   final int id;
@@ -13,6 +14,8 @@ class Exercise {
   final String name;
   final int sortOrder;
   final bool isDone;
+  /// Link to the canonical catalog entry, or null for legacy rows.
+  final int? catalogId;
 
   Exercise copyWith({String? name, bool? isDone, int? sortOrder}) {
     return Exercise(
@@ -21,6 +24,7 @@ class Exercise {
       name: name ?? this.name,
       sortOrder: sortOrder ?? this.sortOrder,
       isDone: isDone ?? this.isDone,
+      catalogId: catalogId,
     );
   }
 
@@ -31,6 +35,7 @@ class Exercise {
       name: map['name'] as String,
       sortOrder: map['sort_order'] as int,
       isDone: (map['is_done'] as int) != 0,
+      catalogId: map['catalog_id'] as int?,
     );
   }
 
@@ -40,5 +45,6 @@ class Exercise {
     'name': name,
     'sort_order': sortOrder,
     'is_done': isDone ? 1 : 0,
+    'catalog_id': catalogId,
   };
 }

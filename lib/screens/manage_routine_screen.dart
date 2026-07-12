@@ -8,6 +8,7 @@ import '../theme/notebook_theme.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
+import '../utils/exercise_suggestions.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
 import '../widgets/swipe_actions.dart';
@@ -26,6 +27,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _newExerciseController = TextEditingController();
+  final _newExerciseFocus = FocusNode();
   bool _initializedFields = false;
 
   @override
@@ -48,6 +50,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _newExerciseController.dispose();
+    _newExerciseFocus.dispose();
     _provider.dispose();
     super.dispose();
   }
@@ -57,11 +60,19 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     if (mounted) FocusScope.of(context).unfocus();
   }
 
+  /// Adds whatever is typed in the field (Enter or the ✓ button).
   Future<void> _addExercise() async {
-    final name = _newExerciseController.text;
+    await _addNamed(_newExerciseController.text);
+  }
+
+  /// Adds [name] (used both by typed submit and by tapping a suggestion),
+  /// clearing the field afterward and keeping focus for a quick next entry.
+  Future<void> _addNamed(String name) async {
     if (name.trim().isEmpty) return;
     await _provider.addExercise(name);
+    if (!mounted) return;
     _newExerciseController.clear();
+    _newExerciseFocus.requestFocus();
   }
 
   Future<void> _confirmDeleteRoutine() async {
@@ -280,29 +291,50 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: TextField(
-                controller: _newExerciseController,
-                maxLength: 200,
-                cursorColor: NotebookColors.ink,
-                style: const TextStyle(
-                  fontFamily: 'Caveat',
-                  fontSize: 19,
-                  color: NotebookColors.ink,
+            child: LayoutBuilder(
+              builder: (context, constraints) => RawAutocomplete<String>(
+                textEditingController: _newExerciseController,
+                focusNode: _newExerciseFocus,
+                optionsBuilder: (value) => filterExerciseSuggestions(
+                  query: value.text,
+                  catalog: _provider.catalogNames,
+                  existing: _provider.exercises.map((e) => e.name),
                 ),
-                decoration: const InputDecoration(
-                  isCollapsed: true,
-                  counterText: '',
-                  hintText: '+ add an exercise…',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Caveat',
-                    fontSize: 19,
-                    color: NotebookColors.inkSoft,
-                  ),
-                  border: InputBorder.none,
-                ),
-                onSubmitted: (_) => _addExercise(),
+                onSelected: _addNamed,
+                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      maxLength: 200,
+                      cursorColor: NotebookColors.ink,
+                      style: const TextStyle(
+                        fontFamily: 'Caveat',
+                        fontSize: 19,
+                        color: NotebookColors.ink,
+                      ),
+                      decoration: const InputDecoration(
+                        isCollapsed: true,
+                        counterText: '',
+                        hintText: '+ add an exercise…',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Caveat',
+                          fontSize: 19,
+                          color: NotebookColors.inkSoft,
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      onSubmitted: (_) => _addExercise(),
+                    ),
+                  );
+                },
+                optionsViewBuilder: (context, onSelected, options) =>
+                    _SuggestionsOverlay(
+                      onSelected: onSelected,
+                      options: options.toList(),
+                      width: constraints.maxWidth,
+                    ),
               ),
             ),
           ),
@@ -313,6 +345,70 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
             onTap: _addExercise,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The floating suggestion list under the add-exercise field, styled as a
+/// small paper note (paper fill, 2px ink border, slightly uneven corners).
+class _SuggestionsOverlay extends StatelessWidget {
+  const _SuggestionsOverlay({
+    required this.onSelected,
+    required this.options,
+    required this.width,
+  });
+
+  final void Function(String) onSelected;
+  final List<String> options;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: width,
+          constraints: const BoxConstraints(maxHeight: 216),
+          decoration: BoxDecoration(
+            color: NotebookColors.paper,
+            border: Border.all(color: NotebookColors.ink, width: 2),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(6),
+              bottomRight: Radius.circular(5),
+              bottomLeft: Radius.circular(4),
+            ),
+            boxShadow: const [
+              BoxShadow(color: NotebookColors.shadow, blurRadius: 10, offset: Offset(0, 3)),
+            ],
+          ),
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            shrinkWrap: true,
+            itemCount: options.length,
+            itemBuilder: (context, index) {
+              final name = options[index];
+              return InkWell(
+                onTap: () => onSelected(name),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      fontFamily: 'Caveat',
+                      fontSize: 19,
+                      color: NotebookColors.ink,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

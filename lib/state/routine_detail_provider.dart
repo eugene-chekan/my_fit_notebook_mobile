@@ -6,6 +6,7 @@ import '../data/models/completion.dart';
 import '../data/models/exercise.dart';
 import '../data/models/routine.dart';
 import '../data/repositories/completion_repository.dart';
+import '../data/repositories/exercise_catalog_repository.dart';
 import '../data/repositories/exercise_repository.dart';
 import '../data/repositories/routine_repository.dart';
 import '../data/services/workout_service.dart';
@@ -19,21 +20,26 @@ class RoutineDetailProvider extends ChangeNotifier {
     RoutineRepository? routineRepository,
     ExerciseRepository? exerciseRepository,
     CompletionRepository? completionRepository,
+    ExerciseCatalogRepository? catalogRepository,
     WorkoutService? workoutService,
   }) : _routineRepository = routineRepository ?? RoutineRepository(),
        _exerciseRepository = exerciseRepository ?? ExerciseRepository(),
        _completionRepository = completionRepository ?? CompletionRepository(),
+       _catalogRepository = catalogRepository ?? ExerciseCatalogRepository(),
        _workoutService = workoutService ?? WorkoutService();
 
   final int routineId;
   final RoutineRepository _routineRepository;
   final ExerciseRepository _exerciseRepository;
   final CompletionRepository _completionRepository;
+  final ExerciseCatalogRepository _catalogRepository;
   final WorkoutService _workoutService;
 
   Routine? routine;
   List<Exercise> exercises = [];
   List<Completion> completions = [];
+  /// Catalog names for the add-exercise autocomplete; refreshed on load.
+  List<String> catalogNames = [];
   bool loading = true;
   Timer? _ticker;
 
@@ -41,6 +47,7 @@ class RoutineDetailProvider extends ChangeNotifier {
     routine = await _routineRepository.getRoutine(routineId);
     exercises = await _exerciseRepository.listExercises(routineId);
     completions = await _completionRepository.listForRoutine(routineId);
+    catalogNames = await _catalogRepository.allNames();
     loading = false;
     _syncTicker();
     notifyListeners();
