@@ -60,17 +60,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _openRoutines() async {
     _scaffoldKey.currentState?.closeDrawer();
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const RoutinesScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const RoutinesScreen()));
     _reloadAll();
   }
 
   Future<void> _openProfile() async {
     _scaffoldKey.currentState?.closeDrawer();
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ProfileScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
   }
 
   /// The Start routine popup: a paper note listing the routines; tapping
@@ -177,69 +177,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: _NotebookDrawer(onRoutines: _openRoutines, onProfile: _openProfile),
+        drawer: _NotebookDrawer(
+          onRoutines: _openRoutines,
+          onProfile: _openProfile,
+        ),
         body: SafeArea(
-          child: NotebookPage(
-            marginChild: GlyphButton(
-              glyph: '≡',
-              size: 26,
-              semanticLabel: 'Menu',
-              onTap: () => _scaffoldKey.currentState?.openDrawer(),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const NotebookHeader(title: 'My fit notebook'),
-                Container(
-                  height: kNotebookLine,
-                  alignment: Alignment.bottomRight,
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    notebookDateLabel(DateTime.now()),
-                    style: const TextStyle(
-                      fontFamily: 'Caveat',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: NotebookColors.inkSoft,
-                    ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: NotebookPage(
+                  marginChild: GlyphButton(
+                    glyph: '≡',
+                    size: 26,
+                    semanticLabel: 'Menu',
+                    onTap: () => _scaffoldKey.currentState?.openDrawer(),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Center(
-                    child: PenButtonFilled(
-                      label: 'Start routine',
-                      onPressed: _showStartRoutine,
-                    ),
-                  ),
-                ),
-                const HeadingLine('This week'),
-                Consumer<DashboardProvider>(
-                  builder: (context, stats, _) {
-                    if (stats.loading) return const SizedBox.shrink();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _statLine(
-                          stats.weekWorkouts == 0
-                              ? 'nothing logged yet — the page is blank'
-                              : '${stats.weekWorkouts} '
-                                  '${stats.weekWorkouts == 1 ? 'workout' : 'workouts'}'
-                                  '${stats.weekMinutes > 0 ? ' · ${formatDurationMinutes(stats.weekMinutes)}' : ''}',
-                          muted: stats.weekWorkouts == 0,
+                  // Reserve room at the bottom for the pinned Start button.
+                  padding: const EdgeInsets.fromLTRB(64, 4, 18, 92),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const NotebookHeader(title: 'My fit notebook'),
+                      Container(
+                        height: kNotebookLine,
+                        alignment: Alignment.bottomRight,
+                        padding: const EdgeInsets.only(bottom: 3),
+                        child: Text(
+                          notebookDateLabel(DateTime.now()),
+                          style: const TextStyle(
+                            fontFamily: 'Caveat',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: NotebookColors.inkSoft,
+                          ),
                         ),
-                        if (stats.streakDays > 0)
-                          _statLine('${stats.streakDays}-day streak — keep the ink flowing'),
-                      ],
-                    );
-                  },
+                      ),
+                      const SizedBox(height: 6),
+                      const HeadingLine('This week'),
+                      Consumer<DashboardProvider>(
+                        builder: (context, stats, _) {
+                          if (stats.loading) return const SizedBox.shrink();
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _statLine(
+                                stats.weekWorkouts == 0
+                                    ? 'nothing logged yet — the page is blank'
+                                    : '${stats.weekWorkouts} '
+                                          '${stats.weekWorkouts == 1 ? 'workout' : 'workouts'}'
+                                          '${stats.weekMinutes > 0 ? ' · ${formatDurationMinutes(stats.weekMinutes)}' : ''}',
+                                muted: stats.weekWorkouts == 0,
+                              ),
+                              if (stats.streakDays > 0)
+                                _statLine(
+                                  '${stats.streakDays}-day streak — keep the ink flowing',
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                      const HeadingLine('Training days'),
+                      Consumer<CalendarProvider>(
+                        builder: (context, calendar, _) =>
+                            MonthCalendar(provider: calendar),
+                      ),
+                    ],
+                  ),
                 ),
-                const HeadingLine('Training days'),
-                Consumer<CalendarProvider>(
-                  builder: (context, calendar, _) => MonthCalendar(provider: calendar),
+              ),
+              // Pinned in the bottom thumb zone, over the page.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 18,
+                child: Center(
+                  child: PenButtonFilled(
+                    label: 'Start routine',
+                    onPressed: _showStartRoutine,
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
