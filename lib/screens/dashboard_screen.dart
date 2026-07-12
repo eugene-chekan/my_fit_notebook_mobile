@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
+import '../data/services/workout_service.dart';
 import '../state/calendar_provider.dart';
 import '../state/dashboard_provider.dart';
 import '../state/routines_provider.dart';
@@ -13,14 +14,14 @@ import '../widgets/month_calendar.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
-import '../widgets/swipe_actions.dart';
-import 'manage_routine_screen.dart';
+import '../widgets/pen_button.dart';
 import 'profile_screen.dart';
 import 'routine_screen.dart';
+import 'routines_screen.dart';
 
-/// The main screen: two side-by-side notebook pages you swipe between —
-/// page 1 is the dashboard (week stats, streak, month calendar), page 2 is
-/// the routine list.
+/// The main screen: a single dashboard page — Start routine CTA, week
+/// stats + streak, and the trained-days month calendar. The routine
+/// library and profile live behind the margin's ≡ menu.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -32,11 +33,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late final RoutinesProvider _routinesProvider;
   late final DashboardProvider _dashboardProvider;
   late final CalendarProvider _calendarProvider;
+  final _workoutService = WorkoutService();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final _pageController = PageController();
-  final _nameController = TextEditingController();
-  bool _adding = false;
-  int _page = 0;
 
   @override
   void initState() {
@@ -48,32 +46,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose();
-    _nameController.dispose();
     _routinesProvider.dispose();
     _dashboardProvider.dispose();
     _calendarProvider.dispose();
     super.dispose();
   }
 
-  /// Everything on both pages derives from the completion log and routine
-  /// tables, so any return from a subscreen reloads all three providers.
   void _reloadAll() {
     _routinesProvider.load();
     _dashboardProvider.load();
     _calendarProvider.load();
   }
 
-  Future<void> _openRoutine(Routine routine) async {
+  Future<void> _openRoutines() async {
+    _scaffoldKey.currentState?.closeDrawer();
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => RoutineScreen(routineId: routine.id)),
-    );
-    _reloadAll();
-  }
-
-  Future<void> _openManage(Routine routine) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ManageRoutineScreen(routineId: routine.id)),
+      MaterialPageRoute(builder: (_) => const RoutinesScreen()),
     );
     _reloadAll();
   }
@@ -85,41 +73,98 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _menuButton() {
-    return GlyphButton(
-      glyph: '≡',
-      size: 26,
-      semanticLabel: 'Menu',
-      onTap: () => _scaffoldKey.currentState?.openDrawer(),
+  /// The Start routine popup: a paper note listing the routines; tapping
+  /// one starts it (unless already running — then it just opens) and jumps
+  /// straight to the workout screen.
+  Future<void> _showStartRoutine() async {
+    await _routinesProvider.load();
+    if (!mounted) return;
+    final routines = _routinesProvider.routines;
+    final selected = await showPaperDialog<Routine>(
+      context: context,
+      builder: (dialogContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Start routine',
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: NotebookColors.ink,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (routines.isEmpty)
+            const Text(
+              'Nothing here yet — open Routines from the menu and write one down.',
+              style: TextStyle(
+                fontFamily: 'Caveat',
+                fontSize: 19,
+                color: NotebookColors.inkSoft,
+              ),
+            )
+          else
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 320),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final routine in routines)
+                    InkWell(
+                      onTap: () => Navigator.pop(dialogContext, routine),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          children: [
+                            if (routine.isStarted)
+                              const Padding(
+                                padding: EdgeInsets.only(right: 6),
+                                child: Icon(
+                                  Icons.fiber_manual_record,
+                                  size: 9,
+                                  color: NotebookColors.ink,
+                                ),
+                              ),
+                            Expanded(
+                              child: Text(
+                                routine.name,
+                                style: const TextStyle(
+                                  fontFamily: 'Caveat',
+                                  fontSize: 21,
+                                  color: NotebookColors.ink,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Text(
+                              '▸',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: NotebookColors.inkSoft,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
-  }
-
-  Future<bool> _confirmDelete(Routine routine) {
-    return showPaperConfirm(
-      context,
-      title: 'Delete "${routine.name}"?',
-      message: 'This removes the routine, its exercises, and its session log.',
+    if (selected == null || !mounted) return;
+    if (!selected.isStarted) {
+      HapticFeedback.mediumImpact();
+      await _workoutService.startWorkout(selected.id);
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => RoutineScreen(routineId: selected.id)),
     );
-  }
-
-  Future<void> _submitNewRoutine() async {
-    final name = _nameController.text;
-    if (name.trim().isEmpty) {
-      setState(() => _adding = false);
-      return;
-    }
-    await _routinesProvider.addRoutine(name);
-    _nameController.clear();
-    if (mounted) {
-      setState(() => _adding = false);
-      FocusScope.of(context).unfocus();
-    }
-  }
-
-  void _cancelNewRoutine() {
-    _nameController.clear();
-    setState(() => _adding = false);
-    FocusScope.of(context).unfocus();
+    _reloadAll();
   }
 
   @override
@@ -132,79 +177,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: _NotebookDrawer(onProfile: _openProfile),
+        drawer: _NotebookDrawer(onRoutines: _openRoutines, onProfile: _openProfile),
         body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (page) => setState(() => _page = page),
-                  children: [
-                    _dashboardPage(),
-                    _routinesPage(),
-                  ],
+          child: NotebookPage(
+            marginChild: GlyphButton(
+              glyph: '≡',
+              size: 26,
+              semanticLabel: 'Menu',
+              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const NotebookHeader(title: 'My fit notebook'),
+                Container(
+                  height: kNotebookLine,
+                  alignment: Alignment.bottomRight,
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    notebookDateLabel(DateTime.now()),
+                    style: const TextStyle(
+                      fontFamily: 'Caveat',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: NotebookColors.inkSoft,
+                    ),
+                  ),
                 ),
-              ),
-              _pageDots(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── Page 1: dashboard ──
-
-  Widget _dashboardPage() {
-    return NotebookPage(
-      marginChild: _menuButton(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const NotebookHeader(title: 'My fit notebook'),
-          Container(
-            height: kNotebookLine,
-            alignment: Alignment.bottomRight,
-            padding: const EdgeInsets.only(bottom: 3),
-            child: Text(
-              notebookDateLabel(DateTime.now()),
-              style: const TextStyle(
-                fontFamily: 'Caveat',
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: NotebookColors.inkSoft,
-              ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Center(
+                    child: PenButtonFilled(
+                      label: 'Start routine',
+                      onPressed: _showStartRoutine,
+                    ),
+                  ),
+                ),
+                const HeadingLine('This week'),
+                Consumer<DashboardProvider>(
+                  builder: (context, stats, _) {
+                    if (stats.loading) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _statLine(
+                          stats.weekWorkouts == 0
+                              ? 'nothing logged yet — the page is blank'
+                              : '${stats.weekWorkouts} '
+                                  '${stats.weekWorkouts == 1 ? 'workout' : 'workouts'}'
+                                  '${stats.weekMinutes > 0 ? ' · ${formatDurationMinutes(stats.weekMinutes)}' : ''}',
+                          muted: stats.weekWorkouts == 0,
+                        ),
+                        if (stats.streakDays > 0)
+                          _statLine('${stats.streakDays}-day streak — keep the ink flowing'),
+                      ],
+                    );
+                  },
+                ),
+                const HeadingLine('Training days'),
+                Consumer<CalendarProvider>(
+                  builder: (context, calendar, _) => MonthCalendar(provider: calendar),
+                ),
+              ],
             ),
           ),
-          const HeadingLine('This week'),
-          Consumer<DashboardProvider>(
-            builder: (context, stats, _) {
-              if (stats.loading) return const SizedBox.shrink();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _statLine(
-                    stats.weekWorkouts == 0
-                        ? 'nothing logged yet — the page is blank'
-                        : '${stats.weekWorkouts} '
-                            '${stats.weekWorkouts == 1 ? 'workout' : 'workouts'}'
-                            '${stats.weekMinutes > 0 ? ' · ${formatDurationMinutes(stats.weekMinutes)}' : ''}',
-                    muted: stats.weekWorkouts == 0,
-                  ),
-                  if (stats.streakDays > 0)
-                    _statLine(
-                      '${stats.streakDays}-day streak — keep the ink flowing',
-                    ),
-                ],
-              );
-            },
-          ),
-          const HeadingLine('Training days'),
-          Consumer<CalendarProvider>(
-            builder: (context, calendar, _) => MonthCalendar(provider: calendar),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -225,211 +262,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
-  // ── Page 2: routines ──
-
-  Widget _routinesPage() {
-    return NotebookPage(
-      marginChild: _menuButton(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const NotebookHeader(title: 'Routines'),
-          Consumer<RoutinesProvider>(
-            builder: (context, provider, _) {
-              if (provider.loading) return const SizedBox.shrink();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 4),
-                  for (final routine in provider.routines) _routineRow(routine),
-                  _newRoutineRow(),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Swipe right to duplicate, swipe left to delete (after confirmation).
-  /// The copy swipe performs its work in confirmDismiss and returns false so
-  /// the row snaps back instead of dismissing.
-  Widget _routineRow(Routine routine) {
-    return Dismissible(
-      key: ValueKey('routine-${routine.id}'),
-      background: const SwipeCopyBackground(),
-      secondaryBackground: const SwipeDeleteBackground(),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          HapticFeedback.lightImpact();
-          await _routinesProvider.duplicateRoutine(routine.id);
-          return false;
-        }
-        return _confirmDelete(routine);
-      },
-      onDismissed: (_) {
-        HapticFeedback.lightImpact();
-        _routinesProvider.deleteRoutine(routine.id);
-        _dashboardProvider.load();
-        _calendarProvider.load();
-      },
-      child: SizedBox(
-        height: kNotebookLine,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: () => _openRoutine(routine),
-                child: Container(
-                  alignment: Alignment.bottomLeft,
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      if (routine.isStarted)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 6),
-                          child: Icon(Icons.fiber_manual_record, size: 9, color: NotebookColors.ink),
-                        ),
-                      Flexible(
-                        child: Text(
-                          routine.name,
-                          style: const TextStyle(
-                            fontFamily: 'Caveat',
-                            fontSize: 21,
-                            color: NotebookColors.ink,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            GlyphButton(
-              glyph: '✐',
-              semanticLabel: 'Manage ${routine.name}',
-              onTap: () => _openManage(routine),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _newRoutineRow() {
-    if (!_adding) {
-      return SizedBox(
-        height: kNotebookLine,
-        child: InkWell(
-          onTap: () => setState(() => _adding = true),
-          child: Container(
-            alignment: Alignment.bottomLeft,
-            padding: const EdgeInsets.only(bottom: 3),
-            child: const Text(
-              '+ new routine…',
-              style: TextStyle(
-                fontFamily: 'Caveat',
-                fontSize: 20,
-                color: NotebookColors.inkSoft,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return SizedBox(
-      height: kNotebookLine,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: TextField(
-                controller: _nameController,
-                autofocus: true,
-                maxLength: 200,
-                cursorColor: NotebookColors.ink,
-                style: const TextStyle(
-                  fontFamily: 'Caveat',
-                  fontSize: 20,
-                  color: NotebookColors.ink,
-                ),
-                decoration: const InputDecoration(
-                  isCollapsed: true,
-                  counterText: '',
-                  hintText: 'name…',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Caveat',
-                    fontSize: 20,
-                    color: NotebookColors.inkSoft,
-                  ),
-                  border: InputBorder.none,
-                ),
-                onSubmitted: (_) => _submitNewRoutine(),
-              ),
-            ),
-          ),
-          GlyphButton(
-            glyph: '✓',
-            color: NotebookColors.ink,
-            semanticLabel: 'Create routine',
-            onTap: _submitNewRoutine,
-          ),
-          GlyphButton(
-            glyph: '×',
-            size: 24,
-            semanticLabel: 'Cancel',
-            onTap: _cancelNewRoutine,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Page indicator ──
-
-  Widget _pageDots() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          for (var i = 0; i < 2; i++)
-            GestureDetector(
-              onTap: () => _pageController.animateToPage(
-                i,
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeOut,
-              ),
-              child: Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: i == _page
-                      ? NotebookColors.ink
-                      : NotebookColors.ink.withValues(alpha: 0.25),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }
 
 /// The side menu, styled as a narrower sheet of the same ruled paper.
-/// Currently just Profile; future secondary screens slot in as more lines.
 class _NotebookDrawer extends StatelessWidget {
-  const _NotebookDrawer({required this.onProfile});
+  const _NotebookDrawer({required this.onRoutines, required this.onProfile});
 
+  final VoidCallback onRoutines;
   final VoidCallback onProfile;
 
   @override
@@ -466,26 +305,31 @@ class _NotebookDrawer extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: kNotebookLine,
-                  child: InkWell(
-                    onTap: onProfile,
-                    child: Container(
-                      alignment: Alignment.bottomLeft,
-                      padding: const EdgeInsets.only(bottom: 3),
-                      child: const Text(
-                        'Profile',
-                        style: TextStyle(
-                          fontFamily: 'Caveat',
-                          fontSize: 22,
-                          fontWeight: FontWeight.w600,
-                          color: NotebookColors.ink,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                _drawerLine('Routines', onRoutines),
+                _drawerLine('Profile', onProfile),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerLine(String label, VoidCallback onTap) {
+    return SizedBox(
+      height: kNotebookLine,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          alignment: Alignment.bottomLeft,
+          padding: const EdgeInsets.only(bottom: 3),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: NotebookColors.ink,
             ),
           ),
         ),
