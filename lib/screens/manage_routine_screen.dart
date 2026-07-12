@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/exercise.dart';
@@ -9,6 +10,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/swipe_actions.dart';
 
 class ManageRoutineScreen extends StatefulWidget {
   const ManageRoutineScreen({super.key, required this.routineId});
@@ -74,14 +76,13 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     }
   }
 
-  Future<void> _confirmDeleteExercise(Exercise exercise) async {
-    final confirmed = await showPaperConfirm(
+  Future<bool> _confirmDeleteExercise(Exercise exercise) {
+    return showPaperConfirm(
       context,
       title: 'Remove "${exercise.name}"?',
       message: 'Remove this exercise from the routine?',
       confirmLabel: 'Remove',
     );
-    if (confirmed) await _provider.deleteExercise(exercise.id);
   }
 
   Future<void> _renameExercise(Exercise exercise) async {
@@ -215,7 +216,15 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                         exercises: provider.exercises,
                         onReorder: (ids) => provider.reorderExercises(ids),
                         onRename: _renameExercise,
-                        onDelete: _confirmDeleteExercise,
+                        onConfirmDelete: _confirmDeleteExercise,
+                        onDelete: (ex) {
+                          HapticFeedback.lightImpact();
+                          provider.deleteExercise(ex.id);
+                        },
+                        onDuplicate: (ex) {
+                          HapticFeedback.lightImpact();
+                          provider.duplicateExercise(ex.id);
+                        },
                       ),
                     const SizedBox(height: 28),
                     Align(
@@ -314,13 +323,17 @@ class _ReorderableExerciseList extends StatelessWidget {
     required this.exercises,
     required this.onReorder,
     required this.onRename,
+    required this.onConfirmDelete,
     required this.onDelete,
+    required this.onDuplicate,
   });
 
   final List<Exercise> exercises;
   final void Function(List<int> orderedIds) onReorder;
   final void Function(Exercise exercise) onRename;
+  final Future<bool> Function(Exercise exercise) onConfirmDelete;
   final void Function(Exercise exercise) onDelete;
+  final void Function(Exercise exercise) onDuplicate;
 
   @override
   Widget build(BuildContext context) {
@@ -336,45 +349,53 @@ class _ReorderableExerciseList extends StatelessWidget {
       },
       itemBuilder: (context, index) {
         final ex = exercises[index];
-        return SizedBox(
+        // Swipe right duplicates (row snaps back), swipe left deletes after
+        // the paper confirm. Long-press still drags to reorder.
+        return Dismissible(
           key: ValueKey(ex.id),
-          height: kNotebookLine,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 5, right: 8),
-                child: Text(
-                  '≡',
-                  style: TextStyle(fontSize: 18, height: 1, color: NotebookColors.inkSoft),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
+          background: const SwipeCopyBackground(),
+          secondaryBackground: const SwipeDeleteBackground(),
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.startToEnd) {
+              onDuplicate(ex);
+              return false;
+            }
+            return onConfirmDelete(ex);
+          },
+          onDismissed: (_) => onDelete(ex),
+          child: SizedBox(
+            height: kNotebookLine,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 5, right: 8),
                   child: Text(
-                    ex.name,
-                    style: const TextStyle(
-                      fontFamily: 'Caveat',
-                      fontSize: 20,
-                      color: NotebookColors.ink,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                    '≡',
+                    style: TextStyle(fontSize: 18, height: 1, color: NotebookColors.inkSoft),
                   ),
                 ),
-              ),
-              GlyphButton(
-                glyph: '✐',
-                semanticLabel: 'Rename ${ex.name}',
-                onTap: () => onRename(ex),
-              ),
-              GlyphButton(
-                glyph: '×',
-                size: 24,
-                semanticLabel: 'Remove ${ex.name}',
-                onTap: () => onDelete(ex),
-              ),
-            ],
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 3),
+                    child: Text(
+                      ex.name,
+                      style: const TextStyle(
+                        fontFamily: 'Caveat',
+                        fontSize: 20,
+                        color: NotebookColors.ink,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                GlyphButton(
+                  glyph: '✐',
+                  semanticLabel: 'Rename ${ex.name}',
+                  onTap: () => onRename(ex),
+                ),
+              ],
+            ),
           ),
         );
       },

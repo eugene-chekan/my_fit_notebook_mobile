@@ -6,8 +6,11 @@ import '../theme/notebook_theme.dart';
 /// lines" (list rows, headings) sizes itself to a multiple of this.
 const double kNotebookLine = 36.0;
 
-/// X position of the vertical margin rule. Page content starts right of it.
-const double _marginRuleX = 34.0;
+/// X position of the vertical margin rule. Page content starts right of
+/// it; the margin column itself can host controls (see
+/// [NotebookPage.marginChild]) — the mobile counterpart of the web app's
+/// sidebar rail living in the page margin.
+const double kMarginRuleX = 52.0;
 
 class RuledPaperPainter extends CustomPainter {
   const RuledPaperPainter();
@@ -27,8 +30,8 @@ class RuledPaperPainter extends CustomPainter {
       ..color = NotebookColors.marginLine
       ..strokeWidth = 2;
     canvas.drawLine(
-      const Offset(_marginRuleX, 0),
-      Offset(_marginRuleX, size.height),
+      const Offset(kMarginRuleX, 0),
+      Offset(kMarginRuleX, size.height),
       marginPaint,
     );
   }
@@ -43,10 +46,14 @@ class RuledPaperPainter extends CustomPainter {
 /// lines move with the "writing" when you scroll, matching the CSS
 /// background on the web app's `.page`.
 class NotebookPage extends StatelessWidget {
-  const NotebookPage({super.key, required this.child, this.padding});
+  const NotebookPage({super.key, required this.child, this.padding, this.marginChild});
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
+
+  /// Optional control rendered inside the margin column, near the top —
+  /// e.g. the ≡ menu glyph. It scrolls with the page like a margin note.
+  final Widget? marginChild;
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +63,20 @@ class NotebookPage extends StatelessWidget {
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: CustomPaint(
             painter: const RuledPaperPainter(),
-            child: Padding(
-              padding: padding ?? const EdgeInsets.fromLTRB(44, 4, 18, 28),
-              child: child,
+            child: Stack(
+              children: [
+                Padding(
+                  padding: padding ?? const EdgeInsets.fromLTRB(64, 4, 18, 28),
+                  child: child,
+                ),
+                if (marginChild != null)
+                  Positioned(
+                    left: 0,
+                    top: kNotebookLine + 2,
+                    width: kMarginRuleX,
+                    child: Center(child: marginChild),
+                  ),
+              ],
             ),
           ),
         ),

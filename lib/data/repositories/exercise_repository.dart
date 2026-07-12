@@ -48,6 +48,29 @@ class ExerciseRepository {
     );
   }
 
+  /// Copies one exercise (name + " (copy)", unchecked) to the end of its
+  /// routine's list.
+  Future<void> duplicateExercise(int exerciseId, int routineId) async {
+    final db = await _db;
+    final rows = await db.query(
+      'exercises',
+      columns: ['name'],
+      where: 'id = ? AND routine_id = ?',
+      whereArgs: [exerciseId, routineId],
+    );
+    if (rows.isEmpty) return;
+    final maxOrderRows = await db.rawQuery(
+      'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM exercises WHERE routine_id = ?',
+      [routineId],
+    );
+    await db.insert('exercises', {
+      'routine_id': routineId,
+      'name': '${rows.first['name'] as String} (copy)',
+      'sort_order': maxOrderRows.first['next_order'] as int,
+      'is_done': 0,
+    });
+  }
+
   Future<void> deleteExercise(int exerciseId, int routineId) async {
     final db = await _db;
     await db.delete(

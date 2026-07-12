@@ -132,7 +132,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                     child: NotebookPage(
                       // Leave room at the bottom for the overlapping workout
                       // strip so the last logged session isn't hidden.
-                      padding: EdgeInsets.fromLTRB(44, 4, 18, active ? 124 : 28),
+                      padding: EdgeInsets.fromLTRB(64, 4, 18, active ? 124 : 28),
                       child: routine == null
                           ? const SizedBox.shrink()
                           : Column(

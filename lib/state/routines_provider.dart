@@ -28,8 +28,18 @@ class RoutinesProvider extends ChangeNotifier {
     await load();
   }
 
+  /// Removes the row from the in-memory list synchronously before touching
+  /// the database, so a swipe-dismissed row leaves the widget tree in the
+  /// same frame (Dismissible requires this), then persists and reloads.
   Future<void> deleteRoutine(int routineId) async {
+    _routines = _routines.where((r) => r.id != routineId).toList();
+    notifyListeners();
     await _repository.deleteRoutine(routineId);
+    await load();
+  }
+
+  Future<void> duplicateRoutine(int routineId) async {
+    await _repository.duplicateRoutine(routineId);
     await load();
   }
 }

@@ -112,8 +112,17 @@ class RoutineDetailProvider extends ChangeNotifier {
     await load();
   }
 
+  /// Optimistically removes the row first so a swipe-dismissed Dismissible
+  /// leaves the tree in the same frame, then persists and reloads.
   Future<void> deleteExercise(int exerciseId) async {
+    exercises = exercises.where((e) => e.id != exerciseId).toList();
+    notifyListeners();
     await _exerciseRepository.deleteExercise(exerciseId, routineId);
+    await load();
+  }
+
+  Future<void> duplicateExercise(int exerciseId) async {
+    await _exerciseRepository.duplicateExercise(exerciseId, routineId);
     await load();
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
@@ -12,6 +13,7 @@ import '../widgets/month_calendar.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
+import '../widgets/swipe_actions.dart';
 import 'manage_routine_screen.dart';
 import 'profile_screen.dart';
 import 'routine_screen.dart';
@@ -92,16 +94,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Future<void> _confirmDelete(Routine routine) async {
-    final confirmed = await showPaperConfirm(
+  Future<bool> _confirmDelete(Routine routine) {
+    return showPaperConfirm(
       context,
       title: 'Delete "${routine.name}"?',
       message: 'This removes the routine, its exercises, and its session log.',
     );
-    if (confirmed) {
-      await _routinesProvider.deleteRoutine(routine.id);
-      _reloadAll();
-    }
   }
 
   Future<void> _submitNewRoutine() async {
@@ -160,10 +158,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _dashboardPage() {
     return NotebookPage(
+      marginChild: _menuButton(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          NotebookHeader(title: 'My fit notebook', leading: _menuButton()),
+          const NotebookHeader(title: 'My fit notebook'),
           Container(
             height: kNotebookLine,
             alignment: Alignment.bottomRight,
@@ -231,10 +230,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _routinesPage() {
     return NotebookPage(
+      marginChild: _menuButton(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          NotebookHeader(title: 'Routines', leading: _menuButton()),
+          const NotebookHeader(title: 'Routines'),
           Consumer<RoutinesProvider>(
             builder: (context, provider, _) {
               if (provider.loading) return const SizedBox.shrink();
@@ -253,54 +253,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  /// Swipe right to duplicate, swipe left to delete (after confirmation).
+  /// The copy swipe performs its work in confirmDismiss and returns false so
+  /// the row snaps back instead of dismissing.
   Widget _routineRow(Routine routine) {
-    return SizedBox(
-      height: kNotebookLine,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: InkWell(
-              onTap: () => _openRoutine(routine),
-              child: Container(
-                alignment: Alignment.bottomLeft,
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (routine.isStarted)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 6),
-                        child: Icon(Icons.fiber_manual_record, size: 9, color: NotebookColors.ink),
-                      ),
-                    Flexible(
-                      child: Text(
-                        routine.name,
-                        style: const TextStyle(
-                          fontFamily: 'Caveat',
-                          fontSize: 21,
-                          color: NotebookColors.ink,
+    return Dismissible(
+      key: ValueKey('routine-${routine.id}'),
+      background: const SwipeCopyBackground(),
+      secondaryBackground: const SwipeDeleteBackground(),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          HapticFeedback.lightImpact();
+          await _routinesProvider.duplicateRoutine(routine.id);
+          return false;
+        }
+        return _confirmDelete(routine);
+      },
+      onDismissed: (_) {
+        HapticFeedback.lightImpact();
+        _routinesProvider.deleteRoutine(routine.id);
+        _dashboardProvider.load();
+        _calendarProvider.load();
+      },
+      child: SizedBox(
+        height: kNotebookLine,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () => _openRoutine(routine),
+                child: Container(
+                  alignment: Alignment.bottomLeft,
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (routine.isStarted)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 6),
+                          child: Icon(Icons.fiber_manual_record, size: 9, color: NotebookColors.ink),
                         ),
-                        overflow: TextOverflow.ellipsis,
+                      Flexible(
+                        child: Text(
+                          routine.name,
+                          style: const TextStyle(
+                            fontFamily: 'Caveat',
+                            fontSize: 21,
+                            color: NotebookColors.ink,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          GlyphButton(
-            glyph: '✐',
-            semanticLabel: 'Manage ${routine.name}',
-            onTap: () => _openManage(routine),
-          ),
-          GlyphButton(
-            glyph: '×',
-            size: 24,
-            semanticLabel: 'Delete ${routine.name}',
-            onTap: () => _confirmDelete(routine),
-          ),
-        ],
+            GlyphButton(
+              glyph: '✐',
+              semanticLabel: 'Manage ${routine.name}',
+              onTap: () => _openManage(routine),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -427,7 +443,7 @@ class _NotebookDrawer extends StatelessWidget {
         painter: const RuledPaperPainter(),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(44, 4, 18, 16),
+            padding: const EdgeInsets.fromLTRB(64, 4, 18, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

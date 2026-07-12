@@ -59,6 +59,44 @@ class RoutineRepository {
     await db.delete('routines', where: 'id = ?', whereArgs: [routineId]);
   }
 
+  /// Copies a routine (name + " (copy)", description, exercises with their
+  /// order, checkmarks cleared) to the end of the list. Session history is
+  /// deliberately not copied — it belongs to the original.
+  Future<void> duplicateRoutine(int routineId) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      final rows = await txn.rawQuery(
+        'SELECT $_routineColumns FROM routines WHERE id = ?',
+        [routineId],
+      );
+      if (rows.isEmpty) return;
+      final src = Routine.fromMap(rows.first);
+      final orderRows = await txn.rawQuery(
+        'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM routines',
+      );
+      final now = DateTime.now().toIso8601String().substring(0, 19);
+      final newId = await txn.insert('routines', {
+        'name': '${src.name} (copy)',
+        'sort_order': orderRows.first['next_order'] as int,
+        'created_at': now,
+        'description': src.description,
+      });
+      final exercises = await txn.rawQuery(
+        'SELECT name, sort_order FROM exercises WHERE routine_id = ? '
+        'ORDER BY sort_order ASC, id ASC',
+        [routineId],
+      );
+      for (final ex in exercises) {
+        await txn.insert('exercises', {
+          'routine_id': newId,
+          'name': ex['name'],
+          'sort_order': ex['sort_order'],
+          'is_done': 0,
+        });
+      }
+    });
+  }
+
   Future<void> setStartedAt(int routineId, DateTime startedAt) async {
     final db = await _db;
     await db.update(
