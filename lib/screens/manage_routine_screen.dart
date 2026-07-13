@@ -162,8 +162,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const BackLine(),
-                    const NotebookHeader(title: 'Manage routine'),
+                    const NotebookHeader(title: 'Manage routine', leading: BackGlyph()),
                     const SizedBox(height: 8),
                     const HeadingLine('Routine details'),
                     _fieldLabel('Name'),

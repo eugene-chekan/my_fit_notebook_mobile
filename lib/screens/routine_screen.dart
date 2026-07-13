@@ -148,9 +148,9 @@ class _RoutineScreenState extends State<RoutineScreen> {
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const BackLine(label: '← back to notebook'),
                                 NotebookHeader(
                                   title: routine.name,
+                                  leading: const BackGlyph(),
                                   trailing: GlyphButton(
                                     glyph: '✐',
                                     semanticLabel: 'Manage routine',

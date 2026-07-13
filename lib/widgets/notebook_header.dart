@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/notebook_theme.dart';
+import 'glyph_button.dart';
 import 'notebook_page.dart';
 
 /// The bordered title row at the top of every page (`.page-header` in
@@ -47,33 +48,21 @@ class NotebookHeader extends StatelessWidget {
   }
 }
 
-/// The "← back" line that sits above a subpage's header, like the web
-/// app's `.back-link`.
-class BackLine extends StatelessWidget {
-  const BackLine({super.key, this.label = '← back'});
-
-  final String label;
+/// A compact back arrow for [NotebookHeader.leading] — the icon-sized
+/// counterpart to Android's own back gesture/button, which already
+/// provides "back" for free. This replaces a standalone "← back to
+/// notebook" text line so subpages don't spend a whole ruled line on
+/// something the OS already offers.
+class BackGlyph extends StatelessWidget {
+  const BackGlyph({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: kNotebookLine,
-      alignment: Alignment.bottomLeft,
-      child: InkWell(
-        onTap: () => Navigator.of(context).pop(),
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 3, right: 12),
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Caveat',
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: NotebookColors.inkSoft,
-            ),
-          ),
-        ),
-      ),
+    return GlyphButton(
+      glyph: '←',
+      size: 24,
+      semanticLabel: 'Back',
+      onTap: () => Navigator.of(context).pop(),
     );
   }
 }

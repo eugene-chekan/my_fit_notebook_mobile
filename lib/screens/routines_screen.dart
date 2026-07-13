@@ -94,8 +94,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const BackLine(label: '← back to notebook'),
-                const NotebookHeader(title: 'Routines'),
+                const NotebookHeader(title: 'Routines', leading: BackGlyph()),
                 Consumer<RoutinesProvider>(
                   builder: (context, provider, _) {
                     if (provider.loading) return const SizedBox.shrink();

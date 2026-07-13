@@ -129,16 +129,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                   return const Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      BackLine(label: '← back to notebook'),
-                      NotebookHeader(title: 'Exercises'),
+                      NotebookHeader(title: 'Exercises', leading: BackGlyph()),
                     ],
                   );
                 }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const BackLine(label: '← back to notebook'),
-                    const NotebookHeader(title: 'Exercises'),
+                    const NotebookHeader(title: 'Exercises', leading: BackGlyph()),
                     const SizedBox(height: 6),
                     if (provider.entries.isEmpty)
                       const MutedLine('No exercises yet — add one below.')

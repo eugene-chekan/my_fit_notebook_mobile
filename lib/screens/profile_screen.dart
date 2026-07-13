@@ -212,8 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const BackLine(label: '← back to notebook'),
-                    const NotebookHeader(title: 'Profile'),
+                    const NotebookHeader(title: 'Profile', leading: BackGlyph()),
                     const SizedBox(height: 8),
                     const HeadingLine('About me'),
                     _fieldLabel('Name'),
