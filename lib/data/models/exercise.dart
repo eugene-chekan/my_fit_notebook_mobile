@@ -7,6 +7,9 @@ class Exercise {
     required this.sortOrder,
     required this.isDone,
     this.catalogId,
+    this.sets,
+    this.repsMin,
+    this.repsMax,
   });
 
   final int id;
@@ -16,6 +19,11 @@ class Exercise {
   final bool isDone;
   /// Link to the canonical catalog entry, or null for legacy rows.
   final int? catalogId;
+  /// Per-routine prescription (null when unset). [repsMax] > [repsMin]
+  /// denotes a range (e.g. 10-12).
+  final int? sets;
+  final int? repsMin;
+  final int? repsMax;
 
   Exercise copyWith({String? name, bool? isDone, int? sortOrder}) {
     return Exercise(
@@ -25,6 +33,9 @@ class Exercise {
       sortOrder: sortOrder ?? this.sortOrder,
       isDone: isDone ?? this.isDone,
       catalogId: catalogId,
+      sets: sets,
+      repsMin: repsMin,
+      repsMax: repsMax,
     );
   }
 
@@ -36,6 +47,9 @@ class Exercise {
       sortOrder: map['sort_order'] as int,
       isDone: (map['is_done'] as int) != 0,
       catalogId: map['catalog_id'] as int?,
+      sets: map['sets'] as int?,
+      repsMin: map['reps_min'] as int?,
+      repsMax: map['reps_max'] as int?,
     );
   }
 
@@ -46,5 +60,8 @@ class Exercise {
     'sort_order': sortOrder,
     'is_done': isDone ? 1 : 0,
     'catalog_id': catalogId,
+    'sets': sets,
+    'reps_min': repsMin,
+    'reps_max': repsMax,
   };
 }

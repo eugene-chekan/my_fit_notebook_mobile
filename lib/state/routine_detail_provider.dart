@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../data/models/completion.dart';
 import '../data/models/exercise.dart';
+import '../data/models/exercise_catalog.dart';
 import '../data/models/routine.dart';
 import '../data/repositories/completion_repository.dart';
 import '../data/repositories/exercise_catalog_repository.dart';
@@ -38,16 +39,29 @@ class RoutineDetailProvider extends ChangeNotifier {
   Routine? routine;
   List<Exercise> exercises = [];
   List<Completion> completions = [];
-  /// Catalog names for the add-exercise autocomplete; refreshed on load.
-  List<String> catalogNames = [];
+  /// Full catalog entries for the add-exercise autocomplete and to prefill
+  /// the prescription form from an exercise's defaults; refreshed on load.
+  List<CatalogEntry> catalogEntries = [];
   bool loading = true;
   Timer? _ticker;
+
+  /// Just the names, for the autocomplete option pool.
+  List<String> get catalogNames => catalogEntries.map((e) => e.name).toList();
+
+  /// The catalog entry matching [name] (case-insensitive), or null.
+  CatalogEntry? catalogEntryFor(String name) {
+    final lower = name.trim().toLowerCase();
+    for (final e in catalogEntries) {
+      if (e.name.toLowerCase() == lower) return e;
+    }
+    return null;
+  }
 
   Future<void> load() async {
     routine = await _routineRepository.getRoutine(routineId);
     exercises = await _exerciseRepository.listExercises(routineId);
     completions = await _completionRepository.listForRoutine(routineId);
-    catalogNames = await _catalogRepository.allNames();
+    catalogEntries = await _catalogRepository.listAll();
     loading = false;
     _syncTicker();
     notifyListeners();
@@ -109,8 +123,35 @@ class RoutineDetailProvider extends ChangeNotifier {
     await load();
   }
 
-  Future<void> addExercise(String name) async {
-    await _exerciseRepository.addExercise(routineId, name);
+  Future<void> addExercise(
+    String name, {
+    int? sets,
+    int? repsMin,
+    int? repsMax,
+  }) async {
+    await _exerciseRepository.addExercise(
+      routineId,
+      name,
+      sets: sets,
+      repsMin: repsMin,
+      repsMax: repsMax,
+    );
+    await load();
+  }
+
+  Future<void> updatePrescription(
+    int exerciseId, {
+    int? sets,
+    int? repsMin,
+    int? repsMax,
+  }) async {
+    await _exerciseRepository.updatePrescription(
+      exerciseId,
+      routineId,
+      sets: sets,
+      repsMin: repsMin,
+      repsMax: repsMax,
+    );
     await load();
   }
 

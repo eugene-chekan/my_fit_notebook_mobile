@@ -57,6 +57,14 @@ String notebookDateLabel(DateTime d) {
   return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}, ${d.year}';
 }
 
+/// Sets/reps prescription in parentheses: "(2x10)", or "(2x10-12)" when a
+/// rep range is set. Empty when there's nothing to show (no sets or reps).
+String formatPrescription(int? sets, int? repsMin, int? repsMax) {
+  if (sets == null || sets <= 0 || repsMin == null || repsMin <= 0) return '';
+  final range = (repsMax != null && repsMax > repsMin) ? '-$repsMax' : '';
+  return '(${sets}x$repsMin$range)';
+}
+
 /// Whole years since a yyyy-MM-dd birth date; null when unset/malformed.
 int? ageFromBirthDate(String? birthIso) {
   if (birthIso == null) return null;

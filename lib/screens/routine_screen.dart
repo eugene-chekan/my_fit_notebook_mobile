@@ -373,13 +373,28 @@ class _ExerciseRow extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 3),
-                child: Text(
-                  exercise.name,
-                  style: TextStyle(
-                    fontFamily: 'Caveat',
-                    fontSize: 20,
-                    color: exercise.isDone ? NotebookColors.inkSoft : NotebookColors.ink,
-                    decoration: exercise.isDone ? TextDecoration.lineThrough : null,
+                child: Text.rich(
+                  TextSpan(
+                    style: TextStyle(
+                      fontFamily: 'Caveat',
+                      fontSize: 20,
+                      color: exercise.isDone ? NotebookColors.inkSoft : NotebookColors.ink,
+                      decoration: exercise.isDone ? TextDecoration.lineThrough : null,
+                    ),
+                    children: [
+                      TextSpan(text: exercise.name),
+                      if (formatPrescription(exercise.sets, exercise.repsMin, exercise.repsMax)
+                          .isNotEmpty)
+                        TextSpan(
+                          text:
+                              '  ${formatPrescription(exercise.sets, exercise.repsMin, exercise.repsMax)}',
+                          style: TextStyle(
+                            color: exercise.isDone
+                                ? NotebookColors.inkSoft
+                                : NotebookColors.inkSoft,
+                          ),
+                        ),
+                    ],
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

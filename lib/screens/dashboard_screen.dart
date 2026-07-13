@@ -15,6 +15,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import 'exercises_screen.dart';
 import 'profile_screen.dart';
 import 'routine_screen.dart';
 import 'routines_screen.dart';
@@ -63,6 +64,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const RoutinesScreen()));
+    _reloadAll();
+  }
+
+  Future<void> _openExercises() async {
+    _scaffoldKey.currentState?.closeDrawer();
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ExercisesScreen()));
     _reloadAll();
   }
 
@@ -179,6 +188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         key: _scaffoldKey,
         drawer: _NotebookDrawer(
           onRoutines: _openRoutines,
+          onExercises: _openExercises,
           onProfile: _openProfile,
         ),
         body: SafeArea(
@@ -284,9 +294,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 /// The side menu, styled as a narrower sheet of the same ruled paper.
 class _NotebookDrawer extends StatelessWidget {
-  const _NotebookDrawer({required this.onRoutines, required this.onProfile});
+  const _NotebookDrawer({
+    required this.onRoutines,
+    required this.onExercises,
+    required this.onProfile,
+  });
 
   final VoidCallback onRoutines;
+  final VoidCallback onExercises;
   final VoidCallback onProfile;
 
   @override
@@ -324,6 +339,7 @@ class _NotebookDrawer extends StatelessWidget {
                   ),
                 ),
                 _drawerLine('Routines', onRoutines),
+                _drawerLine('Exercises', onExercises),
                 _drawerLine('Profile', onProfile),
               ],
             ),

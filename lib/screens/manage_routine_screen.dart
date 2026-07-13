@@ -5,12 +5,14 @@ import 'package:provider/provider.dart';
 import '../data/models/exercise.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
+import '../utils/exercise_suggestions.dart';
+import '../utils/formatters.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
-import '../utils/exercise_suggestions.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/sets_reps_dialog.dart';
 import '../widgets/swipe_actions.dart';
 
 class ManageRoutineScreen extends StatefulWidget {
@@ -65,14 +67,48 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     await _addNamed(_newExerciseController.text);
   }
 
-  /// Adds [name] (used both by typed submit and by tapping a suggestion),
-  /// clearing the field afterward and keeping focus for a quick next entry.
+  /// Adds [name] (typed submit or a tapped suggestion): opens the sets/reps
+  /// form prefilled from the exercise's catalog defaults, then adds it to
+  /// this routine with that per-routine prescription.
   Future<void> _addNamed(String name) async {
-    if (name.trim().isEmpty) return;
-    await _provider.addExercise(name);
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    final defaults = _provider.catalogEntryFor(trimmed);
+    final rx = await showSetsRepsDialog(
+      context,
+      title: 'Add “$trimmed”',
+      sets: defaults?.defaultSets,
+      repsMin: defaults?.defaultReps,
+      repsMax: defaults?.defaultRepsMax,
+    );
+    if (rx == null) return; // cancelled
+    await _provider.addExercise(
+      trimmed,
+      sets: rx.sets,
+      repsMin: rx.repsMin,
+      repsMax: rx.repsMax,
+    );
     if (!mounted) return;
     _newExerciseController.clear();
     _newExerciseFocus.requestFocus();
+  }
+
+  /// Edits the per-routine sets/reps for an existing exercise (the ✐ glyph).
+  Future<void> _editPrescription(Exercise ex) async {
+    final rx = await showSetsRepsDialog(
+      context,
+      title: ex.name,
+      sets: ex.sets,
+      repsMin: ex.repsMin,
+      repsMax: ex.repsMax,
+    );
+    if (rx == null) return;
+    await _provider.updatePrescription(
+      ex.id,
+      sets: rx.sets,
+      repsMin: rx.repsMin,
+      repsMax: rx.repsMax,
+    );
   }
 
   Future<void> _confirmDeleteRoutine() async {
@@ -96,70 +132,6 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     );
   }
 
-  Future<void> _renameExercise(Exercise exercise) async {
-    final controller = TextEditingController(text: exercise.name);
-    final name = await showPaperDialog<String>(
-      context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Rename exercise',
-            style: TextStyle(
-              fontFamily: 'Caveat',
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: controller,
-            autofocus: true,
-            maxLength: 200,
-            cursorColor: NotebookColors.ink,
-            style: const TextStyle(
-              fontFamily: 'Caveat',
-              fontSize: 20,
-              color: NotebookColors.ink,
-            ),
-            decoration: const InputDecoration(
-              isDense: true,
-              counterText: '',
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: NotebookColors.ink),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: NotebookColors.ink, width: 2),
-              ),
-            ),
-            onSubmitted: (value) => Navigator.pop(context, value),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              PenButton(
-                label: 'Cancel',
-                small: true,
-                onPressed: () => Navigator.pop(context),
-              ),
-              const SizedBox(width: 8),
-              PenButton(
-                label: 'Save',
-                small: true,
-                onPressed: () => Navigator.pop(context, controller.text),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-    if (name != null && name.trim().isNotEmpty) {
-      await _provider.renameExercise(exercise.id, name);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,7 +198,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                       _ReorderableExerciseList(
                         exercises: provider.exercises,
                         onReorder: (ids) => provider.reorderExercises(ids),
-                        onRename: _renameExercise,
+                        onEditPrescription: _editPrescription,
                         onConfirmDelete: _confirmDeleteExercise,
                         onDelete: (ex) {
                           HapticFeedback.lightImpact();
@@ -418,7 +390,7 @@ class _ReorderableExerciseList extends StatelessWidget {
   const _ReorderableExerciseList({
     required this.exercises,
     required this.onReorder,
-    required this.onRename,
+    required this.onEditPrescription,
     required this.onConfirmDelete,
     required this.onDelete,
     required this.onDuplicate,
@@ -426,7 +398,7 @@ class _ReorderableExerciseList extends StatelessWidget {
 
   final List<Exercise> exercises;
   final void Function(List<int> orderedIds) onReorder;
-  final void Function(Exercise exercise) onRename;
+  final void Function(Exercise exercise) onEditPrescription;
   final Future<bool> Function(Exercise exercise) onConfirmDelete;
   final void Function(Exercise exercise) onDelete;
   final void Function(Exercise exercise) onDuplicate;
@@ -472,23 +444,36 @@ class _ReorderableExerciseList extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 3),
-                    child: Text(
-                      ex.name,
-                      style: const TextStyle(
-                        fontFamily: 'Caveat',
-                        fontSize: 20,
-                        color: NotebookColors.ink,
+                  child: InkWell(
+                    onTap: () => onEditPrescription(ex),
+                    child: Container(
+                      alignment: Alignment.bottomLeft,
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: Text.rich(
+                        TextSpan(
+                          style: const TextStyle(
+                            fontFamily: 'Caveat',
+                            fontSize: 20,
+                            color: NotebookColors.ink,
+                          ),
+                          children: [
+                            TextSpan(text: ex.name),
+                            if (formatPrescription(ex.sets, ex.repsMin, ex.repsMax).isNotEmpty)
+                              TextSpan(
+                                text: '  ${formatPrescription(ex.sets, ex.repsMin, ex.repsMax)}',
+                                style: const TextStyle(color: NotebookColors.inkSoft),
+                              ),
+                          ],
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
                 GlyphButton(
                   glyph: '✐',
-                  semanticLabel: 'Rename ${ex.name}',
-                  onTap: () => onRename(ex),
+                  semanticLabel: 'Edit sets/reps for ${ex.name}',
+                  onTap: () => onEditPrescription(ex),
                 ),
               ],
             ),
