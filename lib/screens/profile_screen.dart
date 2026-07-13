@@ -7,6 +7,7 @@ import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
 import '../utils/units.dart';
 import '../widgets/glyph_button.dart';
+import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
@@ -23,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileProvider _provider;
   final _nameController = TextEditingController();
   final _heightController = TextEditingController();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   String? _birthDate;
   bool _initializedFields = false;
 
@@ -191,8 +193,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: NotebookPage(
+            marginChild: GlyphButton(
+              glyph: '≡',
+              size: 26,
+              semanticLabel: 'Menu',
+              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
             child: Consumer<ProfileProvider>(
               builder: (context, provider, _) {
                 final profile = provider.profile;

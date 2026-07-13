@@ -6,6 +6,7 @@ import '../data/models/routine.dart';
 import '../state/routines_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../widgets/glyph_button.dart';
+import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
@@ -25,6 +26,7 @@ class RoutinesScreen extends StatefulWidget {
 class _RoutinesScreenState extends State<RoutinesScreen> {
   late final RoutinesProvider _provider;
   final _nameController = TextEditingController();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _adding = false;
 
   @override
@@ -79,8 +81,16 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: NotebookPage(
+            marginChild: GlyphButton(
+              glyph: '≡',
+              size: 26,
+              semanticLabel: 'Menu',
+              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'route_observer.dart';
 import 'screens/dashboard_screen.dart';
 import 'theme/notebook_theme.dart';
 
@@ -16,6 +17,7 @@ class MyFitNotebookApp extends StatelessWidget {
       title: 'My Fit Notebook',
       debugShowCheckedModeBanner: false,
       theme: NotebookTheme.light,
+      navigatorObservers: [appRouteObserver],
       home: const DashboardScreen(),
     );
   }

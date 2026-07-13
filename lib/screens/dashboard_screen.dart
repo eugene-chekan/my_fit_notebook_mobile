@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
 import '../data/services/workout_service.dart';
+import '../route_observer.dart';
 import '../state/calendar_provider.dart';
 import '../state/dashboard_provider.dart';
 import '../state/routines_provider.dart';
@@ -11,14 +12,12 @@ import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/month_calendar.dart';
+import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
-import 'exercises_screen.dart';
-import 'profile_screen.dart';
 import 'routine_screen.dart';
-import 'routines_screen.dart';
 
 /// The main screen: a single dashboard page — Start routine CTA, week
 /// stats + streak, and the trained-days month calendar. The routine
@@ -30,7 +29,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
   late final RoutinesProvider _routinesProvider;
   late final DashboardProvider _dashboardProvider;
   late final CalendarProvider _calendarProvider;
@@ -46,40 +45,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    appRouteObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     _routinesProvider.dispose();
     _dashboardProvider.dispose();
     _calendarProvider.dispose();
     super.dispose();
   }
 
+  /// Fires whenever a route above this one is popped — including a
+  /// several-routes-at-once pop from the sidebar's cross-navigation — so
+  /// the dashboard's stats/calendar are always fresh when it reappears,
+  /// regardless of how the user navigated away from it.
+  @override
+  void didPopNext() => _reloadAll();
+
   void _reloadAll() {
     _routinesProvider.load();
     _dashboardProvider.load();
     _calendarProvider.load();
-  }
-
-  Future<void> _openRoutines() async {
-    _scaffoldKey.currentState?.closeDrawer();
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const RoutinesScreen()));
-    _reloadAll();
-  }
-
-  Future<void> _openExercises() async {
-    _scaffoldKey.currentState?.closeDrawer();
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ExercisesScreen()));
-    _reloadAll();
-  }
-
-  Future<void> _openProfile() async {
-    _scaffoldKey.currentState?.closeDrawer();
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
   }
 
   /// The Start routine popup: a paper note listing the routines; tapping
@@ -170,10 +160,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _workoutService.startWorkout(selected.id);
     }
     if (!mounted) return;
+    // No explicit reload after this push: didPopNext (RouteAware) already
+    // refreshes the dashboard whenever it becomes visible again.
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => RoutineScreen(routineId: selected.id)),
     );
-    _reloadAll();
   }
 
   @override
@@ -186,11 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: _NotebookDrawer(
-          onRoutines: _openRoutines,
-          onExercises: _openExercises,
-          onProfile: _openProfile,
-        ),
+        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: Stack(
             children: [
@@ -287,86 +274,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: muted ? NotebookColors.inkSoft : NotebookColors.ink,
         ),
         overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-}
-
-/// The side menu, styled as a narrower sheet of the same ruled paper.
-class _NotebookDrawer extends StatelessWidget {
-  const _NotebookDrawer({
-    required this.onRoutines,
-    required this.onExercises,
-    required this.onProfile,
-  });
-
-  final VoidCallback onRoutines;
-  final VoidCallback onExercises;
-  final VoidCallback onProfile;
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      backgroundColor: NotebookColors.paper,
-      shape: const RoundedRectangleBorder(
-        side: BorderSide(color: NotebookColors.ink, width: 2),
-      ),
-      child: CustomPaint(
-        painter: const RuledPaperPainter(),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(64, 4, 18, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  height: 2 * kNotebookLine,
-                  alignment: Alignment.bottomLeft,
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: NotebookColors.ink, width: 2),
-                    ),
-                  ),
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: const Text(
-                    'My fit notebook',
-                    style: TextStyle(
-                      fontFamily: 'Caveat',
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: NotebookColors.ink,
-                    ),
-                  ),
-                ),
-                _drawerLine('Routines', onRoutines),
-                _drawerLine('Exercises', onExercises),
-                _drawerLine('Profile', onProfile),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerLine(String label, VoidCallback onTap) {
-    return SizedBox(
-      height: kNotebookLine,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          alignment: Alignment.bottomLeft,
-          padding: const EdgeInsets.only(bottom: 3),
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Caveat',
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: NotebookColors.ink,
-            ),
-          ),
-        ),
       ),
     );
   }

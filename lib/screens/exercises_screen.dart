@@ -7,6 +7,8 @@ import '../data/models/rep_unit.dart';
 import '../state/exercise_catalog_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../widgets/glyph_button.dart';
+import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
@@ -24,6 +26,7 @@ class ExercisesScreen extends StatefulWidget {
 
 class _ExercisesScreenState extends State<ExercisesScreen> {
   late final ExerciseCatalogProvider _provider;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -110,8 +113,16 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: NotebookPage(
+            marginChild: GlyphButton(
+              glyph: '≡',
+              size: 26,
+              semanticLabel: 'Menu',
+              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
             child: Consumer<ExerciseCatalogProvider>(
               builder: (context, provider, _) {
                 if (provider.loading) {

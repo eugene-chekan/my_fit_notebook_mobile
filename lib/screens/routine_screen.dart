@@ -10,6 +10,7 @@ import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
 import '../widgets/glyph_button.dart';
+import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
@@ -27,6 +28,7 @@ class RoutineScreen extends StatefulWidget {
 
 class _RoutineScreenState extends State<RoutineScreen> {
   late final RoutineDetailProvider _provider;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -121,6 +123,8 @@ class _RoutineScreenState extends State<RoutineScreen> {
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: Consumer<RoutineDetailProvider>(
             builder: (context, provider, _) {
@@ -130,6 +134,12 @@ class _RoutineScreenState extends State<RoutineScreen> {
                 children: [
                   Positioned.fill(
                     child: NotebookPage(
+                      marginChild: GlyphButton(
+                        glyph: '≡',
+                        size: 26,
+                        semanticLabel: 'Menu',
+                        onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                      ),
                       // Leave room at the bottom for the overlapping workout
                       // strip so the last logged session isn't hidden.
                       padding: EdgeInsets.fromLTRB(64, 4, 18, active ? 124 : 28),

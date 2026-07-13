@@ -9,6 +9,7 @@ import '../theme/notebook_theme.dart';
 import '../utils/exercise_suggestions.dart';
 import '../utils/formatters.dart';
 import '../widgets/glyph_button.dart';
+import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
@@ -31,6 +32,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
   final _descriptionController = TextEditingController();
   final _newExerciseController = TextEditingController();
   final _newExerciseFocus = FocusNode();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _initializedFields = false;
 
   @override
@@ -143,8 +145,16 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: NotebookPage(
+            marginChild: GlyphButton(
+              glyph: '≡',
+              size: 26,
+              semanticLabel: 'Menu',
+              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
             child: Consumer<RoutineDetailProvider>(
               builder: (context, provider, _) {
                 if (provider.routine == null) return const SizedBox.shrink();
