@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -38,6 +38,7 @@ class AppDatabase {
         if (oldVersion < 2) await _createProfileTables(db);
         if (oldVersion < 3) await _migrateToCatalog(db);
         if (oldVersion < 4) await _migrateToPrescriptions(db);
+        if (oldVersion < 5) await _migrateToRepUnits(db);
       },
     );
   }
@@ -65,7 +66,8 @@ class AppDatabase {
         catalog_id INTEGER,
         sets INTEGER,
         reps_min INTEGER,
-        reps_max INTEGER
+        reps_max INTEGER,
+        unit TEXT NOT NULL DEFAULT 'reps'
       )
     ''');
     await db.execute('''
@@ -127,6 +129,7 @@ class AppDatabase {
         default_sets INTEGER,
         default_reps INTEGER,
         default_reps_max INTEGER,
+        default_unit TEXT NOT NULL DEFAULT 'reps',
         notes TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
       )
@@ -164,5 +167,15 @@ class AppDatabase {
       "ALTER TABLE exercise_catalog ADD COLUMN description TEXT NOT NULL DEFAULT ''",
     );
     await db.execute('ALTER TABLE exercise_catalog ADD COLUMN default_reps_max INTEGER');
+  }
+
+  /// v4 → v5: a unit alongside sets/reps, so a prescription can be reps
+  /// ("2x10"), seconds ("2x45sec"), or minutes ("1x2min"). Additive only;
+  /// existing rows default to 'reps', preserving their current meaning.
+  Future<void> _migrateToRepUnits(Database db) async {
+    await db.execute("ALTER TABLE exercises ADD COLUMN unit TEXT NOT NULL DEFAULT 'reps'");
+    await db.execute(
+      "ALTER TABLE exercise_catalog ADD COLUMN default_unit TEXT NOT NULL DEFAULT 'reps'",
+    );
   }
 }

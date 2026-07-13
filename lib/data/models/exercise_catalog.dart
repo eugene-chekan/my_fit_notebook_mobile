@@ -1,6 +1,8 @@
+import 'rep_unit.dart';
+
 /// A canonical exercise in the local catalog. Holds the exercise's identity
 /// (name, description) and default prescription (sets, reps, optional rep
-/// range) that routine memberships prefill from. Strictly on-device.
+/// range, unit) that routine memberships prefill from. Strictly on-device.
 class CatalogEntry {
   const CatalogEntry({
     required this.id,
@@ -9,6 +11,7 @@ class CatalogEntry {
     this.defaultSets,
     this.defaultReps,
     this.defaultRepsMax,
+    this.defaultUnit = RepUnit.reps,
   });
 
   final int id;
@@ -17,6 +20,7 @@ class CatalogEntry {
   final int? defaultSets;
   final int? defaultReps;
   final int? defaultRepsMax;
+  final String defaultUnit;
 
   CatalogEntry copyWith({
     String? name,
@@ -24,6 +28,7 @@ class CatalogEntry {
     Object? defaultSets = _unset,
     Object? defaultReps = _unset,
     Object? defaultRepsMax = _unset,
+    String? defaultUnit,
   }) {
     return CatalogEntry(
       id: id,
@@ -33,6 +38,7 @@ class CatalogEntry {
       defaultReps: identical(defaultReps, _unset) ? this.defaultReps : defaultReps as int?,
       defaultRepsMax:
           identical(defaultRepsMax, _unset) ? this.defaultRepsMax : defaultRepsMax as int?,
+      defaultUnit: defaultUnit ?? this.defaultUnit,
     );
   }
 
@@ -46,6 +52,7 @@ class CatalogEntry {
       defaultSets: map['default_sets'] as int?,
       defaultReps: map['default_reps'] as int?,
       defaultRepsMax: map['default_reps_max'] as int?,
+      defaultUnit: (map['default_unit'] as String?) ?? RepUnit.reps,
     );
   }
 }

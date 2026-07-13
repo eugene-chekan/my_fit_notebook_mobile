@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/exercise.dart';
+import '../data/models/rep_unit.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/exercise_suggestions.dart';
@@ -80,6 +81,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       sets: defaults?.defaultSets,
       repsMin: defaults?.defaultReps,
       repsMax: defaults?.defaultRepsMax,
+      unit: defaults?.defaultUnit ?? RepUnit.reps,
     );
     if (rx == null) return; // cancelled
     await _provider.addExercise(
@@ -87,6 +89,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       sets: rx.sets,
       repsMin: rx.repsMin,
       repsMax: rx.repsMax,
+      unit: rx.unit,
     );
     if (!mounted) return;
     _newExerciseController.clear();
@@ -101,6 +104,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       sets: ex.sets,
       repsMin: ex.repsMin,
       repsMax: ex.repsMax,
+      unit: ex.unit,
     );
     if (rx == null) return;
     await _provider.updatePrescription(
@@ -108,6 +112,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       sets: rx.sets,
       repsMin: rx.repsMin,
       repsMax: rx.repsMax,
+      unit: rx.unit,
     );
   }
 
@@ -458,9 +463,11 @@ class _ReorderableExerciseList extends StatelessWidget {
                           ),
                           children: [
                             TextSpan(text: ex.name),
-                            if (formatPrescription(ex.sets, ex.repsMin, ex.repsMax).isNotEmpty)
+                            if (formatPrescription(ex.sets, ex.repsMin, ex.repsMax, ex.unit)
+                                .isNotEmpty)
                               TextSpan(
-                                text: '  ${formatPrescription(ex.sets, ex.repsMin, ex.repsMax)}',
+                                text:
+                                    '  ${formatPrescription(ex.sets, ex.repsMin, ex.repsMax, ex.unit)}',
                                 style: const TextStyle(color: NotebookColors.inkSoft),
                               ),
                           ],

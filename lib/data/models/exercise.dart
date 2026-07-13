@@ -1,3 +1,5 @@
+import 'rep_unit.dart';
+
 /// Mirrors the `Exercise` dataclass in the Flask app's models.py.
 class Exercise {
   const Exercise({
@@ -10,6 +12,7 @@ class Exercise {
     this.sets,
     this.repsMin,
     this.repsMax,
+    this.unit = RepUnit.reps,
   });
 
   final int id;
@@ -20,10 +23,11 @@ class Exercise {
   /// Link to the canonical catalog entry, or null for legacy rows.
   final int? catalogId;
   /// Per-routine prescription (null when unset). [repsMax] > [repsMin]
-  /// denotes a range (e.g. 10-12).
+  /// denotes a range (e.g. 10-12). [unit] is reps, seconds, or minutes.
   final int? sets;
   final int? repsMin;
   final int? repsMax;
+  final String unit;
 
   Exercise copyWith({String? name, bool? isDone, int? sortOrder}) {
     return Exercise(
@@ -36,6 +40,7 @@ class Exercise {
       sets: sets,
       repsMin: repsMin,
       repsMax: repsMax,
+      unit: unit,
     );
   }
 
@@ -50,6 +55,7 @@ class Exercise {
       sets: map['sets'] as int?,
       repsMin: map['reps_min'] as int?,
       repsMax: map['reps_max'] as int?,
+      unit: (map['unit'] as String?) ?? RepUnit.reps,
     );
   }
 
@@ -63,5 +69,6 @@ class Exercise {
     'sets': sets,
     'reps_min': repsMin,
     'reps_max': repsMax,
+    'unit': unit,
   };
 }

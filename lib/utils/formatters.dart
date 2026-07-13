@@ -1,6 +1,8 @@
 /// Dart port of filters.py so displayed dates/durations match the web app.
 library;
 
+import '../data/models/rep_unit.dart';
+
 String formatCompletionDt(String value) {
   try {
     if (value.contains('T')) {
@@ -59,10 +61,16 @@ String notebookDateLabel(DateTime d) {
 
 /// Sets/reps prescription in parentheses: "(2x10)", or "(2x10-12)" when a
 /// rep range is set. Empty when there's nothing to show (no sets or reps).
-String formatPrescription(int? sets, int? repsMin, int? repsMax) {
+/// [unit] is 'reps' (no suffix), 'sec', or 'min' — see [RepUnit].
+String formatPrescription(
+  int? sets,
+  int? repsMin,
+  int? repsMax, [
+  String unit = RepUnit.reps,
+]) {
   if (sets == null || sets <= 0 || repsMin == null || repsMin <= 0) return '';
   final range = (repsMax != null && repsMax > repsMin) ? '-$repsMax' : '';
-  return '(${sets}x$repsMin$range)';
+  return '(${sets}x$repsMin$range${RepUnit.suffix(unit)})';
 }
 
 /// Whole years since a yyyy-MM-dd birth date; null when unset/malformed.

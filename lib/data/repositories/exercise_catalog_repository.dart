@@ -2,9 +2,10 @@ import 'package:sqflite/sqflite.dart';
 
 import '../db/app_database.dart';
 import '../models/exercise_catalog.dart';
+import '../models/rep_unit.dart';
 
 const _catalogColumns =
-    'id, name, description, default_sets, default_reps, default_reps_max';
+    'id, name, description, default_sets, default_reps, default_reps_max, default_unit';
 
 /// SQL access for the canonical exercise catalog.
 class ExerciseCatalogRepository {
@@ -21,15 +22,16 @@ class ExerciseCatalogRepository {
     int? defaultSets,
     int? defaultReps,
     int? defaultRepsMax,
+    String defaultUnit = RepUnit.reps,
   }) async {
     final trimmed = name.trim();
     final db = await _db;
     final now = DateTime.now().toIso8601String().substring(0, 19);
     await db.rawInsert(
       'INSERT OR IGNORE INTO exercise_catalog '
-      '(name, description, default_sets, default_reps, default_reps_max, notes, created_at) '
-      "VALUES (?, '', ?, ?, ?, '', ?)",
-      [trimmed, defaultSets, defaultReps, defaultRepsMax, now],
+      '(name, description, default_sets, default_reps, default_reps_max, default_unit, notes, created_at) '
+      "VALUES (?, '', ?, ?, ?, ?, '', ?)",
+      [trimmed, defaultSets, defaultReps, defaultRepsMax, defaultUnit, now],
     );
     final rows = await db.query(
       'exercise_catalog',
@@ -71,6 +73,7 @@ class ExerciseCatalogRepository {
     int? defaultSets,
     int? defaultReps,
     int? defaultRepsMax,
+    String defaultUnit = RepUnit.reps,
   }) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return false;
@@ -83,6 +86,7 @@ class ExerciseCatalogRepository {
         'default_sets': defaultSets,
         'default_reps': defaultReps,
         'default_reps_max': defaultRepsMax,
+        'default_unit': defaultUnit,
         'notes': '',
         'created_at': now,
       });
@@ -110,6 +114,7 @@ class ExerciseCatalogRepository {
             'default_sets': entry.defaultSets,
             'default_reps': entry.defaultReps,
             'default_reps_max': entry.defaultRepsMax,
+            'default_unit': entry.defaultUnit,
           },
           where: 'id = ?',
           whereArgs: [entry.id],

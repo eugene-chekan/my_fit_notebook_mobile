@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../data/models/exercise_catalog.dart';
+import '../data/models/rep_unit.dart';
 import '../data/repositories/exercise_catalog_repository.dart';
 
 /// Backs the Exercises (catalog management) screen: the full library plus
@@ -27,6 +28,7 @@ class ExerciseCatalogProvider extends ChangeNotifier {
     int? defaultSets,
     int? defaultReps,
     int? defaultRepsMax,
+    String defaultUnit = RepUnit.reps,
   }) async {
     final ok = await _repository.create(
       name: name,
@@ -34,6 +36,7 @@ class ExerciseCatalogProvider extends ChangeNotifier {
       defaultSets: defaultSets,
       defaultReps: defaultReps,
       defaultRepsMax: defaultRepsMax,
+      defaultUnit: defaultUnit,
     );
     if (ok) await load();
     return ok;

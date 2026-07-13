@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../data/models/completion.dart';
 import '../data/models/exercise.dart';
 import '../data/models/exercise_catalog.dart';
+import '../data/models/rep_unit.dart';
 import '../data/models/routine.dart';
 import '../data/repositories/completion_repository.dart';
 import '../data/repositories/exercise_catalog_repository.dart';
@@ -128,6 +129,7 @@ class RoutineDetailProvider extends ChangeNotifier {
     int? sets,
     int? repsMin,
     int? repsMax,
+    String unit = RepUnit.reps,
   }) async {
     await _exerciseRepository.addExercise(
       routineId,
@@ -135,6 +137,7 @@ class RoutineDetailProvider extends ChangeNotifier {
       sets: sets,
       repsMin: repsMin,
       repsMax: repsMax,
+      unit: unit,
     );
     await load();
   }
@@ -144,6 +147,7 @@ class RoutineDetailProvider extends ChangeNotifier {
     int? sets,
     int? repsMin,
     int? repsMax,
+    String unit = RepUnit.reps,
   }) async {
     await _exerciseRepository.updatePrescription(
       exerciseId,
@@ -151,6 +155,7 @@ class RoutineDetailProvider extends ChangeNotifier {
       sets: sets,
       repsMin: repsMin,
       repsMax: repsMax,
+      unit: unit,
     );
     await load();
   }

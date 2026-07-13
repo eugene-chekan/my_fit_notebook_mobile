@@ -2,10 +2,11 @@ import 'package:sqflite/sqflite.dart';
 
 import '../db/app_database.dart';
 import '../models/exercise.dart';
+import '../models/rep_unit.dart';
 import 'exercise_catalog_repository.dart';
 
 const _exerciseColumns =
-    'id, routine_id, name, sort_order, is_done, catalog_id, sets, reps_min, reps_max';
+    'id, routine_id, name, sort_order, is_done, catalog_id, sets, reps_min, reps_max, unit';
 
 /// SQL access for exercises — a Dart port of repositories/exercises.py.
 class ExerciseRepository {
@@ -35,6 +36,7 @@ class ExerciseRepository {
     int? sets,
     int? repsMin,
     int? repsMax,
+    String unit = RepUnit.reps,
     String? description,
   }) async {
     final trimmed = name.trim();
@@ -44,6 +46,7 @@ class ExerciseRepository {
       defaultSets: sets,
       defaultReps: repsMin,
       defaultRepsMax: repsMax,
+      defaultUnit: unit,
     );
     final db = await _db;
     final maxOrderRows = await db.rawQuery(
@@ -60,21 +63,23 @@ class ExerciseRepository {
       'sets': sets,
       'reps_min': repsMin,
       'reps_max': repsMax,
+      'unit': unit,
     });
   }
 
-  /// Updates the per-routine sets/reps prescription for one exercise.
+  /// Updates the per-routine sets/reps/unit prescription for one exercise.
   Future<void> updatePrescription(
     int exerciseId,
     int routineId, {
     int? sets,
     int? repsMin,
     int? repsMax,
+    String unit = RepUnit.reps,
   }) async {
     final db = await _db;
     await db.update(
       'exercises',
-      {'sets': sets, 'reps_min': repsMin, 'reps_max': repsMax},
+      {'sets': sets, 'reps_min': repsMin, 'reps_max': repsMax, 'unit': unit},
       where: 'id = ? AND routine_id = ?',
       whereArgs: [exerciseId, routineId],
     );
@@ -100,7 +105,7 @@ class ExerciseRepository {
     final db = await _db;
     final rows = await db.query(
       'exercises',
-      columns: ['name', 'catalog_id', 'sets', 'reps_min', 'reps_max'],
+      columns: ['name', 'catalog_id', 'sets', 'reps_min', 'reps_max', 'unit'],
       where: 'id = ? AND routine_id = ?',
       whereArgs: [exerciseId, routineId],
     );
@@ -115,6 +120,7 @@ class ExerciseRepository {
       'sets': rows.first['sets'] as int?,
       'reps_min': rows.first['reps_min'] as int?,
       'reps_max': rows.first['reps_max'] as int?,
+      'unit': rows.first['unit'] as String? ?? RepUnit.reps,
       'sort_order': maxOrderRows.first['next_order'] as int,
       'is_done': 0,
       'catalog_id': rows.first['catalog_id'] as int?,

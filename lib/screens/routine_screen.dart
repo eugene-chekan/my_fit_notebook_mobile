@@ -383,16 +383,16 @@ class _ExerciseRow extends StatelessWidget {
                     ),
                     children: [
                       TextSpan(text: exercise.name),
-                      if (formatPrescription(exercise.sets, exercise.repsMin, exercise.repsMax)
-                          .isNotEmpty)
+                      if (formatPrescription(
+                        exercise.sets,
+                        exercise.repsMin,
+                        exercise.repsMax,
+                        exercise.unit,
+                      ).isNotEmpty)
                         TextSpan(
                           text:
-                              '  ${formatPrescription(exercise.sets, exercise.repsMin, exercise.repsMax)}',
-                          style: TextStyle(
-                            color: exercise.isDone
-                                ? NotebookColors.inkSoft
-                                : NotebookColors.inkSoft,
-                          ),
+                              '  ${formatPrescription(exercise.sets, exercise.repsMin, exercise.repsMax, exercise.unit)}',
+                          style: const TextStyle(color: NotebookColors.inkSoft),
                         ),
                     ],
                   ),
