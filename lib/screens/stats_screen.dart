@@ -172,8 +172,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         target: weightTarget != null
             ? toDisplay(weightTarget, weightMetric, s.units)
             : null,
+        goalLabel: weightTarget != null
+            ? 'goal ${formatMeasurement(weightTarget, weightMetric, s.units)}'
+            : null,
         height: 108,
-        showGoalLabel: true,
       ));
     } else if (weightLatest != null) {
       widgets.add(const MutedLine('log weight again to draw the trend'));

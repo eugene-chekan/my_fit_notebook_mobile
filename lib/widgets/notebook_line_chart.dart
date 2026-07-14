@@ -9,23 +9,26 @@ import '../theme/notebook_theme.dart';
 /// point. Values are already in display units — the painter only scales.
 ///
 /// Used full-size for the weight chart and as a compact inline sparkline for
-/// the other measurements ([showDots]/[showGoalLabel] off, small [height]).
+/// the other measurements ([showDots] off, no [goalLabel], small [height]).
 class NotebookLineChart extends StatelessWidget {
   const NotebookLineChart({
     super.key,
     required this.values,
     this.target,
+    this.goalLabel,
     this.height = 92,
     this.showDots = true,
-    this.showGoalLabel = false,
     this.strokeWidth = 2,
   });
 
   final List<double> values;
   final double? target;
+
+  /// Text drawn beside the dashed goal line (e.g. "goal 70 kg"). Ignored
+  /// when [target] is null.
+  final String? goalLabel;
   final double height;
   final bool showDots;
-  final bool showGoalLabel;
   final double strokeWidth;
 
   @override
@@ -37,8 +40,8 @@ class NotebookLineChart extends StatelessWidget {
         painter: _LineChartPainter(
           values: values,
           target: target,
+          goalLabel: goalLabel,
           showDots: showDots,
-          showGoalLabel: showGoalLabel,
           strokeWidth: strokeWidth,
         ),
         child: const SizedBox.expand(),
@@ -51,15 +54,15 @@ class _LineChartPainter extends CustomPainter {
   _LineChartPainter({
     required this.values,
     required this.target,
+    required this.goalLabel,
     required this.showDots,
-    required this.showGoalLabel,
     required this.strokeWidth,
   });
 
   final List<double> values;
   final double? target;
+  final String? goalLabel;
   final bool showDots;
-  final bool showGoalLabel;
   final double strokeWidth;
 
   @override
@@ -112,19 +115,24 @@ class _LineChartPainter extends CustomPainter {
           ..color = NotebookColors.marginLine
           ..strokeWidth = 1.5,
       );
-      if (showGoalLabel) {
+      if (goalLabel != null) {
         final tp = TextPainter(
-          text: const TextSpan(
-            text: 'goal',
-            style: TextStyle(
+          text: TextSpan(
+            text: goalLabel,
+            style: const TextStyle(
               fontFamily: 'Caveat',
-              fontSize: 14,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
               color: NotebookColors.inkSoft,
             ),
           ),
           textDirection: TextDirection.ltr,
         )..layout();
-        tp.paint(canvas, Offset(size.width - padRight - tp.width, gy - tp.height - 1));
+        final tx = (size.width - padRight - tp.width).clamp(padLeft, size.width);
+        // Sit above the line, unless that would clip the top of the canvas.
+        final above = gy - tp.height - 1;
+        final ty = above < 0 ? gy + 2 : above;
+        tp.paint(canvas, Offset(tx.toDouble(), ty));
       }
     }
 
@@ -184,7 +192,7 @@ class _LineChartPainter extends CustomPainter {
   bool shouldRepaint(covariant _LineChartPainter old) =>
       !listEquals(old.values, values) ||
       old.target != target ||
+      old.goalLabel != goalLabel ||
       old.showDots != showDots ||
-      old.showGoalLabel != showGoalLabel ||
       old.strokeWidth != strokeWidth;
 }

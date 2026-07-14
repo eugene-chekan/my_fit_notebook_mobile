@@ -28,34 +28,60 @@ class NotebookBarChart extends StatelessWidget {
       fontSize: 14,
       color: NotebookColors.inkSoft,
     );
+    const valueStyle = TextStyle(
+      fontFamily: 'Caveat',
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      color: NotebookColors.inkSoft,
+    );
     return SizedBox(
       height: height,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (final week in weeks)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.5),
-                      child: FractionallySizedBox(
-                        alignment: Alignment.bottomCenter,
-                        heightFactor: (week.minutes / maxMinutes).clamp(0.0, 1.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: NotebookColors.trainedFill,
-                            border: Border.all(color: NotebookColors.ink, width: 1.5),
-                            borderRadius:
-                                const BorderRadius.vertical(top: Radius.circular(2)),
+            // The value labels ride on top of each bar, so lay bars out in
+            // pixels (not a height fraction) to leave headroom for the text.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const labelHeight = 16.0;
+                final barMax = (constraints.maxHeight - labelHeight)
+                    .clamp(0.0, constraints.maxHeight);
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (final week in weeks)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2.5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (week.minutes > 0)
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text('${week.minutes}', style: valueStyle),
+                                ),
+                              SizedBox(
+                                height: (week.minutes / maxMinutes).clamp(0.0, 1.0) *
+                                    barMax,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: NotebookColors.trainedFill,
+                                    border: Border.all(
+                                        color: NotebookColors.ink, width: 1.5),
+                                    borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(2)),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ),
-              ],
+                  ],
+                );
+              },
             ),
           ),
           Container(height: 2, color: NotebookColors.marginLine),
