@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../screens/exercises_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/routines_screen.dart';
+import '../screens/stats_screen.dart';
 import '../theme/notebook_theme.dart';
 import 'notebook_page.dart';
 
@@ -62,6 +63,7 @@ class NotebookDrawer extends StatelessWidget {
                 ),
                 _line(context, 'Routines', (_) => const RoutinesScreen()),
                 _line(context, 'Exercises', (_) => const ExercisesScreen()),
+                _line(context, 'Stats', (_) => const StatsScreen()),
                 _line(context, 'Profile', (_) => const ProfileScreen()),
               ],
             ),

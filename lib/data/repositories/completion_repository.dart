@@ -55,6 +55,19 @@ class CompletionRepository {
     return rows.map((r) => r['d'] as String).toList();
   }
 
+  /// Every completion on/after [fromIsoDate] (yyyy-MM-dd), across all
+  /// routines, oldest first — feeds the Stats screen's client-side
+  /// bucketing (weekly minutes, monthly totals, averages).
+  Future<List<Completion>> completionsSince(String fromIsoDate) async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+      'SELECT $_completionColumns FROM completions WHERE date(completed_on) >= ? '
+      'ORDER BY completed_on',
+      [fromIsoDate],
+    );
+    return rows.map(Completion.fromMap).toList();
+  }
+
   Future<List<Completion>> listForRoutine(int routineId) async {
     final db = await _db;
     final rows = await db.rawQuery(
