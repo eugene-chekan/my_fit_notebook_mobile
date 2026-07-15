@@ -103,6 +103,31 @@ class CompletionRepository {
     }
   }
 
+  /// Like [addCompletion] but returns the new completion's id (needed to link
+  /// per-set history rows), or null on the UNIQUE(routine_id, completed_on)
+  /// collision.
+  Future<int?> addCompletionReturningId(
+    int routineId,
+    DateTime completedOn, {
+    int? durationMinutes,
+    String? startedAt,
+    int? pausedSeconds,
+  }) async {
+    final db = await _db;
+    try {
+      return await db.insert('completions', {
+        'routine_id': routineId,
+        'completed_on': _iso(completedOn),
+        'duration_minutes': durationMinutes,
+        'started_at': startedAt,
+        'paused_seconds': pausedSeconds,
+      });
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) return null;
+      rethrow;
+    }
+  }
+
   Future<bool> updateCompletionDate(
     int completionId,
     int routineId,

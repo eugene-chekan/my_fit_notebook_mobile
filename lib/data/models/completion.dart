@@ -37,15 +37,20 @@ class Completion {
   };
 }
 
-/// Mirrors the `WorkoutStatistics` dataclass in the Flask app's models.py.
+/// Mirrors the `WorkoutStatistics` dataclass in the Flask app's models.py,
+/// plus per-set totals ([setsCompleted]/[repsTotal]) captured at finish time.
 class WorkoutStatistics {
   const WorkoutStatistics({
     required this.exercisesCompleted,
     required this.durationSeconds,
     required this.pausedSeconds,
+    this.setsCompleted = 0,
+    this.repsTotal = 0,
   });
 
   final int exercisesCompleted;
   final int durationSeconds;
   final int pausedSeconds;
+  final int setsCompleted;
+  final int repsTotal;
 }

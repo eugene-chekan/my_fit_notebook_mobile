@@ -96,21 +96,29 @@ class WorkoutService {
       throw StateError('Routine $routineId not found');
     }
     final exercises = await _exercises.listExercises(routineId);
+    final (setsCompleted, repsTotal) = await _exercises.doneSetStats(routineId);
     final stats = WorkoutStatistics(
       exercisesCompleted: exercises.where((e) => e.isDone).length,
       durationSeconds: calculateDurationSeconds(routine),
       pausedSeconds: calculatePausedSeconds(routine),
+      setsCompleted: setsCompleted,
+      repsTotal: repsTotal,
     );
     final finishedAt = DateTime.now();
     final pausedSeconds = calculatePausedSeconds(routine);
     final durationMinutes = calculateWorkoutDuration(routine);
-    await _completions.addCompletion(
+    // Record the completion first so its id can anchor the per-set snapshot;
+    // snapshot the done sets before resetting them.
+    final completionId = await _completions.addCompletionReturningId(
       routineId,
       finishedAt,
       durationMinutes: durationMinutes,
       startedAt: routine.startedAt,
       pausedSeconds: routine.startedAt != null ? pausedSeconds : null,
     );
+    if (completionId != null) {
+      await _exercises.snapshotDoneSets(routineId, completionId);
+    }
     await _exercises.resetExercises(routineId);
     await _routines.clearStartedAt(routineId);
     return stats;

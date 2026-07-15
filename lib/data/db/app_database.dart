@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 5,
+      version: 6,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -33,12 +33,14 @@ class AppDatabase {
         await _createWorkoutTables(db);
         await _createProfileTables(db);
         await _createCatalogTable(db);
+        await _createSetLoggingTables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createProfileTables(db);
         if (oldVersion < 3) await _migrateToCatalog(db);
         if (oldVersion < 4) await _migrateToPrescriptions(db);
         if (oldVersion < 5) await _migrateToRepUnits(db);
+        if (oldVersion < 6) await _migrateToSetLogging(db);
       },
     );
   }
@@ -177,5 +179,63 @@ class AppDatabase {
     await db.execute(
       "ALTER TABLE exercise_catalog ADD COLUMN default_unit TEXT NOT NULL DEFAULT 'reps'",
     );
+  }
+
+  /// v6: per-set tracking. `exercise_sets` holds the live working state — one
+  /// row per set of a prescribed exercise, checkable individually with an
+  /// adjustable actual-reps value. `completion_sets` snapshots the sets that
+  /// were done when a session is finished (denormalized so history survives
+  /// later edits/deletes of the exercise). Both cascade-delete via FKs.
+  Future<void> _createSetLoggingTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE exercise_sets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exercise_id INTEGER NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+        set_index INTEGER NOT NULL,
+        actual_reps INTEGER,
+        is_done INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_exercise_sets_exercise ON exercise_sets(exercise_id)',
+    );
+    await db.execute('''
+      CREATE TABLE completion_sets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        completion_id INTEGER NOT NULL REFERENCES completions(id) ON DELETE CASCADE,
+        exercise_name TEXT NOT NULL,
+        catalog_id INTEGER,
+        set_index INTEGER NOT NULL,
+        reps INTEGER,
+        unit TEXT NOT NULL DEFAULT 'reps'
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_completion_sets_completion ON completion_sets(completion_id)',
+    );
+  }
+
+  /// v5 → v6: stand up the set-logging tables, then seed `exercise_sets` for
+  /// every existing prescribed exercise (one row per set, reps prefilled to
+  /// the top of the range, all unchecked) so current routines gain their sets
+  /// without data loss. `completion_sets` starts empty (no history to backfill).
+  Future<void> _migrateToSetLogging(Database db) async {
+    await _createSetLoggingTables(db);
+    final exercises = await db.rawQuery(
+      'SELECT id, sets, reps_min, reps_max FROM exercises WHERE sets > 0',
+    );
+    for (final row in exercises) {
+      final exerciseId = row['id'] as int;
+      final sets = row['sets'] as int;
+      final prefill = (row['reps_max'] as int?) ?? (row['reps_min'] as int?);
+      for (var i = 1; i <= sets; i++) {
+        await db.insert('exercise_sets', {
+          'exercise_id': exerciseId,
+          'set_index': i,
+          'actual_reps': prefill,
+          'is_done': 0,
+        });
+      }
+    }
   }
 }

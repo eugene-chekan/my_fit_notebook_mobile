@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../data/models/completion.dart';
 import '../data/models/exercise.dart';
 import '../data/models/exercise_catalog.dart';
+import '../data/models/exercise_set.dart';
 import '../data/models/rep_unit.dart';
 import '../data/models/routine.dart';
 import '../data/repositories/completion_repository.dart';
@@ -43,8 +44,22 @@ class RoutineDetailProvider extends ChangeNotifier {
   /// Full catalog entries for the add-exercise autocomplete and to prefill
   /// the prescription form from an exercise's defaults; refreshed on load.
   List<CatalogEntry> catalogEntries = [];
+  /// Per-set working state, keyed by exercise id (prescribed exercises only).
+  Map<int, List<ExerciseSet>> setsByExercise = {};
+  /// Which exercises are currently expanded to show their sets. Kept here so
+  /// it survives the frequent [load] reloads that follow each set toggle.
+  final Set<int> expandedExercises = {};
   bool loading = true;
   Timer? _ticker;
+
+  /// The set rows for an exercise (empty for a bare exercise).
+  List<ExerciseSet> setsFor(int exerciseId) => setsByExercise[exerciseId] ?? const [];
+
+  /// An exercise is "prescribed" (gets the per-set breakdown) when it has a
+  /// positive sets count — which is exactly when it has seeded set rows.
+  bool isPrescribed(Exercise exercise) => setsFor(exercise.id).isNotEmpty;
+
+  bool isExpanded(int exerciseId) => expandedExercises.contains(exerciseId);
 
   /// Just the names, for the autocomplete option pool.
   List<String> get catalogNames => catalogEntries.map((e) => e.name).toList();
@@ -63,6 +78,7 @@ class RoutineDetailProvider extends ChangeNotifier {
     exercises = await _exerciseRepository.listExercises(routineId);
     completions = await _completionRepository.listForRoutine(routineId);
     catalogEntries = await _catalogRepository.listAll();
+    setsByExercise = await _exerciseRepository.listSetsForRoutine(routineId);
     loading = false;
     _syncTicker();
     notifyListeners();
@@ -121,6 +137,30 @@ class RoutineDetailProvider extends ChangeNotifier {
 
   Future<void> toggleExercise(int exerciseId) async {
     await _exerciseRepository.toggleDone(exerciseId, routineId);
+    await load();
+  }
+
+  /// Expand/collapse an exercise's set list. UI-only — no reload needed.
+  void toggleExpanded(int exerciseId) {
+    if (!expandedExercises.remove(exerciseId)) {
+      expandedExercises.add(exerciseId);
+    }
+    notifyListeners();
+  }
+
+  Future<void> toggleSet(int setId, int exerciseId) async {
+    await _exerciseRepository.toggleSet(setId, exerciseId);
+    await load();
+  }
+
+  /// Checks or clears every set of an exercise at once (the header checkbox).
+  Future<void> markAllSets(int exerciseId, bool done) async {
+    await _exerciseRepository.markAllSets(exerciseId, done);
+    await load();
+  }
+
+  Future<void> setSetReps(int setId, int? reps) async {
+    await _exerciseRepository.setSetReps(setId, reps);
     await load();
   }
 

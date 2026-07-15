@@ -6,9 +6,12 @@ import 'package:provider/provider.dart';
 
 import '../data/models/completion.dart' as models;
 import '../data/models/exercise.dart';
+import '../data/models/exercise_set.dart';
+import '../data/models/rep_unit.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../utils/set_progress.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
@@ -71,6 +74,10 @@ class _RoutineScreenState extends State<RoutineScreen> {
           ),
           const SizedBox(height: 10),
           _statRow('Exercises completed', '${stats.exercisesCompleted}'),
+          if (stats.setsCompleted > 0) ...[
+            _statRow('Sets completed', '${stats.setsCompleted}'),
+            _statRow('Reps logged', '${stats.repsTotal}'),
+          ],
           _statRow('Total duration', formatDuration(stats.durationSeconds)),
           _statRow('Time paused', formatDuration(stats.pausedSeconds)),
           const SizedBox(height: 12),
@@ -116,6 +123,78 @@ class _RoutineScreenState extends State<RoutineScreen> {
       confirmLabel: 'Remove',
     );
     if (confirmed) await _provider.deleteCompletion(completion.id);
+  }
+
+  /// Tap a set's reps to type the actual count performed.
+  Future<void> _editSetReps(Exercise exercise, ExerciseSet set) async {
+    final controller = TextEditingController(
+      text: set.actualReps?.toString() ?? '',
+    );
+    final unitWord = exercise.unit == RepUnit.reps ? 'reps' : exercise.unit;
+    final reps = await showPaperDialog<int>(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Set ${set.setIndex} · actual $unitWord',
+            style: const TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: NotebookColors.ink,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            cursorColor: NotebookColors.ink,
+            style: const TextStyle(fontFamily: 'Caveat', fontSize: 22, color: NotebookColors.ink),
+            decoration: InputDecoration(
+              isDense: true,
+              suffixText: unitWord,
+              suffixStyle: const TextStyle(
+                fontFamily: 'Caveat',
+                fontSize: 18,
+                color: NotebookColors.inkSoft,
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: NotebookColors.ink),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+              ),
+            ),
+            onSubmitted: (v) => Navigator.pop(context, int.tryParse(v.trim())),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              PenButton(
+                label: 'Cancel',
+                small: true,
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(width: 8),
+              PenButton(
+                label: 'Save',
+                small: true,
+                onPressed: () => Navigator.pop(context, int.tryParse(controller.text.trim())),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    // Cancel (or a non-number) returns null and leaves the reps untouched; a
+    // valid number updates them, and 0 clears them back to unlogged.
+    if (reps != null) {
+      await _provider.setSetReps(set.id, reps <= 0 ? null : reps);
+    }
   }
 
   @override
@@ -185,13 +264,30 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                   const MutedLine('No exercises yet — add one via ✐ above.')
                                 else
                                   ...provider.exercises.map(
-                                    (ex) => _ExerciseRow(
-                                      exercise: ex,
-                                      onToggle: () {
-                                        HapticFeedback.lightImpact();
-                                        provider.toggleExercise(ex.id);
-                                      },
-                                    ),
+                                    (ex) => provider.isPrescribed(ex)
+                                        ? _PrescribedExerciseRow(
+                                            exercise: ex,
+                                            sets: provider.setsFor(ex.id),
+                                            expanded: provider.isExpanded(ex.id),
+                                            onToggleExpand: () =>
+                                                provider.toggleExpanded(ex.id),
+                                            onToggleAll: (allDone) {
+                                              HapticFeedback.lightImpact();
+                                              provider.markAllSets(ex.id, !allDone);
+                                            },
+                                            onToggleSet: (setId) {
+                                              HapticFeedback.lightImpact();
+                                              provider.toggleSet(setId, ex.id);
+                                            },
+                                            onEditReps: (set) => _editSetReps(ex, set),
+                                          )
+                                        : _ExerciseRow(
+                                            exercise: ex,
+                                            onToggle: () {
+                                              HapticFeedback.lightImpact();
+                                              provider.toggleExercise(ex.id);
+                                            },
+                                          ),
                                   ),
                                 const HeadingLine('Logged sessions'),
                                 if (provider.completions.isEmpty)
@@ -417,16 +513,208 @@ class _ExerciseRow extends StatelessWidget {
   }
 }
 
+/// A prescribed exercise (has sets): a ▸/▾ header with a derived checkbox
+/// (checked when every set is done), the name + prescription + n/N progress.
+/// Tapping the arrow or name expands an indented list of individually-checkable
+/// sets, each with a tap-to-edit actual-reps value.
+class _PrescribedExerciseRow extends StatelessWidget {
+  const _PrescribedExerciseRow({
+    required this.exercise,
+    required this.sets,
+    required this.expanded,
+    required this.onToggleExpand,
+    required this.onToggleAll,
+    required this.onToggleSet,
+    required this.onEditReps,
+  });
+
+  final Exercise exercise;
+  final List<ExerciseSet> sets;
+  final bool expanded;
+  final VoidCallback onToggleExpand;
+  /// Passed the current all-done state so the handler can flip it.
+  final ValueChanged<bool> onToggleAll;
+  final ValueChanged<int> onToggleSet; // set id
+  final ValueChanged<ExerciseSet> onEditReps;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = setProgress(sets);
+    final allDone = allSetsDone(sets);
+    final prescription = formatPrescription(
+      exercise.sets,
+      exercise.repsMin,
+      exercise.repsMax,
+      exercise.unit,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: kNotebookLine,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: onToggleExpand,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    expanded ? '▾' : '▸',
+                    style: const TextStyle(fontSize: 15, color: NotebookColors.inkSoft),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              InkWell(
+                onTap: () => onToggleAll(allDone),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: _InkCheckbox(checked: allDone),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: InkWell(
+                  onTap: onToggleExpand,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 3),
+                    child: Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontFamily: 'Caveat',
+                          fontSize: 20,
+                          color: allDone ? NotebookColors.inkSoft : NotebookColors.ink,
+                          decoration: allDone ? TextDecoration.lineThrough : null,
+                        ),
+                        children: [
+                          TextSpan(text: exercise.name),
+                          if (prescription.isNotEmpty)
+                            TextSpan(
+                              text: '  $prescription',
+                              style: const TextStyle(color: NotebookColors.inkSoft),
+                            ),
+                          TextSpan(
+                            text: '   ${progress.done}/${progress.total}',
+                            style: const TextStyle(color: NotebookColors.inkSoft),
+                          ),
+                        ],
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (expanded)
+          ...sets.map(
+            (s) => _SetRow(
+              set: s,
+              unit: exercise.unit,
+              onToggle: () => onToggleSet(s.id),
+              onEditReps: () => onEditReps(s),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// One indented set line under an expanded exercise: a small checkbox, its
+/// index, and the tappable actual-reps value (with a ✐ edit hint).
+class _SetRow extends StatelessWidget {
+  const _SetRow({
+    required this.set,
+    required this.unit,
+    required this.onToggle,
+    required this.onEditReps,
+  });
+
+  final ExerciseSet set;
+  final String unit;
+  final VoidCallback onToggle;
+  final VoidCallback onEditReps;
+
+  @override
+  Widget build(BuildContext context) {
+    final suffix = RepUnit.suffix(unit);
+    final repsText = set.actualReps == null ? '—' : '${set.actualReps}$suffix';
+    return SizedBox(
+      height: kNotebookLine,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 30),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            InkWell(
+              onTap: onToggle,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: _InkCheckbox(checked: set.isDone, size: 16, fontSize: 11),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Text(
+                'Set ${set.setIndex}',
+                style: TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 18,
+                  color: set.isDone ? NotebookColors.inkSoft : NotebookColors.ink,
+                  decoration: set.isDone ? TextDecoration.lineThrough : null,
+                ),
+              ),
+            ),
+            const Spacer(),
+            InkWell(
+              onTap: onEditReps,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: repsText,
+                        style: const TextStyle(
+                          fontFamily: 'Caveat',
+                          fontSize: 19,
+                          fontWeight: FontWeight.w600,
+                          color: NotebookColors.ink,
+                          decoration: TextDecoration.underline,
+                          decorationColor: NotebookColors.inkSoft,
+                        ),
+                      ),
+                      const TextSpan(
+                        text: '  ✐',
+                        style: TextStyle(fontSize: 15, color: NotebookColors.inkSoft),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _InkCheckbox extends StatelessWidget {
-  const _InkCheckbox({required this.checked});
+  const _InkCheckbox({required this.checked, this.size = 20, this.fontSize = 14});
 
   final bool checked;
+  final double size;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 20,
-      height: 20,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         border: Border.all(color: NotebookColors.ink, width: 2),
         borderRadius: const BorderRadius.only(
@@ -437,11 +725,11 @@ class _InkCheckbox extends StatelessWidget {
         ),
       ),
       child: checked
-          ? const Center(
+          ? Center(
               child: Text(
                 '✓',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: fontSize,
                   height: 1,
                   fontWeight: FontWeight.w700,
                   color: NotebookColors.ink,

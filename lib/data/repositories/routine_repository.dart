@@ -82,17 +82,35 @@ class RoutineRepository {
         'description': src.description,
       });
       final exercises = await txn.rawQuery(
-        'SELECT name, sort_order FROM exercises WHERE routine_id = ? '
-        'ORDER BY sort_order ASC, id ASC',
+        'SELECT name, sort_order, catalog_id, sets, reps_min, reps_max, unit '
+        'FROM exercises WHERE routine_id = ? ORDER BY sort_order ASC, id ASC',
         [routineId],
       );
       for (final ex in exercises) {
-        await txn.insert('exercises', {
+        final newExerciseId = await txn.insert('exercises', {
           'routine_id': newId,
           'name': ex['name'],
           'sort_order': ex['sort_order'],
           'is_done': 0,
+          'catalog_id': ex['catalog_id'],
+          'sets': ex['sets'],
+          'reps_min': ex['reps_min'],
+          'reps_max': ex['reps_max'],
+          'unit': ex['unit'] ?? 'reps',
         });
+        // Seed fresh, unchecked set rows for a copied prescribed exercise.
+        final sets = ex['sets'] as int?;
+        if (sets != null && sets > 0) {
+          final prefill = (ex['reps_max'] as int?) ?? (ex['reps_min'] as int?);
+          for (var i = 1; i <= sets; i++) {
+            await txn.insert('exercise_sets', {
+              'exercise_id': newExerciseId,
+              'set_index': i,
+              'actual_reps': prefill,
+              'is_done': 0,
+            });
+          }
+        }
       }
     });
   }
