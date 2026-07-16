@@ -22,7 +22,7 @@
   "nothingLoggedWeek": "пока ничего не записано — страница пуста",
   "workoutsCount": "{count, plural, one{{count} тренировка} few{{count} тренировки} many{{count} тренировок} other{{count} тренировки}}",
   "workoutNoun": "{count, plural, one{тренировка} few{тренировки} many{тренировок} other{тренировки}}",
-  "streakLine": "{count, plural, one{серия {count} день — не давай чернилам засохнуть} few{серия {count} дня — не давай чернилам засохнуть} many{серия {count} дней — не давай чернилам засохнуть} other{серия {count} дня — не давай чернилам засохнуть}}",
+  "streakLine": "{count, plural, one{серия {count} день — пусть чернила текут} few{серия {count} дня — пусть чернила текут} many{серия {count} дней — пусть чернила текут} other{серия {count} дня — пусть чернила текут}}",
 
   "trainingTime": "Время тренировок",
   "bodyTrends": "Динамика тела",

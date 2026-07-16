@@ -91,10 +91,10 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'серия $count дня — не давай чернилам засохнуть',
-      many: 'серия $count дней — не давай чернилам засохнуть',
-      few: 'серия $count дня — не давай чернилам засохнуть',
-      one: 'серия $count день — не давай чернилам засохнуть',
+      other: 'серия $count дня — пусть чернила текут',
+      many: 'серия $count дней — пусть чернила текут',
+      few: 'серия $count дня — пусть чернила текут',
+      one: 'серия $count день — пусть чернила текут',
     );
     return '$_temp0';
   }
