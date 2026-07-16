@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../data/models/profile.dart';
 import '../l10n/app_localizations.dart';
 import '../screens/exercises_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/routines_screen.dart';
 import '../screens/stats_screen.dart';
+import '../state/locale_provider.dart';
 import '../theme/notebook_theme.dart';
 import 'notebook_page.dart';
 
@@ -67,10 +70,60 @@ class NotebookDrawer extends StatelessWidget {
                 _line(context, t.navExercises, (_) => const ExercisesScreen()),
                 _line(context, t.navStats, (_) => const StatsScreen()),
                 _line(context, t.navProfile, (_) => const ProfileScreen()),
+                const Spacer(),
+                _languageFooter(context),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// "language:  EN / RU" pinned to the drawer's foot — the active language in
+  /// ink, tap to switch. Backed by the app-wide [LocaleProvider], so a tap
+  /// re-localizes every screen (including the nav lines above) live, without
+  /// leaving the menu. Language is app chrome, so it lives on the app's chrome.
+  Widget _languageFooter(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final active = context.watch<LocaleProvider>().effectiveLanguage;
+    final enActive = active == AppLanguage.en;
+    TextStyle style(bool on) => TextStyle(
+      fontFamily: 'Caveat',
+      fontSize: 20,
+      fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+      color: on ? NotebookColors.ink : NotebookColors.inkSoft,
+    );
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: NotebookColors.ink, width: 2)),
+      ),
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          Text(
+            '${t.languageLabel}  ',
+            style: const TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 17,
+              fontStyle: FontStyle.italic,
+              color: NotebookColors.inkSoft,
+            ),
+          ),
+          InkWell(
+            onTap: enActive
+                ? null
+                : () => context.read<LocaleProvider>().setLanguage(AppLanguage.en),
+            child: Text('EN', style: style(enActive)),
+          ),
+          Text('   /   ', style: style(false)),
+          InkWell(
+            onTap: enActive
+                ? () => context.read<LocaleProvider>().setLanguage(AppLanguage.ru)
+                : null,
+            child: Text('RU', style: style(!enActive)),
+          ),
+        ],
       ),
     );
   }

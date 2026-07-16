@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../data/models/profile.dart';
 import '../l10n/app_localizations.dart';
-import '../state/locale_provider.dart';
 import '../state/profile_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
@@ -272,8 +271,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 10),
                     _unitsLine(profile.units),
-                    const SizedBox(height: 8),
-                    _languageLine(),
                     const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -351,44 +348,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         InkWell(
           onTap: metricActive ? _toggleUnits : null,
           child: Text('lb · in', style: style(!metricActive)),
-        ),
-      ],
-    );
-  }
-
-  /// "language:  EN / RU" — the active language in ink, tap to switch. Backed
-  /// by the app-wide [LocaleProvider] (not the screen-local ProfileProvider),
-  /// so changing it re-localizes every screen live.
-  Widget _languageLine() {
-    final t = AppLocalizations.of(context);
-    final localeProvider = context.watch<LocaleProvider>();
-    final active = localeProvider.effectiveLanguage;
-    TextStyle style(bool on) => TextStyle(
-      fontFamily: 'Caveat',
-      fontSize: 19,
-      fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-      color: on ? NotebookColors.ink : NotebookColors.inkSoft,
-    );
-    final enActive = active == AppLanguage.en;
-    return Row(
-      children: [
-        Text(
-          '${t.languageLabel}  ',
-          style: const TextStyle(
-            fontFamily: 'Caveat',
-            fontSize: 17,
-            fontStyle: FontStyle.italic,
-            color: NotebookColors.inkSoft,
-          ),
-        ),
-        InkWell(
-          onTap: enActive ? null : () => localeProvider.setLanguage(AppLanguage.en),
-          child: Text('EN', style: style(enActive)),
-        ),
-        Text('   /   ', style: style(false)),
-        InkWell(
-          onTap: enActive ? () => localeProvider.setLanguage(AppLanguage.ru) : null,
-          child: Text('RU', style: style(!enActive)),
         ),
       ],
     );
