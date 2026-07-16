@@ -58,6 +58,11 @@ class AppLocalizationsRu extends AppLocalizations {
       'Здесь пока пусто — откройте «Тренировки» в меню и запишите одну.';
 
   @override
+  String resumeNamed(String name) {
+    return '▸ Продолжить: $name';
+  }
+
+  @override
   String get nothingLoggedWeek => 'пока ничего не записано — страница пуста';
 
   @override
@@ -201,6 +206,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get startWorkout => 'Начать тренировку';
 
   @override
+  String get addExercises => 'Добавить упражнения';
+
+  @override
   String get noExercisesWorkout =>
       'Упражнений пока нет — добавь через ✐ вверху.';
 
@@ -209,6 +217,45 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noSessions => 'Сессий пока нет.';
+
+  @override
+  String sessionExercises(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count упражнения',
+      many: '$count упражнений',
+      few: '$count упражнения',
+      one: '$count упражнение',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sessionSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count подхода',
+      many: '$count подходов',
+      few: '$count подхода',
+      one: '$count подход',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sessionReps(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count повтора',
+      many: '$count повторов',
+      few: '$count повтора',
+      one: '$count повтор',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get paused => 'пауза';

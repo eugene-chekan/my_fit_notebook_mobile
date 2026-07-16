@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Nothing here yet — open Routines from the menu and write one down.'**
   String get startRoutineEmpty;
 
+  /// No description provided for @resumeNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'▸ Resume {name}'**
+  String resumeNamed(String name);
+
   /// No description provided for @nothingLoggedWeek.
   ///
   /// In en, this message translates to:
@@ -398,6 +404,12 @@ abstract class AppLocalizations {
   /// **'Start workout'**
   String get startWorkout;
 
+  /// No description provided for @addExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Add exercises'**
+  String get addExercises;
+
   /// No description provided for @noExercisesWorkout.
   ///
   /// In en, this message translates to:
@@ -415,6 +427,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No sessions logged yet.'**
   String get noSessions;
+
+  /// No description provided for @sessionExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} exercise} other{{count} exercises}}'**
+  String sessionExercises(int count);
+
+  /// No description provided for @sessionSets.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} set} other{{count} sets}}'**
+  String sessionSets(int count);
+
+  /// No description provided for @sessionReps.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} rep} other{{count} reps}}'**
+  String sessionReps(int count);
 
   /// No description provided for @paused.
   ///

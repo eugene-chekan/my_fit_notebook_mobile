@@ -115,6 +115,9 @@ class WorkoutService {
       durationMinutes: durationMinutes,
       startedAt: routine.startedAt,
       pausedSeconds: routine.startedAt != null ? pausedSeconds : null,
+      exercisesCompleted: stats.exercisesCompleted,
+      setsCompleted: stats.setsCompleted,
+      repsTotal: stats.repsTotal,
     );
     if (completionId != null) {
       await _exercises.snapshotDoneSets(routineId, completionId);

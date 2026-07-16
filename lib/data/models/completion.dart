@@ -7,6 +7,9 @@ class Completion {
     this.durationMinutes,
     this.startedAt,
     this.pausedSeconds,
+    this.exercisesCompleted,
+    this.setsCompleted,
+    this.repsTotal,
   });
 
   final int id;
@@ -16,6 +19,12 @@ class Completion {
   final String? startedAt;
   final int? pausedSeconds;
 
+  /// Per-session totals snapshotted at finish (DB v8). Null for sessions logged
+  /// before v8 — the UI then shows only date + duration.
+  final int? exercisesCompleted;
+  final int? setsCompleted;
+  final int? repsTotal;
+
   factory Completion.fromMap(Map<String, Object?> map) {
     return Completion(
       id: map['id'] as int,
@@ -24,6 +33,9 @@ class Completion {
       durationMinutes: map['duration_minutes'] as int?,
       startedAt: map['started_at'] as String?,
       pausedSeconds: map['paused_seconds'] as int?,
+      exercisesCompleted: map['exercises_completed'] as int?,
+      setsCompleted: map['sets_completed'] as int?,
+      repsTotal: map['reps_total'] as int?,
     );
   }
 
@@ -34,6 +46,9 @@ class Completion {
     'duration_minutes': durationMinutes,
     'started_at': startedAt,
     'paused_seconds': pausedSeconds,
+    'exercises_completed': exercisesCompleted,
+    'sets_completed': setsCompleted,
+    'reps_total': repsTotal,
   };
 }
 

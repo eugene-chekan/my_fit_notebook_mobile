@@ -58,6 +58,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nothing here yet — open Routines from the menu and write one down.';
 
   @override
+  String resumeNamed(String name) {
+    return '▸ Resume $name';
+  }
+
+  @override
   String get nothingLoggedWeek => 'nothing logged yet — the page is blank';
 
   @override
@@ -195,6 +200,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startWorkout => 'Start workout';
 
   @override
+  String get addExercises => 'Add exercises';
+
+  @override
   String get noExercisesWorkout => 'No exercises yet — add one via ✐ above.';
 
   @override
@@ -202,6 +210,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noSessions => 'No sessions logged yet.';
+
+  @override
+  String sessionExercises(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exercises',
+      one: '$count exercise',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sessionSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sets',
+      one: '$count set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sessionReps(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reps',
+      one: '$count rep',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get paused => 'paused';

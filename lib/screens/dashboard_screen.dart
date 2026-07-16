@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
-import '../data/services/workout_service.dart';
 import '../l10n/app_localizations.dart';
 import '../route_observer.dart';
 import '../state/calendar_provider.dart';
@@ -34,7 +32,6 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
   late final RoutinesProvider _routinesProvider;
   late final DashboardProvider _dashboardProvider;
   late final CalendarProvider _calendarProvider;
-  final _workoutService = WorkoutService();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -73,9 +70,17 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
     _calendarProvider.load();
   }
 
-  /// The Start routine popup: a paper note listing the routines; tapping
-  /// one starts it (unless already running — then it just opens) and jumps
-  /// straight to the workout screen.
+  /// Pushes a routine's page. On return, [didPopNext] refreshes the
+  /// dashboard's stats/calendar, so no explicit reload is needed here.
+  Future<void> _openRoutine(int routineId) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => RoutineScreen(routineId: routineId)),
+    );
+  }
+
+  /// The Start routine popup: a paper note listing the routines; tapping one
+  /// opens its page, where Start Workout is the single, deliberate way to
+  /// begin (the routine page owns starting — the dashboard only navigates).
   Future<void> _showStartRoutine() async {
     await _routinesProvider.load();
     if (!mounted) return;
@@ -157,16 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
       ),
     );
     if (selected == null || !mounted) return;
-    if (!selected.isStarted) {
-      HapticFeedback.mediumImpact();
-      await _workoutService.startWorkout(selected.id);
-    }
-    if (!mounted) return;
-    // No explicit reload after this push: didPopNext (RouteAware) already
-    // refreshes the dashboard whenever it becomes visible again.
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => RoutineScreen(routineId: selected.id)),
-    );
+    await _openRoutine(selected.id);
   }
 
   @override
@@ -215,6 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                           ),
                         ),
                       ),
+                      _resumeLine(),
                       const SizedBox(height: 6),
                       HeadingLine(t.thisWeek),
                       Consumer<DashboardProvider>(
@@ -261,6 +258,46 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
           ),
         ),
       ),
+    );
+  }
+
+  /// A prominent, tappable "▸ Resume {name}" line shown near the top only
+  /// while a workout is running, so an in-progress session is obvious from the
+  /// dashboard and one tap jumps back into it. Hidden otherwise.
+  Widget _resumeLine() {
+    return Consumer<RoutinesProvider>(
+      builder: (context, provider, _) {
+        Routine? inProgress;
+        for (final r in provider.routines) {
+          if (r.isStarted) {
+            inProgress = r;
+            break;
+          }
+        }
+        if (inProgress == null) return const SizedBox.shrink();
+        final routine = inProgress;
+        final t = AppLocalizations.of(context);
+        return SizedBox(
+          height: kNotebookLine,
+          child: InkWell(
+            onTap: () => _openRoutine(routine.id),
+            child: Container(
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Text(
+                t.resumeNamed(routine.name),
+                style: const TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: NotebookColors.ink,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

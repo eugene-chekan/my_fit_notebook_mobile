@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 7,
+      version: 8,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -42,6 +42,7 @@ class AppDatabase {
         if (oldVersion < 5) await _migrateToRepUnits(db);
         if (oldVersion < 6) await _migrateToSetLogging(db);
         if (oldVersion < 7) await _migrateToLanguage(db);
+        if (oldVersion < 8) await _migrateToCompletionStats(db);
       },
     );
   }
@@ -81,6 +82,9 @@ class AppDatabase {
         duration_minutes INTEGER,
         started_at TEXT,
         paused_seconds INTEGER,
+        exercises_completed INTEGER,
+        sets_completed INTEGER,
+        reps_total INTEGER,
         UNIQUE(routine_id, completed_on)
       )
     ''');
@@ -247,5 +251,15 @@ class AppDatabase {
     await db.execute(
       "ALTER TABLE profile ADD COLUMN language TEXT NOT NULL DEFAULT 'system'",
     );
+  }
+
+  /// v7 → v8: snapshot each session's totals on its completion row so the
+  /// logged-sessions list can show what a workout contained, not just when it
+  /// happened. Additive and nullable — existing rows keep NULLs and simply
+  /// show date + duration as before.
+  Future<void> _migrateToCompletionStats(Database db) async {
+    await db.execute('ALTER TABLE completions ADD COLUMN exercises_completed INTEGER');
+    await db.execute('ALTER TABLE completions ADD COLUMN sets_completed INTEGER');
+    await db.execute('ALTER TABLE completions ADD COLUMN reps_total INTEGER');
   }
 }

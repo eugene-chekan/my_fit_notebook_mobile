@@ -19,6 +19,10 @@
   "trainingDays": "Training days",
   "startRoutine": "Start routine",
   "startRoutineEmpty": "Nothing here yet — open Routines from the menu and write one down.",
+  "resumeNamed": "▸ Resume {name}",
+  "@resumeNamed": {
+    "placeholders": { "name": { "type": "String" } }
+  },
   "nothingLoggedWeek": "nothing logged yet — the page is blank",
   "workoutsCount": "{count, plural, one{{count} workout} other{{count} workouts}}",
   "@workoutsCount": {
@@ -77,9 +81,22 @@
     "placeholders": { "index": { "type": "int" }, "unit": { "type": "String" } }
   },
   "startWorkout": "Start workout",
+  "addExercises": "Add exercises",
   "noExercisesWorkout": "No exercises yet — add one via ✐ above.",
   "loggedSessions": "Logged sessions",
   "noSessions": "No sessions logged yet.",
+  "sessionExercises": "{count, plural, one{{count} exercise} other{{count} exercises}}",
+  "@sessionExercises": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sessionSets": "{count, plural, one{{count} set} other{{count} sets}}",
+  "@sessionSets": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sessionReps": "{count, plural, one{{count} rep} other{{count} reps}}",
+  "@sessionReps": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "paused": "paused",
   "pause": "Pause",
   "resume": "Resume",

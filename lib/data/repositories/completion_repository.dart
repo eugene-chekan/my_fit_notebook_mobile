@@ -4,7 +4,8 @@ import '../db/app_database.dart';
 import '../models/completion.dart';
 
 const _completionColumns =
-    'id, routine_id, completed_on, duration_minutes, started_at, paused_seconds';
+    'id, routine_id, completed_on, duration_minutes, started_at, paused_seconds, '
+    'exercises_completed, sets_completed, reps_total';
 
 /// SQL access for workout completions — a Dart port of repositories/completions.py.
 class CompletionRepository {
@@ -112,6 +113,9 @@ class CompletionRepository {
     int? durationMinutes,
     String? startedAt,
     int? pausedSeconds,
+    int? exercisesCompleted,
+    int? setsCompleted,
+    int? repsTotal,
   }) async {
     final db = await _db;
     try {
@@ -121,6 +125,9 @@ class CompletionRepository {
         'duration_minutes': durationMinutes,
         'started_at': startedAt,
         'paused_seconds': pausedSeconds,
+        'exercises_completed': exercisesCompleted,
+        'sets_completed': setsCompleted,
+        'reps_total': repsTotal,
       });
     } on DatabaseException catch (e) {
       if (e.isUniqueConstraintError()) return null;

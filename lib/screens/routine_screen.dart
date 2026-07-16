@@ -225,8 +225,9 @@ class _RoutineScreenState extends State<RoutineScreen> {
                         onTap: () => _scaffoldKey.currentState?.openDrawer(),
                       ),
                       // Leave room at the bottom for the overlapping workout
-                      // strip so the last logged session isn't hidden.
-                      padding: EdgeInsets.fromLTRB(64, 4, 18, active ? 124 : 28),
+                      // strip (active) or the pinned Start / Add-exercises CTA
+                      // (idle) so the last logged session isn't hidden.
+                      padding: EdgeInsets.fromLTRB(64, 4, 18, active ? 124 : 92),
                       child: routine == null
                           ? const SizedBox.shrink()
                           : Column(
@@ -253,17 +254,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                       ),
                                     ),
                                   ),
-                                if (!routine.isStarted)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: PenButton(
-                                        label: t.startWorkout,
-                                        onPressed: provider.startWorkout,
-                                      ),
-                                    ),
-                                  ),
+                                const SizedBox(height: 4),
                                 HeadingLine(t.navExercises),
                                 if (provider.exercises.isEmpty)
                                   MutedLine(t.noExercisesWorkout)
@@ -318,6 +309,26 @@ class _RoutineScreenState extends State<RoutineScreen> {
                       bottom: -12,
                       child: _WorkoutStrip(provider: provider, onFinish: _finish),
                     ),
+                  // Idle: a single pinned primary action. An empty routine
+                  // can't start a meaningful workout, so it offers to add
+                  // exercises instead of starting nothing.
+                  if (routine != null && !routine.isStarted)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 18,
+                      child: Center(
+                        child: provider.exercises.isEmpty
+                            ? PenButtonFilled(
+                                label: t.addExercises,
+                                onPressed: _openManage,
+                              )
+                            : PenButtonFilled(
+                                label: t.startWorkout,
+                                onPressed: provider.startWorkout,
+                              ),
+                      ),
+                    ),
                 ],
               );
             },
@@ -361,6 +372,10 @@ class _WorkoutStrip extends StatelessWidget {
     return Builder(
       builder: (context) {
         final t = AppLocalizations.of(context);
+        final progress = provider.exerciseProgress;
+        // Ink + a ✓ once every exercise is checked — a quiet "you're done,
+        // tap Finish" nudge without another line of chrome.
+        final allDone = progress.total > 0 && progress.done == progress.total;
         return Row(
           children: [
             if (!paused) const _PulsingDot(),
@@ -375,6 +390,20 @@ class _WorkoutStrip extends StatelessWidget {
                 color: paused ? NotebookColors.inkSoft : NotebookColors.ink,
               ),
             ),
+            if (progress.total > 0) ...[
+              const SizedBox(width: 10),
+              Text(
+                allDone
+                    ? '✓ ${progress.done}/${progress.total}'
+                    : '${progress.done}/${progress.total}',
+                style: TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: allDone ? NotebookColors.ink : NotebookColors.inkSoft,
+                ),
+              ),
+            ],
             const Spacer(),
             PlayerButton(
               icon: paused ? Icons.play_arrow : Icons.pause,
@@ -757,44 +786,82 @@ class _CompletionRow extends StatelessWidget {
   final models.Completion completion;
   final VoidCallback onDelete;
 
+  /// "3 exercises · 12 sets · 140 reps" from the snapshotted totals (DB v8);
+  /// empty for pre-v8 sessions that never captured them, and sets/reps are
+  /// dropped when zero (a bare-checkbox workout logs exercises only).
+  String _summary(AppLocalizations t) {
+    final exercises = completion.exercisesCompleted;
+    if (exercises == null) return '';
+    final parts = <String>[t.sessionExercises(exercises)];
+    final sets = completion.setsCompleted ?? 0;
+    if (sets > 0) parts.add(t.sessionSets(sets));
+    final reps = completion.repsTotal ?? 0;
+    if (reps > 0) parts.add(t.sessionReps(reps));
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: kNotebookLine,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 3),
-              child: Text.rich(
-                TextSpan(
-                  style: const TextStyle(
-                    fontFamily: 'Caveat',
-                    fontSize: 18,
-                    color: NotebookColors.ink,
-                  ),
-                  children: [
-                    TextSpan(text: formatCompletionDt(completion.completedOn)),
-                    if (completion.durationMinutes != null && completion.durationMinutes! >= 0)
-                      TextSpan(
-                        text: '  (${formatDurationMinutes(completion.durationMinutes!)})',
-                        style: const TextStyle(color: NotebookColors.inkSoft),
+    final t = AppLocalizations.of(context);
+    final summary = _summary(t);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: kNotebookLine,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text.rich(
+                    TextSpan(
+                      style: const TextStyle(
+                        fontFamily: 'Caveat',
+                        fontSize: 18,
+                        color: NotebookColors.ink,
                       ),
-                  ],
+                      children: [
+                        TextSpan(text: formatCompletionDt(completion.completedOn)),
+                        if (completion.durationMinutes != null && completion.durationMinutes! >= 0)
+                          TextSpan(
+                            text: '  (${formatDurationMinutes(completion.durationMinutes!)})',
+                            style: const TextStyle(color: NotebookColors.inkSoft),
+                          ),
+                      ],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              GlyphButton(
+                glyph: '×',
+                size: 24,
+                semanticLabel: t.remove,
+                onTap: onDelete,
+              ),
+            ],
+          ),
+        ),
+        if (summary.isNotEmpty)
+          SizedBox(
+            height: kNotebookLine,
+            child: Container(
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.only(left: 2, bottom: 3),
+              child: Text(
+                summary,
+                style: const TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 16,
+                  color: NotebookColors.inkSoft,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
-          GlyphButton(
-            glyph: '×',
-            size: 24,
-            semanticLabel: 'Remove session',
-            onTap: onDelete,
-          ),
-        ],
-      ),
+      ],
     );
   }
 }

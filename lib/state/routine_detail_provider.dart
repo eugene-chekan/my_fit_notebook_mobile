@@ -13,6 +13,7 @@ import '../data/repositories/exercise_catalog_repository.dart';
 import '../data/repositories/exercise_repository.dart';
 import '../data/repositories/routine_repository.dart';
 import '../data/services/workout_service.dart';
+import '../utils/set_progress.dart';
 
 /// Backs the routine / workout screen: the routine itself, its exercises,
 /// its completion history, and a 1s ticker so the elapsed-time label keeps
@@ -60,6 +61,11 @@ class RoutineDetailProvider extends ChangeNotifier {
   bool isPrescribed(Exercise exercise) => setsFor(exercise.id).isNotEmpty;
 
   bool isExpanded(int exerciseId) => expandedExercises.contains(exerciseId);
+
+  /// (done, total) over the routine's exercises, for the live progress readout
+  /// in the workout strip.
+  ({int done, int total}) get exerciseProgress =>
+      exerciseCompletion(exercises, setsByExercise);
 
   /// Just the names, for the autocomplete option pool.
   List<String> get catalogNames => catalogEntries.map((e) => e.name).toList();
