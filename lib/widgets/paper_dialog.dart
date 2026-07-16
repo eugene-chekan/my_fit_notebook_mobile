@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/notebook_theme.dart';
 import 'pen_button.dart';
 
@@ -38,7 +39,7 @@ Future<bool> showPaperConfirm(
   BuildContext context, {
   required String title,
   required String message,
-  String confirmLabel = 'Delete',
+  String? confirmLabel,
 }) async {
   final result = await showPaperDialog<bool>(
     context: context,
@@ -69,13 +70,13 @@ Future<bool> showPaperConfirm(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             PenButton(
-              label: 'Cancel',
+              label: AppLocalizations.of(context).cancel,
               small: true,
               onPressed: () => Navigator.pop(context, false),
             ),
             const SizedBox(width: 8),
             PenButton(
-              label: confirmLabel,
+              label: confirmLabel ?? AppLocalizations.of(context).delete,
               small: true,
               danger: true,
               onPressed: () => Navigator.pop(context, true),

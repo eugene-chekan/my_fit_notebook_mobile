@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
 import '../data/services/workout_service.dart';
+import '../l10n/app_localizations.dart';
 import '../route_observer.dart';
 import '../state/calendar_provider.dart';
 import '../state/dashboard_provider.dart';
@@ -78,6 +79,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
   Future<void> _showStartRoutine() async {
     await _routinesProvider.load();
     if (!mounted) return;
+    final t = AppLocalizations.of(context);
     final routines = _routinesProvider.routines;
     final selected = await showPaperDialog<Routine>(
       context: context,
@@ -85,9 +87,9 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Start routine',
-            style: TextStyle(
+          Text(
+            t.startRoutine,
+            style: const TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
               fontWeight: FontWeight.w700,
@@ -96,9 +98,9 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
           ),
           const SizedBox(height: 8),
           if (routines.isEmpty)
-            const Text(
-              'Nothing here yet — open Routines from the menu and write one down.',
-              style: TextStyle(
+            Text(
+              t.startRoutineEmpty,
+              style: const TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 19,
                 color: NotebookColors.inkSoft,
@@ -169,6 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: _routinesProvider),
@@ -186,7 +189,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                   marginChild: GlyphButton(
                     glyph: '≡',
                     size: 26,
-                    semanticLabel: 'Menu',
+                    semanticLabel: t.menu,
                     onTap: () => _scaffoldKey.currentState?.openDrawer(),
                   ),
                   // Reserve room at the bottom for the pinned Start button.
@@ -194,13 +197,16 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const NotebookHeader(title: 'My fit notebook'),
+                      NotebookHeader(title: t.appName),
                       Container(
                         height: kNotebookLine,
                         alignment: Alignment.bottomRight,
                         padding: const EdgeInsets.only(bottom: 3),
                         child: Text(
-                          notebookDateLabel(DateTime.now()),
+                          notebookDateLabel(
+                            DateTime.now(),
+                            Localizations.localeOf(context).languageCode,
+                          ),
                           style: const TextStyle(
                             fontFamily: 'Caveat',
                             fontSize: 18,
@@ -210,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const HeadingLine('This week'),
+                      HeadingLine(t.thisWeek),
                       Consumer<DashboardProvider>(
                         builder: (context, stats, _) {
                           if (stats.loading) return const SizedBox.shrink();
@@ -219,21 +225,18 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                             children: [
                               _statLine(
                                 stats.weekWorkouts == 0
-                                    ? 'nothing logged yet — the page is blank'
-                                    : '${stats.weekWorkouts} '
-                                          '${stats.weekWorkouts == 1 ? 'workout' : 'workouts'}'
+                                    ? t.nothingLoggedWeek
+                                    : '${t.workoutsCount(stats.weekWorkouts)}'
                                           '${stats.weekMinutes > 0 ? ' · ${formatDurationMinutes(stats.weekMinutes)}' : ''}',
                                 muted: stats.weekWorkouts == 0,
                               ),
                               if (stats.streakDays > 0)
-                                _statLine(
-                                  '${stats.streakDays}-day streak — keep the ink flowing',
-                                ),
+                                _statLine(t.streakLine(stats.streakDays)),
                             ],
                           );
                         },
                       ),
-                      const HeadingLine('Training days'),
+                      HeadingLine(t.trainingDays),
                       Consumer<CalendarProvider>(
                         builder: (context, calendar, _) =>
                             MonthCalendar(provider: calendar),
@@ -249,7 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                 bottom: 18,
                 child: Center(
                   child: PenButtonFilled(
-                    label: 'Start routine',
+                    label: t.startRoutine,
                     onPressed: _showStartRoutine,
                   ),
                 ),

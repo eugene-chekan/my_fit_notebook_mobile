@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
+import '../l10n/app_localizations.dart';
 import '../state/routines_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../widgets/glyph_button.dart';
@@ -78,6 +79,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
@@ -88,13 +90,13 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
-              semanticLabel: 'Menu',
+              semanticLabel: t.menu,
               onTap: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const NotebookHeader(title: 'Routines', leading: BackGlyph()),
+                NotebookHeader(title: t.navRoutines, leading: const BackGlyph()),
                 Consumer<RoutinesProvider>(
                   builder: (context, provider, _) {
                     if (provider.loading) return const SizedBox.shrink();
@@ -118,6 +120,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
 
   /// Swipe right to duplicate, swipe left to delete (after confirmation).
   Widget _routineRow(Routine routine) {
+    final t = AppLocalizations.of(context);
     return Dismissible(
       key: ValueKey('routine-${routine.id}'),
       background: const SwipeCopyBackground(),
@@ -130,8 +133,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
         }
         return showPaperConfirm(
           context,
-          title: 'Delete "${routine.name}"?',
-          message: 'This removes the routine, its exercises, and its session log.',
+          title: t.deleteRoutineTitle(routine.name),
+          message: t.deleteRoutineMessage,
         );
       },
       onDismissed: (_) {
@@ -175,7 +178,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             ),
             GlyphButton(
               glyph: '✐',
-              semanticLabel: 'Manage ${routine.name}',
+              semanticLabel: t.manageNamed(routine.name),
               onTap: () => _openManage(routine),
             ),
           ],
@@ -185,6 +188,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   }
 
   Widget _newRoutineRow() {
+    final t = AppLocalizations.of(context);
     if (!_adding) {
       return SizedBox(
         height: kNotebookLine,
@@ -193,9 +197,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           child: Container(
             alignment: Alignment.bottomLeft,
             padding: const EdgeInsets.only(bottom: 3),
-            child: const Text(
-              '+ new routine…',
-              style: TextStyle(
+            child: Text(
+              t.newRoutine,
+              style: const TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 20,
                 color: NotebookColors.inkSoft,
@@ -223,11 +227,11 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                   fontSize: 20,
                   color: NotebookColors.ink,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   isCollapsed: true,
                   counterText: '',
-                  hintText: 'name…',
-                  hintStyle: TextStyle(
+                  hintText: t.routineNameHint,
+                  hintStyle: const TextStyle(
                     fontFamily: 'Caveat',
                     fontSize: 20,
                     color: NotebookColors.inkSoft,
@@ -241,13 +245,13 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           GlyphButton(
             glyph: '✓',
             color: NotebookColors.ink,
-            semanticLabel: 'Create routine',
+            semanticLabel: t.createRoutineSemantic,
             onTap: _submitNewRoutine,
           ),
           GlyphButton(
             glyph: '×',
             size: 24,
-            semanticLabel: 'Cancel',
+            semanticLabel: t.cancel,
             onTap: _cancelNewRoutine,
           ),
         ],

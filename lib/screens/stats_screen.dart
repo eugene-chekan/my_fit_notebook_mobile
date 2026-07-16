@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/profile.dart';
+import '../l10n/app_localizations.dart';
 import '../route_observer.dart';
 import '../state/stats_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../utils/metric_labels.dart';
 import '../utils/units.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_bar_chart.dart';
@@ -52,6 +54,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
@@ -62,26 +65,26 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
-              semanticLabel: 'Menu',
+              semanticLabel: t.menu,
               onTap: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             child: Consumer<StatsProvider>(
               builder: (context, stats, _) {
                 if (stats.loading) {
-                  return const Column(
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [NotebookHeader(title: 'Stats', leading: BackGlyph())],
+                    children: [NotebookHeader(title: t.navStats, leading: const BackGlyph())],
                   );
                 }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const NotebookHeader(title: 'Stats', leading: BackGlyph()),
+                    NotebookHeader(title: t.navStats, leading: const BackGlyph()),
                     const SizedBox(height: 8),
-                    const HeadingLine('Training time'),
+                    HeadingLine(t.trainingTime),
                     ..._trainingTime(stats),
                     const SizedBox(height: 16),
-                    const HeadingLine('Body trends'),
+                    HeadingLine(t.bodyTrends),
                     ..._bodyTrends(stats),
                   ],
                 );
@@ -96,42 +99,43 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   // --- Training time ---------------------------------------------------
 
   List<Widget> _trainingTime(StatsProvider s) {
+    final t = AppLocalizations.of(context);
     if (!s.hasWorkouts) {
-      return const [MutedLine('finish a workout and it lands here')];
+      return [MutedLine(t.finishWorkoutEmpty)];
     }
     final rows = <Widget>[
-      _statRow('this month', _countAndTime(s.monthWorkouts, s.monthMinutes)),
+      _statRow(t.statThisMonth, _countAndTime(s.monthWorkouts, s.monthMinutes)),
     ];
     if (s.hasPrevMonthData) {
-      rows.add(_statRow('vs last month', _monthDelta(s)));
+      rows.add(_statRow(t.statVsLastMonth, _monthDelta(s)));
     }
     if (s.avgMinutes != null) {
-      rows.add(_statRow('avg session', formatDurationMinutes(s.avgMinutes!.round())));
+      rows.add(_statRow(t.statAvgSession, formatDurationMinutes(s.avgMinutes!.round())));
     }
-    rows.add(_statRow('all time', _countAndTime(s.allTimeWorkouts, s.allTimeMinutes)));
+    rows.add(_statRow(t.statAllTime, _countAndTime(s.allTimeWorkouts, s.allTimeMinutes)));
 
     final hasMinuteData = s.weekBuckets.any((w) => w.minutes > 0);
     rows.add(const SizedBox(height: 10));
     if (hasMinuteData) {
-      rows.add(const MutedLine('minutes per week · last 10'));
+      rows.add(MutedLine(t.minutesPerWeek));
       rows.add(NotebookBarChart(weeks: s.weekBuckets));
     } else {
-      rows.add(const MutedLine('durations appear here once you finish timed sessions'));
+      rows.add(MutedLine(t.noTimedWorkouts));
     }
     return rows;
   }
 
   String _countAndTime(int workouts, int minutes) {
-    final label = workouts == 1 ? 'workout' : 'workouts';
+    final t = AppLocalizations.of(context);
     final time = minutes > 0 ? ' · ${formatDurationMinutes(minutes)}' : '';
-    return '$workouts $label$time';
+    return '${t.workoutsCount(workouts)}$time';
   }
 
   String _monthDelta(StatsProvider s) {
+    final t = AppLocalizations.of(context);
     final dWorkouts = s.monthWorkouts - s.prevMonthWorkouts;
     final dMinutes = s.monthMinutes - s.prevMonthMinutes;
-    final label = dWorkouts.abs() == 1 ? 'workout' : 'workouts';
-    final workoutPart = '${_signed(dWorkouts)} $label';
+    final workoutPart = '${_signed(dWorkouts)} ${t.workoutNoun(dWorkouts.abs())}';
     final minutePart = dMinutes != 0
         ? ' · ${dMinutes > 0 ? '+' : '-'}${formatDurationMinutes(dMinutes.abs())}'
         : '';
@@ -143,11 +147,12 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   // --- Body trends -----------------------------------------------------
 
   List<Widget> _bodyTrends(StatsProvider s) {
+    final t = AppLocalizations.of(context);
     const weightMetric = BodyMetric('weight', 'weight', isWeight: true);
     final weightSeries = s.series['weight'] ?? const [];
     final hasAnyData = kBodyMetrics.any((m) => (s.series[m.key] ?? const []).isNotEmpty);
     if (!hasAnyData) {
-      return const [MutedLine('no measurements yet — add them on the Profile page')];
+      return [MutedLine(t.noMeasurements)];
     }
 
     final widgets = <Widget>[];
@@ -157,7 +162,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     if (weightLatest != null) {
       final bmiText = s.bmiValue != null ? ' · BMI ${s.bmiValue!.toStringAsFixed(1)}' : '';
       widgets.add(_statRow(
-        'weight',
+        localizedMetric(context, 'weight'),
         '${formatMeasurement(weightLatest.value, weightMetric, s.units)}$bmiText',
       ));
     }
@@ -173,12 +178,12 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             ? toDisplay(weightTarget, weightMetric, s.units)
             : null,
         goalLabel: weightTarget != null
-            ? 'goal ${formatMeasurement(weightTarget, weightMetric, s.units)}'
+            ? t.statsGoal(formatMeasurement(weightTarget, weightMetric, s.units))
             : null,
         height: 108,
       ));
     } else if (weightLatest != null) {
-      widgets.add(const MutedLine('log weight again to draw the trend'));
+      widgets.add(MutedLine(t.logWeightAgain));
     }
 
     // Other metrics: compact rows with an inline sparkline when there's a trend.
@@ -211,7 +216,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                   color: NotebookColors.ink,
                 ),
                 children: [
-                  TextSpan(text: metric.label),
+                  TextSpan(text: localizedMetric(context, metric.key)),
                   if (latest != null)
                     TextSpan(
                       text: '  ${formatMeasurement(latest.value, metric, s.units)}',

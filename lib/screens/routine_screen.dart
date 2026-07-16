@@ -8,6 +8,7 @@ import '../data/models/completion.dart' as models;
 import '../data/models/exercise.dart';
 import '../data/models/exercise_set.dart';
 import '../data/models/rep_unit.dart';
+import '../l10n/app_localizations.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
@@ -54,6 +55,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
 
   Future<void> _finish() async {
     HapticFeedback.mediumImpact();
+    final t = AppLocalizations.of(context);
     final stats = await _provider.finishWorkout();
     if (!mounted) return;
     await showPaperDialog<void>(
@@ -62,10 +64,10 @@ class _RoutineScreenState extends State<RoutineScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Workout complete',
+          Text(
+            t.workoutComplete,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Caveat',
               fontSize: 26,
               fontWeight: FontWeight.w700,
@@ -73,15 +75,15 @@ class _RoutineScreenState extends State<RoutineScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          _statRow('Exercises completed', '${stats.exercisesCompleted}'),
+          _statRow(t.exercisesCompletedLabel, '${stats.exercisesCompleted}'),
           if (stats.setsCompleted > 0) ...[
-            _statRow('Sets completed', '${stats.setsCompleted}'),
-            _statRow('Reps logged', '${stats.repsTotal}'),
+            _statRow(t.setsCompletedLabel, '${stats.setsCompleted}'),
+            _statRow(t.repsLoggedLabel, '${stats.repsTotal}'),
           ],
-          _statRow('Total duration', formatDuration(stats.durationSeconds)),
-          _statRow('Time paused', formatDuration(stats.pausedSeconds)),
+          _statRow(t.totalDurationLabel, formatDuration(stats.durationSeconds)),
+          _statRow(t.timePausedLabel, formatDuration(stats.pausedSeconds)),
           const SizedBox(height: 12),
-          PenButton(label: 'Got it', onPressed: () => Navigator.pop(context)),
+          PenButton(label: t.gotIt, onPressed: () => Navigator.pop(context)),
         ],
       ),
     );
@@ -116,17 +118,19 @@ class _RoutineScreenState extends State<RoutineScreen> {
   }
 
   Future<void> _deleteCompletion(models.Completion completion) async {
+    final t = AppLocalizations.of(context);
     final confirmed = await showPaperConfirm(
       context,
-      title: 'Remove session?',
-      message: 'Remove this session from the log?',
-      confirmLabel: 'Remove',
+      title: t.removeSessionTitle,
+      message: t.removeSessionMessage,
+      confirmLabel: t.remove,
     );
     if (confirmed) await _provider.deleteCompletion(completion.id);
   }
 
   /// Tap a set's reps to type the actual count performed.
   Future<void> _editSetReps(Exercise exercise, ExerciseSet set) async {
+    final t = AppLocalizations.of(context);
     final controller = TextEditingController(
       text: set.actualReps?.toString() ?? '',
     );
@@ -138,7 +142,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Set ${set.setIndex} · actual $unitWord',
+            t.setActual(set.setIndex, unitWord),
             style: const TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
@@ -175,13 +179,13 @@ class _RoutineScreenState extends State<RoutineScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               PenButton(
-                label: 'Cancel',
+                label: t.cancel,
                 small: true,
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 8),
               PenButton(
-                label: 'Save',
+                label: t.save,
                 small: true,
                 onPressed: () => Navigator.pop(context, int.tryParse(controller.text.trim())),
               ),
@@ -207,6 +211,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
         body: SafeArea(
           child: Consumer<RoutineDetailProvider>(
             builder: (context, provider, _) {
+              final t = AppLocalizations.of(context);
               final routine = provider.routine;
               final active = routine != null && routine.isStarted;
               return Stack(
@@ -216,7 +221,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                       marginChild: GlyphButton(
                         glyph: '≡',
                         size: 26,
-                        semanticLabel: 'Menu',
+                        semanticLabel: t.menu,
                         onTap: () => _scaffoldKey.currentState?.openDrawer(),
                       ),
                       // Leave room at the bottom for the overlapping workout
@@ -232,7 +237,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                   leading: const BackGlyph(),
                                   trailing: GlyphButton(
                                     glyph: '✐',
-                                    semanticLabel: 'Manage routine',
+                                    semanticLabel: t.manageRoutineSemantic,
                                     onTap: _openManage,
                                   ),
                                 ),
@@ -254,14 +259,14 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                     child: Align(
                                       alignment: Alignment.centerLeft,
                                       child: PenButton(
-                                        label: 'Start workout',
+                                        label: t.startWorkout,
                                         onPressed: provider.startWorkout,
                                       ),
                                     ),
                                   ),
-                                const HeadingLine('Exercises'),
+                                HeadingLine(t.navExercises),
                                 if (provider.exercises.isEmpty)
-                                  const MutedLine('No exercises yet — add one via ✐ above.')
+                                  MutedLine(t.noExercisesWorkout)
                                 else
                                   ...provider.exercises.map(
                                     (ex) => provider.isPrescribed(ex)
@@ -289,9 +294,9 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                             },
                                           ),
                                   ),
-                                const HeadingLine('Logged sessions'),
+                                HeadingLine(t.loggedSessions),
                                 if (provider.completions.isEmpty)
-                                  const MutedLine('No sessions logged yet.')
+                                  MutedLine(t.noSessions)
                                 else
                                   ...provider.completions.map(
                                     (c) => _CompletionRow(
@@ -353,29 +358,34 @@ class _WorkoutStrip extends StatelessWidget {
   }
 
   Widget _stripContent(bool paused) {
-    return Row(
-        children: [
-          if (!paused) const _PulsingDot(),
-          if (!paused) const SizedBox(width: 8),
-          Text(
-            paused ? 'paused' : formatClock(provider.liveElapsedSeconds),
-            style: TextStyle(
-              fontFamily: 'Caveat',
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              fontStyle: paused ? FontStyle.italic : FontStyle.normal,
-              color: paused ? NotebookColors.inkSoft : NotebookColors.ink,
+    return Builder(
+      builder: (context) {
+        final t = AppLocalizations.of(context);
+        return Row(
+          children: [
+            if (!paused) const _PulsingDot(),
+            if (!paused) const SizedBox(width: 8),
+            Text(
+              paused ? t.paused : formatClock(provider.liveElapsedSeconds),
+              style: TextStyle(
+                fontFamily: 'Caveat',
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                fontStyle: paused ? FontStyle.italic : FontStyle.normal,
+                color: paused ? NotebookColors.inkSoft : NotebookColors.ink,
+              ),
             ),
-          ),
-          const Spacer(),
-          PlayerButton(
-            icon: paused ? Icons.play_arrow : Icons.pause,
-            tooltip: paused ? 'Resume' : 'Pause',
-            onPressed: paused ? provider.resumeWorkout : provider.pauseWorkout,
-          ),
-          const SizedBox(width: 10),
-          PenButtonFilled(label: 'Finish', onPressed: onFinish),
-      ],
+            const Spacer(),
+            PlayerButton(
+              icon: paused ? Icons.play_arrow : Icons.pause,
+              tooltip: paused ? t.resume : t.pause,
+              onPressed: paused ? provider.resumeWorkout : provider.pauseWorkout,
+            ),
+            const SizedBox(width: 10),
+            PenButtonFilled(label: t.finish, onPressed: onFinish),
+          ],
+        );
+      },
     );
   }
 }

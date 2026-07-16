@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/models/exercise_catalog.dart';
 import '../data/models/rep_unit.dart';
+import '../l10n/app_localizations.dart';
 import '../state/exercise_catalog_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
@@ -41,9 +42,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   }
 
   Future<void> _create() async {
+    final t = AppLocalizations.of(context);
     final result = await showPaperDialog<_ExerciseFormResult>(
       context: context,
-      builder: (context) => const _ExerciseForm(title: 'New exercise'),
+      builder: (context) => _ExerciseForm(title: t.newExerciseTitle),
     );
     if (result == null) return;
     final ok = await _provider.create(
@@ -55,14 +57,15 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       defaultUnit: result.unit,
     );
     if (!ok && mounted) {
-      _snack('“${result.name}” already exists.');
+      _snack(t.exerciseExists(result.name));
     }
   }
 
   Future<void> _edit(CatalogEntry entry) async {
+    final t = AppLocalizations.of(context);
     final result = await showPaperDialog<_ExerciseFormResult>(
       context: context,
-      builder: (context) => _ExerciseForm(title: 'Edit exercise', entry: entry),
+      builder: (context) => _ExerciseForm(title: t.editExerciseTitle, entry: entry),
     );
     if (result == null) return;
     final ok = await _provider.update(
@@ -76,22 +79,22 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       ),
     );
     if (!ok && mounted) {
-      _snack('Another exercise is already called “${result.name}”.');
+      _snack(t.exerciseNameTaken(result.name));
     }
   }
 
   Future<void> _delete(CatalogEntry entry) async {
+    final t = AppLocalizations.of(context);
     final uses = await _provider.usageCount(entry.id);
     if (!mounted) return;
     final message = uses == 0
-        ? 'Remove “${entry.name}” from the library?'
-        : 'Remove “${entry.name}” from the library? '
-            'It stays in the $uses routine${uses == 1 ? '' : 's'} already using it.';
+        ? t.removeFromLibrary(entry.name)
+        : '${t.removeFromLibrary(entry.name)}${t.routinesUsingSuffix(uses)}';
     final confirmed = await showPaperConfirm(
       context,
-      title: 'Delete exercise?',
+      title: t.deleteExerciseTitle,
       message: message,
-      confirmLabel: 'Delete',
+      confirmLabel: t.delete,
     );
     if (confirmed) await _provider.delete(entry.id);
   }
@@ -110,6 +113,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
@@ -120,31 +124,31 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
-              semanticLabel: 'Menu',
+              semanticLabel: t.menu,
               onTap: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             child: Consumer<ExerciseCatalogProvider>(
               builder: (context, provider, _) {
                 if (provider.loading) {
-                  return const Column(
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      NotebookHeader(title: 'Exercises', leading: BackGlyph()),
+                      NotebookHeader(title: t.navExercises, leading: const BackGlyph()),
                     ],
                   );
                 }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const NotebookHeader(title: 'Exercises', leading: BackGlyph()),
+                    NotebookHeader(title: t.navExercises, leading: const BackGlyph()),
                     const SizedBox(height: 6),
                     if (provider.entries.isEmpty)
-                      const MutedLine('No exercises yet — add one below.')
+                      MutedLine(t.noExercisesLibrary)
                     else
                       for (final entry in provider.entries) _entryRow(entry),
                     _newRow(),
                     const SizedBox(height: 8),
-                    const MutedLine('swipe left to delete · tap to edit'),
+                    MutedLine(t.exercisesEditHint),
                   ],
                 );
               },
@@ -210,9 +214,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         child: Container(
           alignment: Alignment.bottomLeft,
           padding: const EdgeInsets.only(bottom: 3),
-          child: const Text(
-            '+ new exercise…',
-            style: TextStyle(
+          child: Text(
+            AppLocalizations.of(context).newExerciseLine,
+            style: const TextStyle(
               fontFamily: 'Caveat',
               fontSize: 20,
               color: NotebookColors.inkSoft,
@@ -286,6 +290,7 @@ class _ExerciseFormState extends State<_ExerciseForm> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final secondHint = _unit == RepUnit.reps ? 'reps' : _unit;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -301,13 +306,13 @@ class _ExerciseFormState extends State<_ExerciseForm> {
           ),
         ),
         const SizedBox(height: 8),
-        _formLabel('Name'),
+        _formLabel(t.fieldName),
         _formField(_nameCtrl, autofocus: widget.entry == null),
         const SizedBox(height: 8),
-        _formLabel('Description'),
-        _formField(_descCtrl, maxLines: 2, hint: 'form cues, notes…'),
+        _formLabel(t.fieldDescription),
+        _formField(_descCtrl, maxLines: 2, hint: t.descHint),
         const SizedBox(height: 10),
-        _formLabel('Default sets × reps'),
+        _formLabel(t.defaultSetsReps),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -325,12 +330,12 @@ class _ExerciseFormState extends State<_ExerciseForm> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             PenButton(
-              label: 'Cancel',
+              label: t.cancel,
               small: true,
               onPressed: () => Navigator.pop(context),
             ),
             const SizedBox(width: 8),
-            PenButton(label: 'Save', small: true, onPressed: _save),
+            PenButton(label: t.save, small: true, onPressed: _save),
           ],
         ),
       ],
@@ -365,9 +370,9 @@ class _ExerciseFormState extends State<_ExerciseForm> {
 
     return Row(
       children: [
-        const Text(
-          'unit:  ',
-          style: TextStyle(
+        Text(
+          '${AppLocalizations.of(context).unitLabel}  ',
+          style: const TextStyle(
             fontFamily: 'Caveat',
             fontSize: 16,
             fontStyle: FontStyle.italic,

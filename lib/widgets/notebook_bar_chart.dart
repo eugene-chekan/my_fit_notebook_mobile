@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/stats_math.dart';
 
@@ -90,7 +91,7 @@ class NotebookBarChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(_weekLabel(weeks.first.weekStart), style: muted),
-              const Text('this week', style: muted),
+              Text(AppLocalizations.of(context).barThisWeek, style: muted),
             ],
           ),
         ],

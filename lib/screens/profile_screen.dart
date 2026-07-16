@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/profile.dart';
+import '../l10n/app_localizations.dart';
+import '../state/locale_provider.dart';
 import '../state/profile_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../utils/metric_labels.dart';
 import '../utils/units.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
@@ -106,6 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logMeasurement(BodyMetric metric) async {
+    final t = AppLocalizations.of(context);
     final controller = TextEditingController();
     final value = await showPaperDialog<double>(
       context: context,
@@ -114,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Log ${metric.label}',
+            t.logMetric(localizedMetric(context, metric.key)),
             style: const TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
@@ -151,13 +155,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               PenButton(
-                label: 'Cancel',
+                label: t.cancel,
                 small: true,
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 8),
               PenButton(
-                label: 'Save',
+                label: t.save,
                 small: true,
                 onPressed: () =>
                     Navigator.pop(context, parseDisplayNumber(controller.text)),
@@ -190,6 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return ChangeNotifierProvider.value(
       value: _provider,
       child: Scaffold(
@@ -200,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
-              semanticLabel: 'Menu',
+              semanticLabel: t.menu,
               onTap: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             child: Consumer<ProfileProvider>(
@@ -212,10 +217,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const NotebookHeader(title: 'Profile', leading: BackGlyph()),
+                    NotebookHeader(title: t.navProfile, leading: const BackGlyph()),
                     const SizedBox(height: 8),
-                    const HeadingLine('About me'),
-                    _fieldLabel('Name'),
+                    HeadingLine(t.aboutMe),
+                    _fieldLabel(t.fieldName),
                     TextField(
                       controller: _nameController,
                       maxLength: 200,
@@ -224,7 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: _underline(),
                     ),
                     const SizedBox(height: 10),
-                    _fieldLabel('Born'),
+                    _fieldLabel(t.fieldBorn),
                     InkWell(
                       onTap: _pickBirthDate,
                       child: Container(
@@ -236,9 +241,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         child: Text(
                           _birthDate == null
-                              ? 'tap to pick a date…'
+                              ? t.pickDateHint
                               : '${formatCompletionDt(_birthDate!)}'
-                                  '${age != null ? '  ($age years)' : ''}',
+                                  '${age != null ? '  ${t.ageYears(age)}' : ''}',
                           style: TextStyle(
                             fontFamily: 'Caveat',
                             fontSize: 20,
@@ -250,7 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _fieldLabel('Height'),
+                    _fieldLabel(t.fieldHeight),
                     TextField(
                       controller: _heightController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -267,17 +272,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 10),
                     _unitsLine(profile.units),
+                    const SizedBox(height: 8),
+                    _languageLine(),
                     const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: PenButton(label: 'Save details', onPressed: _saveDetails),
+                      child: PenButton(label: t.saveDetails, onPressed: _saveDetails),
                     ),
                     const SizedBox(height: 16),
-                    const HeadingLine('Measurements'),
+                    HeadingLine(t.measurements),
                     for (final metric in kBodyMetrics)
                       _metricRow(metric, provider),
                     const SizedBox(height: 8),
-                    const MutedLine('tap a line for history & goal, + to log'),
+                    MutedLine(t.measurementsHint),
                   ],
                 );
               },
@@ -328,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       children: [
         Text(
-          'units:  ',
+          '${AppLocalizations.of(context).unitsLabel}  ',
           style: const TextStyle(
             fontFamily: 'Caveat',
             fontSize: 17,
@@ -349,9 +356,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// "language:  EN / RU" — the active language in ink, tap to switch. Backed
+  /// by the app-wide [LocaleProvider] (not the screen-local ProfileProvider),
+  /// so changing it re-localizes every screen live.
+  Widget _languageLine() {
+    final t = AppLocalizations.of(context);
+    final localeProvider = context.watch<LocaleProvider>();
+    final active = localeProvider.effectiveLanguage;
+    TextStyle style(bool on) => TextStyle(
+      fontFamily: 'Caveat',
+      fontSize: 19,
+      fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+      color: on ? NotebookColors.ink : NotebookColors.inkSoft,
+    );
+    final enActive = active == AppLanguage.en;
+    return Row(
+      children: [
+        Text(
+          '${t.languageLabel}  ',
+          style: const TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 17,
+            fontStyle: FontStyle.italic,
+            color: NotebookColors.inkSoft,
+          ),
+        ),
+        InkWell(
+          onTap: enActive ? null : () => localeProvider.setLanguage(AppLanguage.en),
+          child: Text('EN', style: style(enActive)),
+        ),
+        Text('   /   ', style: style(false)),
+        InkWell(
+          onTap: enActive ? () => localeProvider.setLanguage(AppLanguage.ru) : null,
+          child: Text('RU', style: style(!enActive)),
+        ),
+      ],
+    );
+  }
+
   Widget _metricRow(BodyMetric metric, ProfileProvider provider) {
+    final t = AppLocalizations.of(context);
     final latest = provider.latest[metric.key];
     final target = provider.targets[metric.key];
+    final label = localizedMetric(context, metric.key);
     return SizedBox(
       height: kNotebookLine,
       child: Row(
@@ -371,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: NotebookColors.ink,
                     ),
                     children: [
-                      TextSpan(text: metric.label),
+                      TextSpan(text: label),
                       TextSpan(
                         text: latest == null
                             ? '   —'
@@ -399,7 +446,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             glyph: '+',
             size: 24,
             color: NotebookColors.ink,
-            semanticLabel: 'Log ${metric.label}',
+            semanticLabel: t.logMetric(label),
             onTap: () => _logMeasurement(metric),
           ),
         ],
@@ -460,6 +507,7 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final metric = widget.metric;
     return FutureBuilder(
       future: widget.provider.history(metric.key),
@@ -472,7 +520,7 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                metric.label,
+                localizedMetric(context, metric.key),
                 style: const TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 24,
@@ -483,9 +531,9 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Text(
-                    'goal:  ',
-                    style: TextStyle(
+                  Text(
+                    '${t.goalLabel}  ',
+                    style: const TextStyle(
                       fontFamily: 'Caveat',
                       fontSize: 19,
                       fontStyle: FontStyle.italic,
@@ -524,16 +572,16 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                   GlyphButton(
                     glyph: '✓',
                     color: NotebookColors.ink,
-                    semanticLabel: 'Save goal',
+                    semanticLabel: t.saveGoalSemantic,
                     onTap: _saveGoal,
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               if (entries.isEmpty)
-                const Text(
-                  'no entries yet — log one with + on the profile page',
-                  style: TextStyle(
+                Text(
+                  t.noEntries,
+                  style: const TextStyle(
                     fontFamily: 'Caveat',
                     fontSize: 18,
                     color: NotebookColors.inkSoft,
@@ -563,7 +611,7 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                           GlyphButton(
                             glyph: '×',
                             size: 22,
-                            semanticLabel: 'Delete entry',
+                            semanticLabel: t.deleteEntrySemantic,
                             onTap: () => widget.provider.deleteMeasurement(entry.id),
                           ),
                         ],

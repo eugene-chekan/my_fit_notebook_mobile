@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../screens/exercises_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/routines_screen.dart';
@@ -26,6 +27,7 @@ class NotebookDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Drawer(
       backgroundColor: NotebookColors.paper,
       shape: const RoundedRectangleBorder(
@@ -50,9 +52,9 @@ class NotebookDrawer extends StatelessWidget {
                       ),
                     ),
                     padding: const EdgeInsets.only(bottom: 2),
-                    child: const Text(
-                      'My fit notebook',
-                      style: TextStyle(
+                    child: Text(
+                      t.appName,
+                      style: const TextStyle(
                         fontFamily: 'Caveat',
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
@@ -61,10 +63,10 @@ class NotebookDrawer extends StatelessWidget {
                     ),
                   ),
                 ),
-                _line(context, 'Routines', (_) => const RoutinesScreen()),
-                _line(context, 'Exercises', (_) => const ExercisesScreen()),
-                _line(context, 'Stats', (_) => const StatsScreen()),
-                _line(context, 'Profile', (_) => const ProfileScreen()),
+                _line(context, t.navRoutines, (_) => const RoutinesScreen()),
+                _line(context, t.navExercises, (_) => const ExercisesScreen()),
+                _line(context, t.navStats, (_) => const StatsScreen()),
+                _line(context, t.navProfile, (_) => const ProfileScreen()),
               ],
             ),
           ),

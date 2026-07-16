@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/models/exercise.dart';
 import '../data/models/rep_unit.dart';
+import '../l10n/app_localizations.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/exercise_suggestions.dart';
@@ -79,7 +80,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
     final defaults = _provider.catalogEntryFor(trimmed);
     final rx = await showSetsRepsDialog(
       context,
-      title: 'Add “$trimmed”',
+      title: AppLocalizations.of(context).addNamedTitle(trimmed),
       sets: defaults?.defaultSets,
       repsMin: defaults?.defaultReps,
       repsMax: defaults?.defaultRepsMax,
@@ -119,10 +120,11 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
   }
 
   Future<void> _confirmDeleteRoutine() async {
+    final t = AppLocalizations.of(context);
     final confirmed = await showPaperConfirm(
       context,
-      title: 'Delete this routine?',
-      message: 'This removes the routine, its exercises, and its session log.',
+      title: t.deleteRoutineConfirmTitle,
+      message: t.deleteRoutineMessage,
     );
     if (confirmed) {
       await _provider.deleteRoutine();
@@ -131,11 +133,12 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
   }
 
   Future<bool> _confirmDeleteExercise(Exercise exercise) {
+    final t = AppLocalizations.of(context);
     return showPaperConfirm(
       context,
-      title: 'Remove "${exercise.name}"?',
-      message: 'Remove this exercise from the routine?',
-      confirmLabel: 'Remove',
+      title: t.removeExerciseTitle(exercise.name),
+      message: t.removeExerciseMessage,
+      confirmLabel: t.remove,
     );
   }
 
@@ -152,20 +155,21 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
-              semanticLabel: 'Menu',
+              semanticLabel: AppLocalizations.of(context).menu,
               onTap: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             child: Consumer<RoutineDetailProvider>(
               builder: (context, provider, _) {
                 if (provider.routine == null) return const SizedBox.shrink();
                 _syncFieldsOnce();
+                final t = AppLocalizations.of(context);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const NotebookHeader(title: 'Manage routine', leading: BackGlyph()),
+                    NotebookHeader(title: t.manageRoutineTitle, leading: const BackGlyph()),
                     const SizedBox(height: 8),
-                    const HeadingLine('Routine details'),
-                    _fieldLabel('Name'),
+                    HeadingLine(t.routineDetails),
+                    _fieldLabel(t.fieldName),
                     TextField(
                       controller: _nameController,
                       maxLength: 200,
@@ -174,7 +178,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                       decoration: _underlineDecoration(),
                     ),
                     const SizedBox(height: 10),
-                    _fieldLabel('Description'),
+                    _fieldLabel(t.fieldDescription),
                     TextField(
                       controller: _descriptionController,
                       maxLength: 1000,
@@ -183,7 +187,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                       style: const TextStyle(fontFamily: 'Caveat', fontSize: 18),
                       decoration: InputDecoration(
                         counterText: '',
-                        hintText: "What's this routine for?",
+                        hintText: t.routineDescHint,
                         hintStyle: const TextStyle(
                           fontFamily: 'Caveat',
                           color: NotebookColors.inkSoft,
@@ -201,13 +205,13 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                     const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: PenButton(label: 'Save details', onPressed: _saveDetails),
+                      child: PenButton(label: t.saveDetails, onPressed: _saveDetails),
                     ),
                     const SizedBox(height: 16),
-                    const HeadingLine('Exercises'),
+                    HeadingLine(t.navExercises),
                     _addExerciseRow(),
                     if (provider.exercises.isEmpty)
-                      const MutedLine('No exercises yet — add one above.')
+                      MutedLine(t.noExercisesManage)
                     else
                       _ReorderableExerciseList(
                         exercises: provider.exercises,
@@ -227,7 +231,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: PenButton(
-                        label: 'Delete routine',
+                        label: t.deleteRoutineButton,
                         danger: true,
                         onPressed: _confirmDeleteRoutine,
                       ),
@@ -300,11 +304,11 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                         fontSize: 19,
                         color: NotebookColors.ink,
                       ),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         isCollapsed: true,
                         counterText: '',
-                        hintText: '+ add an exercise…',
-                        hintStyle: TextStyle(
+                        hintText: AppLocalizations.of(context).addExerciseHint,
+                        hintStyle: const TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 19,
                           color: NotebookColors.inkSoft,
@@ -327,7 +331,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
           GlyphButton(
             glyph: '✓',
             color: NotebookColors.ink,
-            semanticLabel: 'Add exercise',
+            semanticLabel: AppLocalizations.of(context).addExerciseSemantic,
             onTap: _addExercise,
           ),
         ],
@@ -488,7 +492,8 @@ class _ReorderableExerciseList extends StatelessWidget {
                 ),
                 GlyphButton(
                   glyph: '✐',
-                  semanticLabel: 'Edit sets/reps for ${ex.name}',
+                  semanticLabel:
+                      AppLocalizations.of(context).editPrescriptionSemantic(ex.name),
                   onTap: () => onEditPrescription(ex),
                 ),
               ],

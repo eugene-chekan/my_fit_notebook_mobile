@@ -45,6 +45,12 @@ class ProfileRepository {
     await db.update('profile', {'units': units}, where: 'id = 1');
   }
 
+  Future<void> setLanguage(String language) async {
+    final db = await _db;
+    await getProfile();
+    await db.update('profile', {'language': language}, where: 'id = 1');
+  }
+
   /// Full history for one metric, newest first.
   Future<List<Measurement>> history(String metric) async {
     final db = await _db;

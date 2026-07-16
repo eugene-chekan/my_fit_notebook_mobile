@@ -1,6 +1,8 @@
 /// Dart port of filters.py so displayed dates/durations match the web app.
 library;
 
+import 'package:intl/intl.dart';
+
 import '../data/models/rep_unit.dart';
 
 String formatCompletionDt(String value) {
@@ -46,17 +48,10 @@ String formatDuration(int seconds) {
   return '${hours}h ${mins}m ${secs}s';
 }
 
-/// "Friday, July 10, 2026" — the handwritten date in the page header,
-/// mirroring inject_notebook_date in the Flask app's app.py.
-String notebookDateLabel(DateTime d) {
-  const weekdays = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
-  ];
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
-  return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}, ${d.year}';
+/// The handwritten date in the page header, in the active locale — e.g.
+/// "Friday, July 10, 2026" (en) or "пятница, 10 июля 2026 г." (ru).
+String notebookDateLabel(DateTime d, String localeName) {
+  return DateFormat.yMMMMEEEEd(localeName).format(d);
 }
 
 /// Sets/reps prescription in parentheses: "(2x10)", or "(2x10-12)" when a

@@ -1,0 +1,169 @@
+{
+  "@@locale": "en",
+
+  "appName": "My fit notebook",
+  "menu": "Menu",
+  "back": "Back",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "remove": "Remove",
+  "gotIt": "Got it",
+
+  "navRoutines": "Routines",
+  "navExercises": "Exercises",
+  "navStats": "Stats",
+  "navProfile": "Profile",
+
+  "thisWeek": "This week",
+  "trainingDays": "Training days",
+  "startRoutine": "Start routine",
+  "startRoutineEmpty": "Nothing here yet — open Routines from the menu and write one down.",
+  "nothingLoggedWeek": "nothing logged yet — the page is blank",
+  "workoutsCount": "{count, plural, one{{count} workout} other{{count} workouts}}",
+  "@workoutsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "workoutNoun": "{count, plural, one{workout} other{workouts}}",
+  "@workoutNoun": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "streakLine": "{count, plural, one{{count}-day streak — keep the ink flowing} other{{count}-day streak — keep the ink flowing}}",
+  "@streakLine": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "trainingTime": "Training time",
+  "bodyTrends": "Body trends",
+  "statThisMonth": "this month",
+  "statVsLastMonth": "vs last month",
+  "statAvgSession": "avg session",
+  "statAllTime": "all time",
+  "finishWorkoutEmpty": "finish a workout and it lands here",
+  "minutesPerWeek": "minutes per week · last 10",
+  "noTimedWorkouts": "durations appear here once you finish timed sessions",
+  "noMeasurements": "no measurements yet — add them on the Profile page",
+  "logWeightAgain": "log weight again to draw the trend",
+  "statsGoal": "goal {value}",
+  "@statsGoal": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "barThisWeek": "this week",
+
+  "newRoutine": "+ new routine…",
+  "routineNameHint": "name…",
+  "createRoutineSemantic": "Create routine",
+  "manageNamed": "Manage {name}",
+  "@manageNamed": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteRoutineTitle": "Delete “{name}”?",
+  "@deleteRoutineTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteRoutineMessage": "This removes the routine, its exercises, and its session log.",
+
+  "manageRoutineSemantic": "Manage routine",
+  "workoutComplete": "Workout complete",
+  "exercisesCompletedLabel": "Exercises completed",
+  "setsCompletedLabel": "Sets completed",
+  "repsLoggedLabel": "Reps logged",
+  "totalDurationLabel": "Total duration",
+  "timePausedLabel": "Time paused",
+  "removeSessionTitle": "Remove session?",
+  "removeSessionMessage": "Remove this session from the log?",
+  "setActual": "Set {index} · actual {unit}",
+  "@setActual": {
+    "placeholders": { "index": { "type": "int" }, "unit": { "type": "String" } }
+  },
+  "startWorkout": "Start workout",
+  "noExercisesWorkout": "No exercises yet — add one via ✐ above.",
+  "loggedSessions": "Logged sessions",
+  "noSessions": "No sessions logged yet.",
+  "paused": "paused",
+  "pause": "Pause",
+  "resume": "Resume",
+  "finish": "Finish",
+
+  "aboutMe": "About me",
+  "fieldName": "Name",
+  "fieldBorn": "Born",
+  "fieldHeight": "Height",
+  "pickDateHint": "tap to pick a date…",
+  "ageYears": "{count, plural, one{({count} year)} other{({count} years)}}",
+  "@ageYears": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "unitsLabel": "units:",
+  "languageLabel": "language:",
+  "measurements": "Measurements",
+  "measurementsHint": "tap a line for history & goal, + to log",
+  "saveDetails": "Save details",
+  "logMetric": "Log {metric}",
+  "@logMetric": {
+    "placeholders": { "metric": { "type": "String" } }
+  },
+  "goalLabel": "goal:",
+  "saveGoalSemantic": "Save goal",
+  "deleteEntrySemantic": "Delete entry",
+  "noEntries": "no entries yet — log one with + on the profile page",
+
+  "metricWeight": "weight",
+  "metricChest": "chest",
+  "metricWaist": "waist",
+  "metricHips": "hips",
+  "metricBiceps": "biceps",
+  "metricThigh": "thigh",
+
+  "newExerciseTitle": "New exercise",
+  "editExerciseTitle": "Edit exercise",
+  "exerciseExists": "“{name}” already exists.",
+  "@exerciseExists": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "exerciseNameTaken": "Another exercise is already called “{name}”.",
+  "@exerciseNameTaken": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteExerciseTitle": "Delete exercise?",
+  "removeFromLibrary": "Remove “{name}” from the library?",
+  "@removeFromLibrary": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "routinesUsingSuffix": "{count, plural, one{ It stays in the {count} routine already using it.} other{ It stays in the {count} routines already using it.}}",
+  "@routinesUsingSuffix": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "noExercisesLibrary": "No exercises yet — add one below.",
+  "newExerciseLine": "+ new exercise…",
+  "exercisesEditHint": "swipe left to delete · tap to edit",
+  "fieldDescription": "Description",
+  "descHint": "form cues, notes…",
+  "defaultSetsReps": "Default sets × reps",
+  "unitLabel": "unit:",
+
+  "manageRoutineTitle": "Manage routine",
+  "routineDetails": "Routine details",
+  "routineDescHint": "What is this routine for?",
+  "addNamedTitle": "Add “{name}”",
+  "@addNamedTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteRoutineConfirmTitle": "Delete this routine?",
+  "removeExerciseTitle": "Remove “{name}”?",
+  "@removeExerciseTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "removeExerciseMessage": "Remove this exercise from the routine?",
+  "addExerciseHint": "+ add an exercise…",
+  "addExerciseSemantic": "Add exercise",
+  "editPrescriptionSemantic": "Edit sets/reps for {name}",
+  "@editPrescriptionSemantic": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteRoutineButton": "Delete routine",
+  "noExercisesManage": "No exercises yet — add one above.",
+
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month"
+}

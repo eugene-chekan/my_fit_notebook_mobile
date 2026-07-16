@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 6,
+      version: 7,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -41,6 +41,7 @@ class AppDatabase {
         if (oldVersion < 4) await _migrateToPrescriptions(db);
         if (oldVersion < 5) await _migrateToRepUnits(db);
         if (oldVersion < 6) await _migrateToSetLogging(db);
+        if (oldVersion < 7) await _migrateToLanguage(db);
       },
     );
   }
@@ -97,7 +98,8 @@ class AppDatabase {
         name TEXT NOT NULL DEFAULT '',
         birth_date TEXT,
         height_cm REAL,
-        units TEXT NOT NULL DEFAULT 'metric'
+        units TEXT NOT NULL DEFAULT 'metric',
+        language TEXT NOT NULL DEFAULT 'system'
       )
     ''');
     await db.execute('''
@@ -237,5 +239,13 @@ class AppDatabase {
         });
       }
     }
+  }
+
+  /// v6 → v7: a UI-language preference on the profile. `'system'` follows the
+  /// device locale; `'en'`/`'ru'` pin a choice. Additive, non-destructive.
+  Future<void> _migrateToLanguage(Database db) async {
+    await db.execute(
+      "ALTER TABLE profile ADD COLUMN language TEXT NOT NULL DEFAULT 'system'",
+    );
   }
 }

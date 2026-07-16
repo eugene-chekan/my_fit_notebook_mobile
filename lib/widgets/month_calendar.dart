@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../l10n/app_localizations.dart';
 import '../state/calendar_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
 import 'glyph_button.dart';
 import 'notebook_page.dart';
-
-const _dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const _monthNames = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 /// The trained-days month grid with ← month → navigation. Tapping a
 /// trained day opens a paper sheet listing that day's routines. Lives on
@@ -22,10 +18,19 @@ class MonthCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final today = DateTime.now();
     final firstDow = DateTime(provider.year, provider.month, 1).weekday; // 1=Mon..7=Sun
     final startOffset = firstDow - 1;
     final daysInMonth = DateTime(provider.year, provider.month + 1, 0).day;
+    final monthLabel =
+        DateFormat.yMMMM(localeName).format(DateTime(provider.year, provider.month));
+    // 2024-01-01 is a Monday, so days 1..7 give localized Mon..Sun labels.
+    final dayNames = [
+      for (var i = 0; i < 7; i++)
+        DateFormat.E(localeName).format(DateTime(2024, 1, 1 + i)),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -38,7 +43,7 @@ class MonthCalendar extends StatelessWidget {
               GlyphButton(
                 glyph: '←',
                 size: 22,
-                semanticLabel: 'Previous month',
+                semanticLabel: t.previousMonth,
                 onTap: provider.previousMonth,
               ),
               Expanded(
@@ -46,7 +51,7 @@ class MonthCalendar extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
-                    '${_monthNames[provider.month - 1]} ${provider.year}',
+                    monthLabel,
                     style: const TextStyle(
                       fontFamily: 'Caveat',
                       fontSize: 22,
@@ -59,7 +64,7 @@ class MonthCalendar extends StatelessWidget {
               GlyphButton(
                 glyph: '→',
                 size: 22,
-                semanticLabel: 'Next month',
+                semanticLabel: t.nextMonth,
                 onTap: provider.nextMonth,
               ),
             ],
@@ -67,7 +72,7 @@ class MonthCalendar extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Row(
-          children: _dayNames
+          children: dayNames
               .map(
                 (d) => Expanded(
                   child: Center(

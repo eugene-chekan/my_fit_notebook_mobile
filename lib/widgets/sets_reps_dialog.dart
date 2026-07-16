@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/models/rep_unit.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/notebook_theme.dart';
 import 'paper_dialog.dart';
 import 'pen_button.dart';
@@ -82,6 +83,7 @@ class _SetsRepsFormState extends State<_SetsRepsForm> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final secondHint = _unit == RepUnit.reps ? 'reps' : _unit;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -114,12 +116,12 @@ class _SetsRepsFormState extends State<_SetsRepsForm> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             PenButton(
-              label: 'Cancel',
+              label: t.cancel,
               small: true,
               onPressed: () => Navigator.pop(context),
             ),
             const SizedBox(width: 8),
-            PenButton(label: 'Save', small: true, onPressed: _save),
+            PenButton(label: t.save, small: true, onPressed: _save),
           ],
         ),
       ],
@@ -155,9 +157,9 @@ class _SetsRepsFormState extends State<_SetsRepsForm> {
 
     return Row(
       children: [
-        const Text(
-          'unit:  ',
-          style: TextStyle(
+        Text(
+          '${AppLocalizations.of(context).unitLabel}  ',
+          style: const TextStyle(
             fontFamily: 'Caveat',
             fontSize: 16,
             fontStyle: FontStyle.italic,

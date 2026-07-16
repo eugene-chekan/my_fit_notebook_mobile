@@ -6,6 +6,7 @@ class Profile {
     this.birthDate,
     this.heightCm,
     this.units = Units.metric,
+    this.language = AppLanguage.system,
   });
 
   final String name;
@@ -15,6 +16,9 @@ class Profile {
   /// [Units.metric] or [Units.imperial] — display preference only; all
   /// stored values are canonical metric.
   final String units;
+  /// UI language preference: [AppLanguage.system] (follow device),
+  /// [AppLanguage.en], or [AppLanguage.ru].
+  final String language;
 
   factory Profile.fromMap(Map<String, Object?> map) {
     return Profile(
@@ -22,6 +26,7 @@ class Profile {
       birthDate: map['birth_date'] as String?,
       heightCm: (map['height_cm'] as num?)?.toDouble(),
       units: (map['units'] as String?) ?? Units.metric,
+      language: (map['language'] as String?) ?? AppLanguage.system,
     );
   }
 }
@@ -29,6 +34,12 @@ class Profile {
 abstract final class Units {
   static const metric = 'metric';
   static const imperial = 'imperial';
+}
+
+abstract final class AppLanguage {
+  static const system = 'system';
+  static const en = 'en';
+  static const ru = 'ru';
 }
 
 /// One dated entry in a body-measurement history. [value] is canonical
