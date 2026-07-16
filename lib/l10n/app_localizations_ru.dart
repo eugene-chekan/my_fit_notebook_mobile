@@ -33,7 +33,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get gotIt => 'Понятно';
 
   @override
-  String get navRoutines => 'Программы';
+  String get navRoutines => 'Тренировки';
 
   @override
   String get navExercises => 'Упражнения';
@@ -55,7 +55,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get startRoutineEmpty =>
-      'Здесь пока пусто — откройте «Программы» в меню и запишите одну.';
+      'Здесь пока пусто — откройте «Тренировки» в меню и запишите одну.';
 
   @override
   String get nothingLoggedWeek => 'пока ничего не записано — страница пуста';
@@ -143,13 +143,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get barThisWeek => 'эта неделя';
 
   @override
-  String get newRoutine => '+ новая программа…';
+  String get newRoutine => '+ новая тренировка…';
 
   @override
   String get routineNameHint => 'название…';
 
   @override
-  String get createRoutineSemantic => 'Создать программу';
+  String get createRoutineSemantic => 'Создать тренировку';
 
   @override
   String manageNamed(String name) {
@@ -163,10 +163,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get deleteRoutineMessage =>
-      'Программа, её упражнения и журнал сессий будут удалены.';
+      'Тренировка, её упражнения и журнал сессий будут удалены.';
 
   @override
-  String get manageRoutineSemantic => 'Настроить программу';
+  String get manageRoutineSemantic => 'Настроить тренировку';
 
   @override
   String get workoutComplete => 'Тренировка завершена';
@@ -331,10 +331,10 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: ' Оно останется в $count программах, где уже используется.',
-      many: ' Оно останется в $count программах, где уже используется.',
-      few: ' Оно останется в $count программах, где уже используется.',
-      one: ' Оно останется в $count программе, где уже используется.',
+      other: ' Оно останется в $count тренировках, где уже используется.',
+      many: ' Оно останется в $count тренировках, где уже используется.',
+      few: ' Оно останется в $count тренировках, где уже используется.',
+      one: ' Оно останется в $count тренировке, где уже используется.',
     );
     return '$_temp0';
   }
@@ -362,13 +362,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get unitLabel => 'тип:';
 
   @override
-  String get manageRoutineTitle => 'Настройка программы';
+  String get manageRoutineTitle => 'Настройка тренировки';
 
   @override
-  String get routineDetails => 'О программе';
+  String get routineDetails => 'О тренировке';
 
   @override
-  String get routineDescHint => 'Для чего эта программа?';
+  String get routineDescHint => 'Для чего эта тренировка?';
 
   @override
   String addNamedTitle(String name) {
@@ -376,7 +376,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get deleteRoutineConfirmTitle => 'Удалить эту программу?';
+  String get deleteRoutineConfirmTitle => 'Удалить эту тренировку?';
 
   @override
   String removeExerciseTitle(String name) {
@@ -384,7 +384,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get removeExerciseMessage => 'Убрать это упражнение из программы?';
+  String get removeExerciseMessage => 'Убрать это упражнение из тренировки?';
 
   @override
   String get addExerciseHint => '+ добавить упражнение…';
@@ -398,7 +398,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get deleteRoutineButton => 'Удалить программу';
+  String get deleteRoutineButton => 'Удалить тренировку';
 
   @override
   String get noExercisesManage => 'Упражнений пока нет — добавь выше.';

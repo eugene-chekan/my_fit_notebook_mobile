@@ -269,14 +269,20 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
       height: kNotebookLine,
       alignment: Alignment.bottomLeft,
       padding: const EdgeInsets.only(bottom: 3),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: 'Caveat',
-          fontSize: 20,
-          color: muted ? NotebookColors.inkSoft : NotebookColors.ink,
+      // Scale the line down to fit rather than clip it: a long streak phrase
+      // (or a wide locale) stays on its single ruled line instead of running
+      // off the page edge. Short lines keep their natural size.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.bottomLeft,
+        child: Text(
+          text,
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 20,
+            color: muted ? NotebookColors.inkSoft : NotebookColors.ink,
+          ),
         ),
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }

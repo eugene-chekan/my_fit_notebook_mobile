@@ -32,7 +32,7 @@ void main() {
 
   testWidgets('Russian strings resolve with one/few/many plural forms', (tester) async {
     final t = await _load(tester, const Locale('ru'));
-    expect(t.navRoutines, 'Программы');
+    expect(t.navRoutines, 'Тренировки');
     // Russian plural categories: 1 → one, 2–4 → few, 5+ → many.
     expect(t.workoutsCount(1), '1 тренировка');
     expect(t.workoutsCount(2), '2 тренировки');
