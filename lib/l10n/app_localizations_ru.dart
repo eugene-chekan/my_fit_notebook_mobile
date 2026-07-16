@@ -51,7 +51,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trainingDays => 'Дни тренировок';
 
   @override
-  String get startRoutine => 'Начать программу';
+  String get startRoutine => 'Начать тренировку';
 
   @override
   String get startRoutineEmpty =>
@@ -91,10 +91,10 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'серия $count дня — не бросай',
-      many: 'серия $count дней — не бросай',
-      few: 'серия $count дня — не бросай',
-      one: 'серия $count день — не бросай',
+      other: 'серия $count дня — не давай чернилам засохнуть',
+      many: 'серия $count дней — не давай чернилам засохнуть',
+      few: 'серия $count дня — не давай чернилам засохнуть',
+      one: 'серия $count день — не давай чернилам засохнуть',
     );
     return '$_temp0';
   }

@@ -17,12 +17,12 @@
 
   "thisWeek": "Эта неделя",
   "trainingDays": "Дни тренировок",
-  "startRoutine": "Начать программу",
+  "startRoutine": "Начать тренировку",
   "startRoutineEmpty": "Здесь пока пусто — откройте «Программы» в меню и запишите одну.",
   "nothingLoggedWeek": "пока ничего не записано — страница пуста",
   "workoutsCount": "{count, plural, one{{count} тренировка} few{{count} тренировки} many{{count} тренировок} other{{count} тренировки}}",
   "workoutNoun": "{count, plural, one{тренировка} few{тренировки} many{тренировок} other{тренировки}}",
-  "streakLine": "{count, plural, one{серия {count} день — не бросай} few{серия {count} дня — не бросай} many{серия {count} дней — не бросай} other{серия {count} дня — не бросай}}",
+  "streakLine": "{count, plural, one{серия {count} день — не давай чернилам засохнуть} few{серия {count} дня — не давай чернилам засохнуть} many{серия {count} дней — не давай чернилам засохнуть} other{серия {count} дня — не давай чернилам засохнуть}}",
 
   "trainingTime": "Время тренировок",
   "bodyTrends": "Динамика тела",
