@@ -95,6 +95,15 @@ class WorkoutService {
     if (routine == null) {
       throw StateError('Routine $routineId not found');
     }
+    // Already finished (e.g. from the notification, then again from a stale
+    // screen): there's no live session, so don't log an empty completion.
+    if (!routine.isStarted) {
+      return const WorkoutStatistics(
+        exercisesCompleted: 0,
+        durationSeconds: 0,
+        pausedSeconds: 0,
+      );
+    }
     final exercises = await _exercises.listExercises(routineId);
     final (setsCompleted, repsTotal) = await _exercises.doneSetStats(routineId);
     final stats = WorkoutStatistics(

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../data/models/routine.dart';
 import '../l10n/app_localizations.dart';
 import '../route_observer.dart';
+import '../services/workout_notification_service.dart';
 import '../state/calendar_provider.dart';
 import '../state/dashboard_provider.dart';
 import '../state/routines_provider.dart';
@@ -40,6 +41,9 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
     _routinesProvider = RoutinesProvider()..load();
     _dashboardProvider = DashboardProvider()..load();
     _calendarProvider = CalendarProvider()..load();
+    // Refresh (e.g. the Resume line) when a workout is finished from the
+    // notification while the dashboard is showing.
+    WorkoutNotificationService.instance.externalChange.addListener(_reloadAll);
   }
 
   @override
@@ -51,6 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
   @override
   void dispose() {
     appRouteObserver.unsubscribe(this);
+    WorkoutNotificationService.instance.externalChange.removeListener(_reloadAll);
     _routinesProvider.dispose();
     _dashboardProvider.dispose();
     _calendarProvider.dispose();

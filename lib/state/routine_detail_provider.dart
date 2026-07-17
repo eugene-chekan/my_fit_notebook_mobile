@@ -31,7 +31,9 @@ class RoutineDetailProvider extends ChangeNotifier {
        _exerciseRepository = exerciseRepository ?? ExerciseRepository(),
        _completionRepository = completionRepository ?? CompletionRepository(),
        _catalogRepository = catalogRepository ?? ExerciseCatalogRepository(),
-       _workoutService = workoutService ?? WorkoutService();
+       _workoutService = workoutService ?? WorkoutService() {
+    WorkoutNotificationService.instance.externalChange.addListener(_onExternalChange);
+  }
 
   final int routineId;
   final RoutineRepository _routineRepository;
@@ -53,6 +55,10 @@ class RoutineDetailProvider extends ChangeNotifier {
   final Set<int> expandedExercises = {};
   bool loading = true;
   Timer? _ticker;
+
+  /// Reload when a notification button (pause/resume/finish) changes the
+  /// workout from outside this screen, so the UI never shows stale state.
+  void _onExternalChange() => load();
 
   /// The set rows for an exercise (empty for a bare exercise).
   List<ExerciseSet> setsFor(int exerciseId) => setsByExercise[exerciseId] ?? const [];
@@ -272,6 +278,8 @@ class RoutineDetailProvider extends ChangeNotifier {
   @override
   void dispose() {
     _ticker?.cancel();
+    WorkoutNotificationService.instance.externalChange
+        .removeListener(_onExternalChange);
     super.dispose();
   }
 }

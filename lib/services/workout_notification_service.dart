@@ -186,6 +186,12 @@ class WorkoutNotificationService {
   bool _channelReady = false;
   int? _activeRoutineId;
 
+  /// Bumped whenever a *notification-initiated* action (a button tap) mutates
+  /// the workout in the DB, so a live [RoutineDetailProvider] can reload and
+  /// not show stale state. On-screen actions don't touch this — they already
+  /// reload — so there's no feedback loop.
+  final ValueNotifier<int> externalChange = ValueNotifier<int>(0);
+
   /// Wire up the isolate communication port and the button-tap callback. Safe
   /// to call more than once. Call once at app start.
   void bootstrap() {
@@ -331,7 +337,11 @@ class WorkoutNotificationService {
         case _kFinish:
           await _workoutService.finishWorkout(routineId);
           await _stop();
+        default:
+          return;
       }
+      // Let any live routine screen reload so it doesn't show stale state.
+      externalChange.value++;
     } catch (error, stack) {
       debugPrint('WorkoutNotificationService._onTaskData failed: $error\n$stack');
     }
