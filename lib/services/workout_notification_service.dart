@@ -28,6 +28,7 @@ const String _kFinish = 'workout_finish';
 /// matches the in-app one (net elapsed freezes while paused).
 class _WorkoutState {
   const _WorkoutState({
+    required this.routineId,
     required this.title,
     required this.startMs,
     required this.pausedSeconds,
@@ -39,6 +40,7 @@ class _WorkoutState {
     required this.finishLabel,
   });
 
+  final int routineId;
   final String title;
   final int startMs;
   final int pausedSeconds;
@@ -48,6 +50,21 @@ class _WorkoutState {
   final String pauseLabel;
   final String resumeLabel;
   final String finishLabel;
+
+  /// A copy with the timing refreshed from [routine] (after pause/resume),
+  /// keeping the localized labels and title.
+  _WorkoutState withTiming(Routine routine) => _WorkoutState(
+    routineId: routineId,
+    title: title,
+    startMs: _epochMs(routine.startedAt),
+    pausedSeconds: routine.pausedSeconds,
+    paused: routine.isPaused,
+    pausedAtMs: _epochMs(routine.pausedAt),
+    pausedLabel: pausedLabel,
+    pauseLabel: pauseLabel,
+    resumeLabel: resumeLabel,
+    finishLabel: finishLabel,
+  );
 
   int get elapsedSeconds {
     if (startMs <= 0) return 0;
@@ -75,6 +92,7 @@ class _WorkoutState {
   ];
 
   String toJson() => jsonEncode({
+    'routineId': routineId,
     'title': title,
     'startMs': startMs,
     'pausedSeconds': pausedSeconds,
@@ -90,6 +108,7 @@ class _WorkoutState {
     if (raw == null) return null;
     final map = jsonDecode(raw) as Map<String, dynamic>;
     return _WorkoutState(
+      routineId: (map['routineId'] as num?)?.toInt() ?? 0,
       title: map['title'] as String? ?? '',
       startMs: (map['startMs'] as num?)?.toInt() ?? 0,
       pausedSeconds: (map['pausedSeconds'] as num?)?.toInt() ?? 0,
@@ -119,11 +138,17 @@ void workoutNotificationCallback() {
   FlutterForegroundTask.setTaskHandler(_WorkoutTaskHandler());
 }
 
-/// Runs in a background isolate: every second it re-reads the shared state and
-/// repaints the ongoing notification's clock, so it keeps ticking on the lock
-/// screen / drawer even when the app is backgrounded. Button taps are forwarded
-/// to the app isolate, which owns the DB.
+/// Runs in a background isolate that the foreground service keeps alive even
+/// after the app is swiped away. Every second it repaints the ongoing
+/// notification's clock, and it handles the notification buttons *itself* —
+/// writing to the same on-device DB — so Pause/Resume/Finish work whether the
+/// app is alive or killed. It then pokes the app isolate (if any) to reload
+/// its UI. The pause maths mirror [WorkoutService], so the clock never drifts
+/// from the in-app one.
 class _WorkoutTaskHandler extends TaskHandler {
+  final RoutineRepository _routines = RoutineRepository();
+  final WorkoutService _workoutService = WorkoutService();
+
   _WorkoutState? _state;
 
   Future<void> _reload() async {
@@ -163,8 +188,41 @@ class _WorkoutTaskHandler extends TaskHandler {
   }
 
   @override
-  void onNotificationButtonPressed(String id) {
-    FlutterForegroundTask.sendDataToMain(id);
+  Future<void> onNotificationButtonPressed(String id) async {
+    await _reload();
+    final routineId = _state?.routineId ?? 0;
+    if (routineId <= 0) return;
+    try {
+      switch (id) {
+        case _kPause:
+          await _workoutService.pauseWorkout(routineId);
+          await _refreshTiming(routineId);
+        case _kResume:
+          await _workoutService.resumeWorkout(routineId);
+          await _refreshTiming(routineId);
+        case _kFinish:
+          await _workoutService.finishWorkout(routineId);
+          await FlutterForegroundTask.stopService();
+      }
+      // Poke the app isolate (if alive) to reload its UI from the DB.
+      FlutterForegroundTask.sendDataToMain('refresh');
+    } catch (_) {
+      // Keep the notification alive even if a DB action fails.
+    }
+  }
+
+  /// After a pause/resume, re-read the routine and repaint the (frozen or
+  /// running) clock plus the correct button.
+  Future<void> _refreshTiming(int routineId) async {
+    final routine = await _routines.getRoutine(routineId);
+    final state = _state;
+    if (routine == null || state == null) return;
+    _state = state.withTiming(routine);
+    await FlutterForegroundTask.saveData(
+      key: _kStateKey,
+      value: _state!.toJson(),
+    );
+    _render();
   }
 }
 
@@ -180,11 +238,9 @@ class WorkoutNotificationService {
       WorkoutNotificationService._();
 
   final RoutineRepository _routines = RoutineRepository();
-  final WorkoutService _workoutService = WorkoutService();
 
   bool _initialized = false;
   bool _channelReady = false;
-  int? _activeRoutineId;
 
   /// Bumped whenever a *notification-initiated* action (a button tap) mutates
   /// the workout in the DB, so a live [RoutineDetailProvider] can reload and
@@ -240,6 +296,7 @@ class WorkoutNotificationService {
   }
 
   _WorkoutState _stateFor(Routine routine, AppLocalizations t) => _WorkoutState(
+    routineId: routine.id,
     title: routine.name,
     startMs: _epochMs(routine.startedAt),
     pausedSeconds: routine.pausedSeconds,
@@ -263,7 +320,6 @@ class WorkoutNotificationService {
         await _stop();
         return;
       }
-      _activeRoutineId = routine.id;
       final t = await AppLocalizations.delegate.load(await _resolveLocale());
       _configureChannel(t);
 
@@ -315,35 +371,17 @@ class WorkoutNotificationService {
   }
 
   Future<void> _stop() async {
-    _activeRoutineId = null;
     if (await FlutterForegroundTask.isRunningService) {
       await FlutterForegroundTask.stopService();
     }
   }
 
-  /// A notification button was tapped. The app isolate owns the DB, so we run
-  /// the same lifecycle actions the on-screen controls would, then reconcile.
-  Future<void> _onTaskData(Object data) async {
-    final routineId = _activeRoutineId;
-    if (routineId == null) return;
-    try {
-      switch (data) {
-        case _kPause:
-          await _workoutService.pauseWorkout(routineId);
-          await sync(await _routines.getRoutine(routineId));
-        case _kResume:
-          await _workoutService.resumeWorkout(routineId);
-          await sync(await _routines.getRoutine(routineId));
-        case _kFinish:
-          await _workoutService.finishWorkout(routineId);
-          await _stop();
-        default:
-          return;
-      }
-      // Let any live routine screen reload so it doesn't show stale state.
+  /// The task isolate performs the button action against the DB (so it works
+  /// even when the app is killed), then pokes us with 'refresh'. All we do here
+  /// is let any live screen reload so it doesn't show stale state.
+  void _onTaskData(Object data) {
+    if (data == 'refresh') {
       externalChange.value++;
-    } catch (error, stack) {
-      debugPrint('WorkoutNotificationService._onTaskData failed: $error\n$stack');
     }
   }
 }
