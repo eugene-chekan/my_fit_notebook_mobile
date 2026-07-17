@@ -23,10 +23,12 @@ const String _kResume = 'workout_resume';
 const String _kFinish = 'workout_finish';
 
 /// The branded status-bar / notification icon: a pen + dumbbell drawable
-/// (referenced by manifest meta-data) on the app's ink-navy circle.
+/// (referenced by manifest meta-data). No background colour is set, so Android
+/// tints the silhouette against the notification surface — reading as a dark
+/// "ink" mark on the light (paper-like) notification, and adapting in dark
+/// mode — rather than pinning it onto a heavy navy chip.
 const NotificationIcon _workoutIcon = NotificationIcon(
   metaDataName: 'com.eugenechekan.my_fit_notebook_mobile.WORKOUT_ICON',
-  backgroundColor: Color(0xFF1A3A6E),
 );
 
 /// A snapshot of the running workout, serialised into the shared data blob so
