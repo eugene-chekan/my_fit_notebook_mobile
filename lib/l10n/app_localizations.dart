@@ -482,6 +482,18 @@ abstract class AppLocalizations {
   /// **'Workout in progress'**
   String get workoutRunning;
 
+  /// No description provided for @workoutReminderChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout reminders'**
+  String get workoutReminderChannel;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to train'**
+  String get reminderTitle;
+
   /// No description provided for @addExercises.
   ///
   /// In en, this message translates to:

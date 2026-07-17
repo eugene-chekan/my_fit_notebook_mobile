@@ -250,6 +250,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get workoutRunning => 'Идёт тренировка';
 
   @override
+  String get workoutReminderChannel => 'Напоминания о тренировках';
+
+  @override
+  String get reminderTitle => 'Пора тренироваться';
+
+  @override
   String get addExercises => 'Добавить упражнения';
 
   @override

@@ -6,6 +6,7 @@ import '../data/models/routine.dart';
 import '../data/models/scheduled_workout.dart';
 import '../data/repositories/schedule_repository.dart';
 import '../l10n/app_localizations.dart';
+import '../services/reminder_service.dart';
 import '../state/calendar_provider.dart';
 import '../state/routines_provider.dart';
 import '../theme/notebook_theme.dart';
@@ -249,16 +250,25 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
   }
 
   Future<void> _add(int routineId) async {
-    await _repository.addSchedule(routineId, widget.iso);
+    // Optional time — dismissing the picker leaves the plan date-only.
+    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    await _repository.addSchedule(routineId, widget.iso, time: _hm(time));
+    await ReminderService.instance.resync();
     widget.onChanged();
     await _reload();
   }
 
   Future<void> _remove(int id) async {
     await _repository.deleteSchedule(id);
+    await ReminderService.instance.resync();
     widget.onChanged();
     await _reload();
   }
+
+  /// TimeOfDay → "HH:mm", or null when no time was picked.
+  static String? _hm(TimeOfDay? t) => t == null
+      ? null
+      : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -287,12 +297,21 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      plan.routineName,
-                      style: const TextStyle(
-                        fontFamily: 'Caveat',
-                        fontSize: 20,
-                        color: NotebookColors.ink,
+                    child: Text.rich(
+                      TextSpan(
+                        style: const TextStyle(
+                          fontFamily: 'Caveat',
+                          fontSize: 20,
+                          color: NotebookColors.ink,
+                        ),
+                        children: [
+                          if (plan.scheduledTime != null)
+                            TextSpan(
+                              text: '${plan.scheduledTime}  ',
+                              style: const TextStyle(color: NotebookColors.inkSoft),
+                            ),
+                          TextSpan(text: plan.routineName),
+                        ],
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),

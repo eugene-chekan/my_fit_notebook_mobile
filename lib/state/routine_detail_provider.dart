@@ -13,6 +13,7 @@ import '../data/repositories/exercise_catalog_repository.dart';
 import '../data/repositories/exercise_repository.dart';
 import '../data/repositories/routine_repository.dart';
 import '../data/services/workout_service.dart';
+import '../services/reminder_service.dart';
 import '../services/workout_notification_service.dart';
 import '../utils/set_progress.dart';
 
@@ -149,6 +150,8 @@ class RoutineDetailProvider extends ChangeNotifier {
   Future<WorkoutStatistics> finishWorkout() async {
     final stats = await _workoutService.finishWorkout(routineId);
     await load();
+    // Finishing may have fulfilled a plan for today — drop its reminder.
+    await ReminderService.instance.resync();
     return stats;
   }
 

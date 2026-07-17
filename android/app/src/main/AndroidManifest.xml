@@ -46,6 +46,22 @@
         <meta-data
             android:name="com.eugenechekan.my_fit_notebook_mobile.WORKOUT_ICON"
             android:resource="@drawable/ic_workout_notification" />
+        <!-- flutter_local_notifications: deliver scheduled workout reminders and
+             reschedule them after a reboot. RECEIVE_BOOT_COMPLETED is merged in
+             from flutter_foreground_task. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

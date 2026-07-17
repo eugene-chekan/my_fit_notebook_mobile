@@ -9,8 +9,8 @@ class ScheduleRepository {
   Future<Database> get _db => AppDatabase.instance.database;
 
   static const _select = '''
-    SELECT s.id, s.routine_id, s.scheduled_date, s.status, s.completion_id,
-           r.name AS routine_name
+    SELECT s.id, s.routine_id, s.scheduled_date, s.scheduled_time, s.status,
+           s.completion_id, r.name AS routine_name
     FROM scheduled_workouts s
     JOIN routines r ON s.routine_id = r.id
   ''';
@@ -21,14 +21,16 @@ class ScheduleRepository {
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
 
-  /// Pencils in [routineId] on [date]. Returns false if that routine is already
-  /// booked that day (the UNIQUE constraint).
-  Future<bool> addSchedule(int routineId, String date) async {
+  /// Pencils in [routineId] on [date], with an optional [time] (HH:mm) that
+  /// enables a reminder. Returns false if that routine is already booked that
+  /// day (the UNIQUE constraint).
+  Future<bool> addSchedule(int routineId, String date, {String? time}) async {
     final db = await _db;
     try {
       await db.insert('scheduled_workouts', {
         'routine_id': routineId,
         'scheduled_date': date,
+        'scheduled_time': time,
         'status': ScheduleStatus.planned,
         'created_at': DateTime.now().toIso8601String(),
       });
@@ -113,6 +115,18 @@ class ScheduleRepository {
       result.putIfAbsent(d, () => []).add(row['routine_name'] as String);
     }
     return result;
+  }
+
+  /// Planned entries on/after [fromDate] that have a time set — the ones that
+  /// warrant a reminder.
+  Future<List<ScheduledWorkout>> listRemindable(String fromDate) async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+      "$_select WHERE s.status = 'planned' AND s.scheduled_time IS NOT NULL "
+      'AND s.scheduled_date >= ? ORDER BY s.scheduled_date ASC',
+      [fromDate],
+    );
+    return rows.map(ScheduledWorkout.fromMap).toList();
   }
 
   /// The soonest planned entry on/after [fromDate], or null — dashboard "next up".

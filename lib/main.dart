@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
+import 'app_navigator.dart';
 import 'l10n/app_localizations.dart';
 import 'route_observer.dart';
 import 'screens/dashboard_screen.dart';
+import 'services/reminder_service.dart';
 import 'services/workout_notification_service.dart';
 import 'state/locale_provider.dart';
 import 'theme/notebook_theme.dart';
@@ -21,7 +23,12 @@ Future<void> main() async {
   // app was killed.
   WorkoutNotificationService.instance.bootstrap();
   await WorkoutNotificationService.instance.resync();
+  // (Re)schedule workout reminders from the DB.
+  await ReminderService.instance.init();
+  await ReminderService.instance.resync();
   runApp(MyFitNotebookApp(localeProvider: localeProvider));
+  // Navigate to the routine if a tapped reminder launched the app.
+  await ReminderService.instance.handleAppLaunch();
 }
 
 class MyFitNotebookApp extends StatelessWidget {
@@ -38,6 +45,7 @@ class MyFitNotebookApp extends StatelessWidget {
           title: 'My Fit Notebook',
           debugShowCheckedModeBanner: false,
           theme: NotebookTheme.light,
+          navigatorKey: navigatorKey,
           navigatorObservers: [appRouteObserver],
           locale: provider.locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,

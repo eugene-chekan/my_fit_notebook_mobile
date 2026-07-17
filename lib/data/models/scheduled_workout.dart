@@ -7,6 +7,7 @@ class ScheduledWorkout {
     required this.routineId,
     required this.routineName,
     required this.scheduledDate,
+    this.scheduledTime,
     this.status = ScheduleStatus.planned,
     this.completionId,
   });
@@ -17,6 +18,9 @@ class ScheduledWorkout {
 
   /// yyyy-MM-dd.
   final String scheduledDate;
+
+  /// HH:mm, or null for a date-only plan (no reminder).
+  final String? scheduledTime;
   final String status;
 
   /// The completion that fulfilled this plan, once done.
@@ -27,6 +31,7 @@ class ScheduledWorkout {
     routineId: map['routine_id'] as int,
     routineName: (map['routine_name'] as String?) ?? '',
     scheduledDate: map['scheduled_date'] as String,
+    scheduledTime: map['scheduled_time'] as String?,
     status: (map['status'] as String?) ?? ScheduleStatus.planned,
     completionId: map['completion_id'] as int?,
   );

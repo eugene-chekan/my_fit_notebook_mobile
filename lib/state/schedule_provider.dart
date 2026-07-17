@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart';
 
 import '../data/models/scheduled_workout.dart';
 import '../data/repositories/schedule_repository.dart';
+import '../services/reminder_service.dart';
 
 /// Backs the Schedule screen: upcoming planned workouts, past-missed ones, and
-/// add/remove/reschedule.
+/// add/remove/reschedule. Reminders are re-synced after every change.
 class ScheduleProvider extends ChangeNotifier {
   ScheduleProvider({ScheduleRepository? repository})
     : _repository = repository ?? ScheduleRepository();
@@ -28,13 +29,18 @@ class ScheduleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Returns false if the routine is already booked that day.
-  Future<bool> add(int routineId, DateTime date) async {
+  /// Returns false if the routine is already booked that day. [time] (HH:mm)
+  /// is optional and enables a reminder.
+  Future<bool> add(int routineId, DateTime date, {String? time}) async {
     final ok = await _repository.addSchedule(
       routineId,
       ScheduleRepository.isoDate(date),
+      time: time,
     );
-    if (ok) await load();
+    if (ok) {
+      await load();
+      await ReminderService.instance.resync();
+    }
     return ok;
   }
 
@@ -44,11 +50,15 @@ class ScheduleProvider extends ChangeNotifier {
     notifyListeners();
     await _repository.deleteSchedule(id);
     await load();
+    await ReminderService.instance.resync();
   }
 
   Future<bool> reschedule(int id, DateTime date) async {
     final ok = await _repository.reschedule(id, ScheduleRepository.isoDate(date));
-    if (ok) await load();
+    if (ok) {
+      await load();
+      await ReminderService.instance.resync();
+    }
     return ok;
   }
 }

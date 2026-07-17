@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 9,
+      version: 10,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -45,6 +45,7 @@ class AppDatabase {
         if (oldVersion < 7) await _migrateToLanguage(db);
         if (oldVersion < 8) await _migrateToCompletionStats(db);
         if (oldVersion < 9) await _migrateToSchedule(db);
+        if (oldVersion < 10) await _migrateToScheduleTime(db);
       },
     );
   }
@@ -276,6 +277,7 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         routine_id INTEGER NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
         scheduled_date TEXT NOT NULL,
+        scheduled_time TEXT,
         status TEXT NOT NULL DEFAULT 'planned',
         completion_id INTEGER REFERENCES completions(id) ON DELETE SET NULL,
         created_at TEXT NOT NULL,
@@ -291,5 +293,11 @@ class AppDatabase {
   /// backfill.
   Future<void> _migrateToSchedule(Database db) async {
     await _createScheduleTable(db);
+  }
+
+  /// v9 → v10: an optional time-of-day on a plan (HH:mm). A plan with a time
+  /// gets a reminder; date-only plans stay quiet. Additive and nullable.
+  Future<void> _migrateToScheduleTime(Database db) async {
+    await db.execute('ALTER TABLE scheduled_workouts ADD COLUMN scheduled_time TEXT');
   }
 }

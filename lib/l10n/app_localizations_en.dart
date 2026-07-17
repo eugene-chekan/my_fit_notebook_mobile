@@ -244,6 +244,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workoutRunning => 'Workout in progress';
 
   @override
+  String get workoutReminderChannel => 'Workout reminders';
+
+  @override
+  String get reminderTitle => 'Time to train';
+
+  @override
   String get addExercises => 'Add exercises';
 
   @override

@@ -79,9 +79,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final routines = await _routineRepository.listRoutines();
     if (!mounted) return;
     final routine = await _pickRoutine(routines);
-    if (routine == null) return;
-    await _provider.add(routine.id, date);
+    if (routine == null || !mounted) return;
+    // Optional time — dismissing the picker leaves the plan date-only (no
+    // reminder).
+    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    await _provider.add(routine.id, date, time: _hm(time));
   }
+
+  /// TimeOfDay → "HH:mm", or null when no time was picked.
+  static String? _hm(TimeOfDay? t) => t == null
+      ? null
+      : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   Future<Routine?> _pickRoutine(List<Routine> routines) {
     final t = AppLocalizations.of(context);
@@ -235,7 +243,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     style: TextStyle(fontFamily: 'Caveat', fontSize: 20, color: color),
                     children: [
                       TextSpan(
-                        text: '${_dateLabel(t, plan.scheduledDate)}  ',
+                        text: plan.scheduledTime == null
+                            ? '${_dateLabel(t, plan.scheduledDate)}  '
+                            : '${_dateLabel(t, plan.scheduledDate)} ${plan.scheduledTime}  ',
                         style: const TextStyle(
                           fontSize: 16,
                           fontStyle: FontStyle.italic,

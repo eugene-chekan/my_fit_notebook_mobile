@@ -100,6 +100,8 @@
   },
   "startWorkout": "Start workout",
   "workoutRunning": "Workout in progress",
+  "workoutReminderChannel": "Workout reminders",
+  "reminderTitle": "Time to train",
   "addExercises": "Add exercises",
   "noExercisesWorkout": "No exercises yet — add one via ✐ above.",
   "loggedSessions": "Logged sessions",

@@ -316,12 +316,12 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
         final next = stats.nextScheduled;
         if (next == null) return const SizedBox.shrink();
         final t = AppLocalizations.of(context);
+        final name = next.scheduledTime == null
+            ? next.routineName
+            : '${next.routineName} · ${next.scheduledTime}';
         final text = stats.nextIsToday
-            ? t.scheduledTodayLine(next.routineName)
-            : t.scheduledOnLine(
-                formatCompletionDt(next.scheduledDate),
-                next.routineName,
-              );
+            ? t.scheduledTodayLine(name)
+            : t.scheduledOnLine(formatCompletionDt(next.scheduledDate), name);
         return SizedBox(
           height: kNotebookLine,
           child: InkWell(
