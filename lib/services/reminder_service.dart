@@ -3,8 +3,6 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../app_navigator.dart';
@@ -36,10 +34,6 @@ class ReminderService {
   Future<void> init() async {
     if (_initialized) return;
     try {
-      tzdata.initializeTimeZones();
-      final localName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(localName));
-
       const android = AndroidInitializationSettings('ic_workout_notification');
       const settings = InitializationSettings(android: android);
       await _plugin.initialize(
@@ -104,11 +98,14 @@ class ReminderService {
       for (final plan in plans) {
         final when = _dateTimeFor(plan.scheduledDate, plan.scheduledTime);
         if (when == null || !when.isAfter(now)) continue;
+        // Dart's toUtc() applies the device's DST-aware offset for that date,
+        // giving the correct absolute instant to fire at — no IANA-zone plugin
+        // needed. zonedSchedule just needs a TZDateTime; UTC keeps it exact.
         await _plugin.zonedSchedule(
           plan.id,
           t.reminderTitle,
           plan.routineName,
-          tz.TZDateTime.from(when, tz.local),
+          tz.TZDateTime.from(when.toUtc(), tz.UTC),
           details,
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:
