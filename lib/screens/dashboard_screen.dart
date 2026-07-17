@@ -217,6 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                         ),
                       ),
                       _resumeLine(),
+                      _nextUpLine(),
                       const SizedBox(height: 6),
                       HeadingLine(t.thisWeek),
                       Consumer<DashboardProvider>(
@@ -241,7 +242,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                       HeadingLine(t.trainingDays),
                       Consumer<CalendarProvider>(
                         builder: (context, calendar, _) =>
-                            MonthCalendar(provider: calendar),
+                            MonthCalendar(provider: calendar, onChanged: _reloadAll),
                       ),
                     ],
                   ),
@@ -296,6 +297,45 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: NotebookColors.ink,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// A muted "▸ Today: {routine}" / "▸ {date}: {routine}" line for the next
+  /// planned workout, tappable to open it. Sits under the (bolder) Resume line;
+  /// hidden when nothing is planned.
+  Widget _nextUpLine() {
+    return Consumer<DashboardProvider>(
+      builder: (context, stats, _) {
+        final next = stats.nextScheduled;
+        if (next == null) return const SizedBox.shrink();
+        final t = AppLocalizations.of(context);
+        final text = stats.nextIsToday
+            ? t.scheduledTodayLine(next.routineName)
+            : t.scheduledOnLine(
+                formatCompletionDt(next.scheduledDate),
+                next.routineName,
+              );
+        return SizedBox(
+          height: kNotebookLine,
+          child: InkWell(
+            onTap: () => _openRoutine(next.routineId),
+            child: Container(
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: NotebookColors.inkSoft,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

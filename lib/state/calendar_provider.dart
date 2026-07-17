@@ -1,28 +1,36 @@
 import 'package:flutter/foundation.dart';
 
 import '../data/repositories/completion_repository.dart';
+import '../data/repositories/schedule_repository.dart';
 
-/// Backs the calendar screen: which month is showing, and which days in it
-/// have completed workouts (mirrors the `/api/completions` lookup the web
-/// app's header calendar dropdown uses).
+/// Backs the calendar screen: which month is showing, which days have completed
+/// workouts (trained-day dots), and which have planned ones (pencilled-in
+/// rings).
 class CalendarProvider extends ChangeNotifier {
-  CalendarProvider({CompletionRepository? repository}) : _repository = repository ?? CompletionRepository() {
+  CalendarProvider({
+    CompletionRepository? repository,
+    ScheduleRepository? scheduleRepository,
+  }) : _repository = repository ?? CompletionRepository(),
+       _schedules = scheduleRepository ?? ScheduleRepository() {
     final now = DateTime.now();
     year = now.year;
     month = now.month;
   }
 
   final CompletionRepository _repository;
+  final ScheduleRepository _schedules;
 
   late int year;
   late int month;
   Map<String, List<String>> routinesByDate = {};
+  Map<String, List<String>> plannedByDate = {};
   bool loading = true;
 
   Future<void> load() async {
     loading = true;
     notifyListeners();
     routinesByDate = await _repository.completionRoutinesForMonth(year, month);
+    plannedByDate = await _schedules.plannedForMonth(year, month);
     loading = false;
     notifyListeners();
   }

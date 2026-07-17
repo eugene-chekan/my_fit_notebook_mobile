@@ -11,6 +11,7 @@
   "gotIt": "Got it",
 
   "navRoutines": "Routines",
+  "navSchedule": "Schedule",
   "navExercises": "Exercises",
   "navStats": "Stats",
   "navProfile": "Profile",
@@ -22,6 +23,23 @@
   "resumeNamed": "▸ Resume {name}",
   "@resumeNamed": {
     "placeholders": { "name": { "type": "String" } }
+  },
+  "scheduleWorkout": "Schedule a workout",
+  "upcomingHeading": "Upcoming",
+  "missedHeading": "Missed",
+  "noUpcoming": "Nothing planned yet.",
+  "pickRoutine": "Pick a routine",
+  "todayLabel": "Today",
+  "tomorrowLabel": "Tomorrow",
+  "rescheduleSemantic": "Reschedule",
+  "allRoutinesPlanned": "All routines are already planned for this day.",
+  "scheduledTodayLine": "▸ Today: {name}",
+  "@scheduledTodayLine": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "scheduledOnLine": "▸ {date}: {name}",
+  "@scheduledOnLine": {
+    "placeholders": { "date": { "type": "String" }, "name": { "type": "String" } }
   },
   "nothingLoggedWeek": "nothing logged yet — the page is blank",
   "workoutsCount": "{count, plural, one{{count} workout} other{{count} workouts}}",

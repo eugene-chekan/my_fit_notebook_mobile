@@ -36,6 +36,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navRoutines => 'Routines';
 
   @override
+  String get navSchedule => 'Schedule';
+
+  @override
   String get navExercises => 'Exercises';
 
   @override
@@ -60,6 +63,44 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String resumeNamed(String name) {
     return '▸ Resume $name';
+  }
+
+  @override
+  String get scheduleWorkout => 'Schedule a workout';
+
+  @override
+  String get upcomingHeading => 'Upcoming';
+
+  @override
+  String get missedHeading => 'Missed';
+
+  @override
+  String get noUpcoming => 'Nothing planned yet.';
+
+  @override
+  String get pickRoutine => 'Pick a routine';
+
+  @override
+  String get todayLabel => 'Today';
+
+  @override
+  String get tomorrowLabel => 'Tomorrow';
+
+  @override
+  String get rescheduleSemantic => 'Reschedule';
+
+  @override
+  String get allRoutinesPlanned =>
+      'All routines are already planned for this day.';
+
+  @override
+  String scheduledTodayLine(String name) {
+    return '▸ Today: $name';
+  }
+
+  @override
+  String scheduledOnLine(String date, String name) {
+    return '▸ $date: $name';
   }
 
   @override

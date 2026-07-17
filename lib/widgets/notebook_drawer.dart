@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../screens/exercises_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/routines_screen.dart';
+import '../screens/schedule_screen.dart';
 import '../screens/stats_screen.dart';
 import '../state/locale_provider.dart';
 import '../theme/notebook_theme.dart';
@@ -67,6 +68,7 @@ class NotebookDrawer extends StatelessWidget {
                   ),
                 ),
                 _line(context, t.navRoutines, (_) => const RoutinesScreen()),
+                _line(context, t.navSchedule, (_) => const ScheduleScreen()),
                 _line(context, t.navExercises, (_) => const ExercisesScreen()),
                 _line(context, t.navStats, (_) => const StatsScreen()),
                 _line(context, t.navProfile, (_) => const ProfileScreen()),

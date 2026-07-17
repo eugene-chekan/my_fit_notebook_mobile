@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 8,
+      version: 9,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -34,6 +34,7 @@ class AppDatabase {
         await _createProfileTables(db);
         await _createCatalogTable(db);
         await _createSetLoggingTables(db);
+        await _createScheduleTable(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createProfileTables(db);
@@ -43,6 +44,7 @@ class AppDatabase {
         if (oldVersion < 6) await _migrateToSetLogging(db);
         if (oldVersion < 7) await _migrateToLanguage(db);
         if (oldVersion < 8) await _migrateToCompletionStats(db);
+        if (oldVersion < 9) await _migrateToSchedule(db);
       },
     );
   }
@@ -261,5 +263,33 @@ class AppDatabase {
     await db.execute('ALTER TABLE completions ADD COLUMN exercises_completed INTEGER');
     await db.execute('ALTER TABLE completions ADD COLUMN sets_completed INTEGER');
     await db.execute('ALTER TABLE completions ADD COLUMN reps_total INTEGER');
+  }
+
+  /// v9: planned workouts. One row per (routine, future date) plan. `status`
+  /// is planned/done/skipped; when a plan is fulfilled it links the resulting
+  /// completion (cleared to NULL if that completion is later deleted). Cascade
+  /// deletes with its routine. UNIQUE keeps a routine from being double-booked
+  /// on the same day.
+  Future<void> _createScheduleTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE scheduled_workouts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        routine_id INTEGER NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+        scheduled_date TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'planned',
+        completion_id INTEGER REFERENCES completions(id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(routine_id, scheduled_date)
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_scheduled_date ON scheduled_workouts(scheduled_date)',
+    );
+  }
+
+  /// v8 → v9: stand up the scheduled-workouts table. Additive — nothing to
+  /// backfill.
+  Future<void> _migrateToSchedule(Database db) async {
+    await _createScheduleTable(db);
   }
 }

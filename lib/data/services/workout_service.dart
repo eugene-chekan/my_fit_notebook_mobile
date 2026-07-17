@@ -3,6 +3,7 @@ import '../models/routine.dart';
 import '../repositories/completion_repository.dart';
 import '../repositories/exercise_repository.dart';
 import '../repositories/routine_repository.dart';
+import '../repositories/schedule_repository.dart';
 
 /// Workout lifecycle: start, pause, resume, finish — a Dart port of
 /// services/workout_service.py, kept as pure functions plus a thin
@@ -12,13 +13,16 @@ class WorkoutService {
     RoutineRepository? routines,
     ExerciseRepository? exercises,
     CompletionRepository? completions,
+    ScheduleRepository? schedules,
   }) : _routines = routines ?? RoutineRepository(),
        _exercises = exercises ?? ExerciseRepository(),
-       _completions = completions ?? CompletionRepository();
+       _completions = completions ?? CompletionRepository(),
+       _schedules = schedules ?? ScheduleRepository();
 
   final RoutineRepository _routines;
   final ExerciseRepository _exercises;
   final CompletionRepository _completions;
+  final ScheduleRepository _schedules;
 
   /// Total paused seconds, including an in-progress pause.
   static int calculatePausedSeconds(Routine routine) {
@@ -130,6 +134,13 @@ class WorkoutService {
     );
     if (completionId != null) {
       await _exercises.snapshotDoneSets(routineId, completionId);
+      // If this workout was planned for today, mark the plan fulfilled so the
+      // calendar's pencilled-in ring becomes a real trained-day dot.
+      await _schedules.markFulfilled(
+        routineId,
+        ScheduleRepository.isoDate(finishedAt),
+        completionId,
+      );
     }
     await _exercises.resetExercises(routineId);
     await _routines.clearStartedAt(routineId);

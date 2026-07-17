@@ -152,6 +152,12 @@ abstract class AppLocalizations {
   /// **'Routines'**
   String get navRoutines;
 
+  /// No description provided for @navSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get navSchedule;
+
   /// No description provided for @navExercises.
   ///
   /// In en, this message translates to:
@@ -199,6 +205,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'▸ Resume {name}'**
   String resumeNamed(String name);
+
+  /// No description provided for @scheduleWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule a workout'**
+  String get scheduleWorkout;
+
+  /// No description provided for @upcomingHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get upcomingHeading;
+
+  /// No description provided for @missedHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get missedHeading;
+
+  /// No description provided for @noUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned yet.'**
+  String get noUpcoming;
+
+  /// No description provided for @pickRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a routine'**
+  String get pickRoutine;
+
+  /// No description provided for @todayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayLabel;
+
+  /// No description provided for @tomorrowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get tomorrowLabel;
+
+  /// No description provided for @rescheduleSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Reschedule'**
+  String get rescheduleSemantic;
+
+  /// No description provided for @allRoutinesPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'All routines are already planned for this day.'**
+  String get allRoutinesPlanned;
+
+  /// No description provided for @scheduledTodayLine.
+  ///
+  /// In en, this message translates to:
+  /// **'▸ Today: {name}'**
+  String scheduledTodayLine(String name);
+
+  /// No description provided for @scheduledOnLine.
+  ///
+  /// In en, this message translates to:
+  /// **'▸ {date}: {name}'**
+  String scheduledOnLine(String date, String name);
 
   /// No description provided for @nothingLoggedWeek.
   ///

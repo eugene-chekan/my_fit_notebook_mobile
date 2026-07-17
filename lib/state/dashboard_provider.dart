@@ -1,19 +1,32 @@
 import 'package:flutter/foundation.dart';
 
+import '../data/models/scheduled_workout.dart';
 import '../data/repositories/completion_repository.dart';
+import '../data/repositories/schedule_repository.dart';
 
 /// Backs the dashboard page: workouts + total time this week (Monday-start,
-/// matching the calendar), and the current training streak.
+/// matching the calendar), the current training streak, and the next planned
+/// workout.
 class DashboardProvider extends ChangeNotifier {
-  DashboardProvider({CompletionRepository? repository})
-    : _repository = repository ?? CompletionRepository();
+  DashboardProvider({
+    CompletionRepository? repository,
+    ScheduleRepository? scheduleRepository,
+  }) : _repository = repository ?? CompletionRepository(),
+       _schedules = scheduleRepository ?? ScheduleRepository();
 
   final CompletionRepository _repository;
+  final ScheduleRepository _schedules;
 
   bool loading = true;
   int weekWorkouts = 0;
   int weekMinutes = 0;
   int streakDays = 0;
+
+  /// The soonest planned workout on/after today, or null.
+  ScheduledWorkout? nextScheduled;
+
+  /// True when [nextScheduled] is for today (vs a later date).
+  bool nextIsToday = false;
 
   Future<void> load() async {
     final now = DateTime.now();
@@ -24,6 +37,9 @@ class DashboardProvider extends ChangeNotifier {
     weekMinutes = minutes;
     final trained = (await _repository.distinctTrainedDates()).toSet();
     streakDays = _computeStreak(trained, today);
+    final todayIso = _iso(today);
+    nextScheduled = await _schedules.nextUpcoming(todayIso);
+    nextIsToday = nextScheduled?.scheduledDate == todayIso;
     loading = false;
     notifyListeners();
   }
