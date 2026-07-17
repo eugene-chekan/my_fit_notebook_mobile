@@ -22,6 +22,13 @@ const String _kPause = 'workout_pause';
 const String _kResume = 'workout_resume';
 const String _kFinish = 'workout_finish';
 
+/// The branded status-bar / notification icon: a pen + dumbbell drawable
+/// (referenced by manifest meta-data) on the app's ink-navy circle.
+const NotificationIcon _workoutIcon = NotificationIcon(
+  metaDataName: 'com.eugenechekan.my_fit_notebook_mobile.WORKOUT_ICON',
+  backgroundColor: Color(0xFF1A3A6E),
+);
+
 /// A snapshot of the running workout, serialised into the shared data blob so
 /// the background isolate can render the notification without touching the DB.
 /// The pause maths mirror [WorkoutService] exactly so the notification clock
@@ -163,6 +170,7 @@ class _WorkoutTaskHandler extends TaskHandler {
     FlutterForegroundTask.updateService(
       notificationTitle: state.title,
       notificationText: state.notificationText,
+      notificationIcon: _workoutIcon,
       notificationButtons: state.buttons,
     );
   }
@@ -337,12 +345,14 @@ class WorkoutNotificationService {
         await FlutterForegroundTask.updateService(
           notificationTitle: state.title,
           notificationText: state.notificationText,
+          notificationIcon: _workoutIcon,
           notificationButtons: state.buttons,
         );
       } else {
         await FlutterForegroundTask.startService(
           notificationTitle: state.title,
           notificationText: state.notificationText,
+          notificationIcon: _workoutIcon,
           notificationButtons: state.buttons,
           callback: workoutNotificationCallback,
         );

@@ -41,6 +41,11 @@
             android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
             android:foregroundServiceType="health"
             android:exported="false" />
+        <!-- Custom small icon (pen + dumbbell) for the workout notification,
+             referenced by name from WorkoutNotificationService. -->
+        <meta-data
+            android:name="com.eugenechekan.my_fit_notebook_mobile.WORKOUT_ICON"
+            android:resource="@drawable/ic_workout_notification" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
