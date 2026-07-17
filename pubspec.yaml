@@ -55,6 +55,20 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  # Build-time only: generates the launcher icons from assets/icon/* into the
+  # Android mipmap/adaptive resources. Run: dart run flutter_launcher_icons
+  flutter_launcher_icons: ^0.14.1
+
+# Launcher icon: navy ink pen + dumbbell on squared cream paper. Legacy icon is
+# the full composed image; the adaptive icon layers the ink drawing over the
+# paper background so launcher masks crop cleanly.
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "assets/icon/app_icon_background.png"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  min_sdk_android: 21
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
