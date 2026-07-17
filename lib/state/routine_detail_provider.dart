@@ -13,6 +13,7 @@ import '../data/repositories/exercise_catalog_repository.dart';
 import '../data/repositories/exercise_repository.dart';
 import '../data/repositories/routine_repository.dart';
 import '../data/services/workout_service.dart';
+import '../services/workout_notification_service.dart';
 import '../utils/set_progress.dart';
 
 /// Backs the routine / workout screen: the routine itself, its exercises,
@@ -87,6 +88,10 @@ class RoutineDetailProvider extends ChangeNotifier {
     setsByExercise = await _exerciseRepository.listSetsForRoutine(routineId);
     loading = false;
     _syncTicker();
+    // Keep the ongoing-workout notification in lockstep with the DB: this fires
+    // after every start/pause/resume/finish (they all reload), so the lock
+    // screen / drawer state follows the workout without extra wiring.
+    WorkoutNotificationService.instance.sync(routine);
     notifyListeners();
   }
 

@@ -42,6 +42,9 @@ dependencies:
   # Pinned by flutter_localizations — use `any` so the versions can't conflict.
   intl: any
   provider: ^6.1.5+1
+  # Android foreground service + ongoing notification for a running workout
+  # (lock screen + notification drawer, live timer, pause/resume/finish).
+  flutter_foreground_task: ^8.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

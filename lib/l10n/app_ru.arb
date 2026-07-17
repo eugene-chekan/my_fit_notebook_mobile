@@ -57,6 +57,7 @@
   "removeSessionMessage": "Убрать эту сессию из журнала?",
   "setActual": "Подход {index} · факт. {unit}",
   "startWorkout": "Начать тренировку",
+  "workoutRunning": "Идёт тренировка",
   "addExercises": "Добавить упражнения",
   "noExercisesWorkout": "Упражнений пока нет — добавь через ✐ вверху.",
   "loggedSessions": "Журнал сессий",

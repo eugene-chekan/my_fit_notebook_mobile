@@ -206,6 +206,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get startWorkout => 'Начать тренировку';
 
   @override
+  String get workoutRunning => 'Идёт тренировка';
+
+  @override
   String get addExercises => 'Добавить упражнения';
 
   @override

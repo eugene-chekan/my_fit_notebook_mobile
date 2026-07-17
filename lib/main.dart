@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'route_observer.dart';
 import 'screens/dashboard_screen.dart';
+import 'services/workout_notification_service.dart';
 import 'state/locale_provider.dart';
 import 'theme/notebook_theme.dart';
 
@@ -15,6 +16,11 @@ Future<void> main() async {
   // Resolve the persisted language before the first frame to avoid a flash.
   final localeProvider = LocaleProvider();
   await localeProvider.load();
+  // Wire up the workout notification channel, then re-arm (or clear) the
+  // ongoing notification from the DB — covers a workout left running when the
+  // app was killed.
+  WorkoutNotificationService.instance.bootstrap();
+  await WorkoutNotificationService.instance.resync();
   runApp(MyFitNotebookApp(localeProvider: localeProvider));
 }
 

@@ -404,6 +404,12 @@ abstract class AppLocalizations {
   /// **'Start workout'**
   String get startWorkout;
 
+  /// No description provided for @workoutRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout in progress'**
+  String get workoutRunning;
+
   /// No description provided for @addExercises.
   ///
   /// In en, this message translates to:

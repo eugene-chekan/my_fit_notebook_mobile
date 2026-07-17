@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Running-workout foreground service. The base FOREGROUND_SERVICE /
+         WAKE_LOCK / POST_NOTIFICATIONS permissions are merged in by
+         flutter_foreground_task; Android 14+ additionally requires the
+         type-specific permission for the "health" service type. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <application
         android:label="my_fit_notebook_mobile"
         android:name="${applicationName}"
@@ -30,6 +35,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- flutter_foreground_task service. Name is fixed by the plugin; the
+             "health" type matches a workout tracker per Android 14 FGS rules. -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="health"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

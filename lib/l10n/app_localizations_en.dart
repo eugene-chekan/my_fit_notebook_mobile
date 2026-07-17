@@ -200,6 +200,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startWorkout => 'Start workout';
 
   @override
+  String get workoutRunning => 'Workout in progress';
+
+  @override
   String get addExercises => 'Add exercises';
 
   @override

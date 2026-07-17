@@ -81,6 +81,7 @@
     "placeholders": { "index": { "type": "int" }, "unit": { "type": "String" } }
   },
   "startWorkout": "Start workout",
+  "workoutRunning": "Workout in progress",
   "addExercises": "Add exercises",
   "noExercisesWorkout": "No exercises yet — add one via ✐ above.",
   "loggedSessions": "Logged sessions",
