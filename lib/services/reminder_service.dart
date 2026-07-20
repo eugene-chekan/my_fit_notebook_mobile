@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../app_navigator.dart';
@@ -34,6 +35,11 @@ class ReminderService {
   Future<void> init() async {
     if (_initialized) return;
     try {
+      // Required before zonedSchedule: load the tz database (also sets the
+      // default local location to UTC, which is all we need since we schedule
+      // at absolute UTC instants).
+      tzdata.initializeTimeZones();
+
       const android = AndroidInitializationSettings('ic_workout_notification');
       const settings = InitializationSettings(android: android);
       await _plugin.initialize(
