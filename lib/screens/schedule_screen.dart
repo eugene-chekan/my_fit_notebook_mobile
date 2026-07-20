@@ -5,7 +5,6 @@ import '../data/models/routine.dart';
 import '../data/models/scheduled_workout.dart';
 import '../data/repositories/routine_repository.dart';
 import '../l10n/app_localizations.dart';
-import '../services/reminder_service.dart';
 import '../state/schedule_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
@@ -149,22 +148,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  /// Temporary diagnostic: fires an immediate + a 10-seconds-out notification
-  /// and reports the result (or the exact error) in a snackbar.
-  Future<void> _testReminder() async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final result = await ReminderService.instance.debugTest();
-      messenger.showSnackBar(
-        SnackBar(content: Text('Reminder test → $result'), duration: const Duration(seconds: 8)),
-      );
-    } catch (error) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Reminder test FAILED: $error'), duration: const Duration(seconds: 10)),
-      );
-    }
-  }
-
   Future<void> _reschedule(ScheduledWorkout plan) async {
     final initial = DateTime.tryParse(plan.scheduledDate);
     final date = await _pickDate(initial: initial);
@@ -201,12 +184,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           NotebookHeader(
                             title: t.navSchedule,
                             leading: const BackGlyph(),
-                            trailing: GlyphButton(
-                              glyph: '🔔',
-                              size: 22,
-                              semanticLabel: 'Test reminder',
-                              onTap: _testReminder,
-                            ),
                           ),
                           const SizedBox(height: 4),
                           if (provider.upcoming.isEmpty && provider.missed.isEmpty)

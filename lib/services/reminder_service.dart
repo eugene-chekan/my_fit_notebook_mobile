@@ -133,49 +133,6 @@ class ReminderService {
     }
   }
 
-  /// On-device diagnostic (temporary): posts an immediate notification and one
-  /// scheduled 10s out, and reports the notification/exact-alarm state. Does
-  /// NOT swallow errors — the caller surfaces them — so we can see exactly where
-  /// reminders break.
-  Future<String> debugTest() async {
-    await init();
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    final enabled = await android?.areNotificationsEnabled();
-    final canExact = await android?.canScheduleExactNotifications();
-
-    const details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        _channelId,
-        'Workout reminders',
-        importance: Importance.max,
-        priority: Priority.high,
-      ),
-    );
-
-    await _plugin.show(999001, 'Test reminder', 'immediate', details);
-
-    final when = tz.TZDateTime.from(
-      DateTime.now().add(const Duration(seconds: 10)).toUtc(),
-      tz.UTC,
-    );
-    await _plugin.zonedSchedule(
-      999002,
-      'Test reminder',
-      'scheduled +10s',
-      when,
-      details,
-      androidScheduleMode: (canExact ?? false)
-          ? AndroidScheduleMode.exactAllowWhileIdle
-          : AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-
-    final pending = await _plugin.pendingNotificationRequests();
-    return 'enabled=$enabled, canExact=$canExact, pending=${pending.length}';
-  }
-
   /// Combine a yyyy-MM-dd date and an HH:mm time into a local DateTime.
   static DateTime? _dateTimeFor(String date, String? time) {
     if (time == null) return null;
