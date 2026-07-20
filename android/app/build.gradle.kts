@@ -62,6 +62,18 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // Disable R8 shrinking/obfuscation: it strips the generic type info
+            // that flutter_local_notifications' GSON (de)serialization of
+            // scheduled notifications relies on, which threw
+            // "Missing type parameter" at runtime and killed every reminder.
+            // The GSON keep rules below are belt-and-suspenders if R8 is ever
+            // re-enabled.
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
