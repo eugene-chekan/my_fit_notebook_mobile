@@ -95,6 +95,15 @@ class ReminderService {
         ),
       );
 
+      // Prefer exact alarms so reminders fire on time; fall back to inexact
+      // (while-idle) if the OS won't grant exact scheduling.
+      final android = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      final canExact = await android?.canScheduleExactNotifications() ?? false;
+      final mode = canExact
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle;
+
       for (final plan in plans) {
         final when = _dateTimeFor(plan.scheduledDate, plan.scheduledTime);
         if (when == null || !when.isAfter(now)) continue;
@@ -107,7 +116,7 @@ class ReminderService {
           plan.routineName,
           tz.TZDateTime.from(when.toUtc(), tz.UTC),
           details,
-          androidScheduleMode: AndroidScheduleMode.inexact,
+          androidScheduleMode: mode,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
           payload: '${plan.routineId}',

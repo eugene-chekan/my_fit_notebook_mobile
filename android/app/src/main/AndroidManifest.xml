@@ -4,6 +4,14 @@
          flutter_foreground_task; Android 14+ additionally requires the
          type-specific permission for the "health" service type. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <!-- Exact alarms so workout reminders fire on time (inexact alarms are
+         batched/deferred in Doze and often don't deliver). USE_EXACT_ALARM is
+         auto-granted for alarm/reminder apps on Android 13+; SCHEDULE_EXACT_ALARM
+         covers 12/12L, where it's granted by default. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
     <application
         android:label="my_fit_notebook_mobile"
         android:name="${applicationName}"
