@@ -101,21 +101,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         children: [
           Text(
             t.pickRoutine,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
+              color: context.notebook.ink,
             ),
           ),
           const SizedBox(height: 8),
           if (routines.isEmpty)
             Text(
               t.startRoutineEmpty,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 19,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
             )
           else
@@ -131,10 +131,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Text(
                           routine.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Caveat',
                             fontSize: 21,
-                            color: NotebookColors.ink,
+                            color: context.notebook.ink,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -226,7 +226,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Widget _planRow(AppLocalizations t, ScheduledWorkout plan, {required bool missed}) {
-    final color = missed ? NotebookColors.inkSoft : NotebookColors.ink;
+    final color = missed ? context.notebook.sec : context.notebook.ink;
     return SizedBox(
       height: kNotebookLine,
       child: Row(
@@ -246,10 +246,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         text: plan.scheduledTime == null
                             ? '${_dateLabel(t, plan.scheduledDate)}  '
                             : '${_dateLabel(t, plan.scheduledDate)} ${plan.scheduledTime}  ',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontStyle: FontStyle.italic,
-                          color: NotebookColors.inkSoft,
+                          color: context.notebook.sec,
                         ),
                       ),
                       TextSpan(text: plan.routineName),

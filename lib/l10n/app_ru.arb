@@ -15,6 +15,7 @@
   "navExercises": "Упражнения",
   "navStats": "Статистика",
   "navProfile": "Профиль",
+  "navSettings": "Настройки",
 
   "thisWeek": "Эта неделя",
   "trainingDays": "Дни тренировок",
@@ -92,6 +93,9 @@
   "ageYears": "{count, plural, one{({count} год)} few{({count} года)} many{({count} лет)} other{({count} года)}}",
   "unitsLabel": "единицы:",
   "languageLabel": "язык:",
+  "themeLabel": "тема:",
+  "themePaper": "Бумага",
+  "themeBlueprint": "Чертёж",
   "measurements": "Замеры",
   "measurementsHint": "нажми на строку для истории и цели, + чтобы записать",
   "saveDetails": "Сохранить",

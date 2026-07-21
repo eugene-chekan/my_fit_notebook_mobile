@@ -156,17 +156,17 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (routine.isStarted)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 6),
-                          child: Icon(Icons.fiber_manual_record, size: 9, color: NotebookColors.ink),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Icon(Icons.fiber_manual_record, size: 9, color: context.notebook.ink),
                         ),
                       Flexible(
                         child: Text(
                           routine.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Caveat',
                             fontSize: 21,
-                            color: NotebookColors.ink,
+                            color: context.notebook.ink,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -199,10 +199,10 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             padding: const EdgeInsets.only(bottom: 3),
             child: Text(
               t.newRoutine,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 20,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
             ),
           ),
@@ -221,20 +221,20 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 controller: _nameController,
                 autofocus: true,
                 maxLength: 200,
-                cursorColor: NotebookColors.ink,
-                style: const TextStyle(
+                cursorColor: context.notebook.ink,
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 20,
-                  color: NotebookColors.ink,
+                  color: context.notebook.ink,
                 ),
                 decoration: InputDecoration(
                   isCollapsed: true,
                   counterText: '',
                   hintText: t.routineNameHint,
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     fontFamily: 'Caveat',
                     fontSize: 20,
-                    color: NotebookColors.inkSoft,
+                    color: context.notebook.sec,
                   ),
                   border: InputBorder.none,
                 ),
@@ -244,7 +244,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           ),
           GlyphButton(
             glyph: '✓',
-            color: NotebookColors.ink,
+            color: context.notebook.ink,
             semanticLabel: t.createRoutineSemantic,
             onTap: _submitNewRoutine,
           ),

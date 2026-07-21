@@ -9,16 +9,16 @@ class SwipeCopyBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: NotebookColors.trainedFill,
+      color: context.notebook.trainedFill,
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.only(left: 10),
-      child: const Text(
+      child: Text(
         'copy ⟶',
         style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 19,
           fontWeight: FontWeight.w600,
-          color: NotebookColors.ink,
+          color: context.notebook.ink,
         ),
       ),
     );
@@ -32,16 +32,16 @@ class SwipeDeleteBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0x1F8B2F2F),
+      color: context.notebook.accent.withValues(alpha: 0.12),
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 10),
-      child: const Text(
+      child: Text(
         '⟵ delete',
         style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 19,
           fontWeight: FontWeight.w600,
-          color: NotebookColors.danger,
+          color: context.notebook.accent,
         ),
       ),
     );

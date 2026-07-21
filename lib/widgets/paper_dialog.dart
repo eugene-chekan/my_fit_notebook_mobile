@@ -14,10 +14,10 @@ Future<T?> showPaperDialog<T>({
   return showDialog<T>(
     context: context,
     builder: (context) => Dialog(
-      backgroundColor: NotebookColors.paper,
-      shape: const RoundedRectangleBorder(
-        side: BorderSide(color: NotebookColors.ink, width: 2),
-        borderRadius: BorderRadius.only(
+      backgroundColor: context.notebook.bg,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: context.notebook.ink, width: 2),
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),
           topRight: Radius.circular(6),
           bottomRight: Radius.circular(5),
@@ -49,20 +49,20 @@ Future<bool> showPaperConfirm(
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: NotebookColors.ink,
+            color: context.notebook.ink,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           message,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 18,
-            color: NotebookColors.inkSoft,
+            color: context.notebook.sec,
           ),
         ),
         const SizedBox(height: 14),

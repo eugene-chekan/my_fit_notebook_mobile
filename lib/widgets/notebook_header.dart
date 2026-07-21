@@ -19,8 +19,8 @@ class NotebookHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 2 * kNotebookLine,
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: NotebookColors.ink, width: 2)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.notebook.ink, width: 2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -31,11 +31,11 @@ class NotebookHeader extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
-                  color: NotebookColors.ink,
+                  color: context.notebook.ink,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

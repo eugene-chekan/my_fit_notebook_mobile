@@ -173,7 +173,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                     TextField(
                       controller: _nameController,
                       maxLength: 200,
-                      cursorColor: NotebookColors.ink,
+                      cursorColor: context.notebook.ink,
                       style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
                       decoration: _underlineDecoration(),
                     ),
@@ -183,21 +183,21 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                       controller: _descriptionController,
                       maxLength: 1000,
                       maxLines: 3,
-                      cursorColor: NotebookColors.ink,
+                      cursorColor: context.notebook.ink,
                       style: const TextStyle(fontFamily: 'Caveat', fontSize: 18),
                       decoration: InputDecoration(
                         counterText: '',
                         hintText: t.routineDescHint,
-                        hintStyle: const TextStyle(
+                        hintStyle: TextStyle(
                           fontFamily: 'Caveat',
-                          color: NotebookColors.inkSoft,
+                          color: context.notebook.sec,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: NotebookColors.inkSoft, width: 1.5),
+                          borderSide: BorderSide(color: context.notebook.sec, width: 1.5),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: NotebookColors.ink, width: 2),
+                          borderSide: BorderSide(color: context.notebook.ink, width: 2),
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
@@ -251,25 +251,25 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       padding: const EdgeInsets.only(bottom: 2),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 17,
           fontStyle: FontStyle.italic,
-          color: NotebookColors.inkSoft,
+          color: context.notebook.sec,
         ),
       ),
     );
   }
 
   InputDecoration _underlineDecoration() {
-    return const InputDecoration(
+    return InputDecoration(
       isDense: true,
       counterText: '',
       enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: NotebookColors.ink),
+        borderSide: BorderSide(color: context.notebook.ink),
       ),
       focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+        borderSide: BorderSide(color: context.notebook.ink, width: 2),
       ),
     );
   }
@@ -298,20 +298,20 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                       controller: controller,
                       focusNode: focusNode,
                       maxLength: 200,
-                      cursorColor: NotebookColors.ink,
-                      style: const TextStyle(
+                      cursorColor: context.notebook.ink,
+                      style: TextStyle(
                         fontFamily: 'Caveat',
                         fontSize: 19,
-                        color: NotebookColors.ink,
+                        color: context.notebook.ink,
                       ),
                       decoration: InputDecoration(
                         isCollapsed: true,
                         counterText: '',
                         hintText: AppLocalizations.of(context).addExerciseHint,
-                        hintStyle: const TextStyle(
+                        hintStyle: TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 19,
-                          color: NotebookColors.inkSoft,
+                          color: context.notebook.sec,
                         ),
                         border: InputBorder.none,
                       ),
@@ -330,7 +330,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
           ),
           GlyphButton(
             glyph: '✓',
-            color: NotebookColors.ink,
+            color: context.notebook.ink,
             semanticLabel: AppLocalizations.of(context).addExerciseSemantic,
             onTap: _addExercise,
           ),
@@ -363,16 +363,16 @@ class _SuggestionsOverlay extends StatelessWidget {
           width: width,
           constraints: const BoxConstraints(maxHeight: 216),
           decoration: BoxDecoration(
-            color: NotebookColors.paper,
-            border: Border.all(color: NotebookColors.ink, width: 2),
+            color: context.notebook.bg,
+            border: Border.all(color: context.notebook.ink, width: 2),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(4),
               topRight: Radius.circular(6),
               bottomRight: Radius.circular(5),
               bottomLeft: Radius.circular(4),
             ),
-            boxShadow: const [
-              BoxShadow(color: NotebookColors.shadow, blurRadius: 10, offset: Offset(0, 3)),
+            boxShadow: [
+              BoxShadow(color: context.notebook.shadow, blurRadius: 10, offset: const Offset(0, 3)),
             ],
           ),
           child: ListView.builder(
@@ -387,10 +387,10 @@ class _SuggestionsOverlay extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Caveat',
                       fontSize: 19,
-                      color: NotebookColors.ink,
+                      color: context.notebook.ink,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -454,11 +454,11 @@ class _ReorderableExerciseList extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 5, right: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 5, right: 8),
                   child: Text(
                     '≡',
-                    style: TextStyle(fontSize: 18, height: 1, color: NotebookColors.inkSoft),
+                    style: TextStyle(fontSize: 18, height: 1, color: context.notebook.sec),
                   ),
                 ),
                 Expanded(
@@ -469,10 +469,10 @@ class _ReorderableExerciseList extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 3),
                       child: Text.rich(
                         TextSpan(
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Caveat',
                             fontSize: 20,
-                            color: NotebookColors.ink,
+                            color: context.notebook.ink,
                           ),
                           children: [
                             TextSpan(text: ex.name),
@@ -481,7 +481,7 @@ class _ReorderableExerciseList extends StatelessWidget {
                               TextSpan(
                                 text:
                                     '  ${formatPrescription(ex.sets, ex.repsMin, ex.repsMax, ex.unit)}',
-                                style: const TextStyle(color: NotebookColors.inkSoft),
+                                style: TextStyle(color: context.notebook.sec),
                               ),
                           ],
                         ),

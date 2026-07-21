@@ -39,7 +39,7 @@ class PenButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? NotebookColors.danger : NotebookColors.ink;
+    final color = danger ? context.notebook.accent : context.notebook.ink;
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
@@ -77,8 +77,8 @@ class PenButtonFilled extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: NotebookColors.ink,
-        foregroundColor: NotebookColors.paper,
+        backgroundColor: context.notebook.ink,
+        foregroundColor: context.notebook.bg,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.only(
@@ -87,7 +87,7 @@ class PenButtonFilled extends StatelessWidget {
             bottomRight: Radius.circular(5),
             bottomLeft: Radius.circular(4),
           ),
-          side: const BorderSide(color: NotebookColors.ink, width: 2),
+          side: BorderSide(color: context.notebook.ink, width: 2),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 10),
         textStyle: const TextStyle(
@@ -119,7 +119,7 @@ class PlayerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = soft ? NotebookColors.inkSoft : NotebookColors.ink;
+    final color = soft ? context.notebook.sec : context.notebook.ink;
     final button = SizedBox(
       width: 40,
       height: 34,

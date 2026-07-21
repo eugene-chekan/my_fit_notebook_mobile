@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get navProfile;
 
+  /// No description provided for @navSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navSettings;
+
   /// No description provided for @thisWeek.
   ///
   /// In en, this message translates to:
@@ -607,6 +613,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'language:'**
   String get languageLabel;
+
+  /// No description provided for @themeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'theme:'**
+  String get themeLabel;
+
+  /// No description provided for @themePaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper'**
+  String get themePaper;
+
+  /// No description provided for @themeBlueprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Blueprint'**
+  String get themeBlueprint;
 
   /// No description provided for @measurements.
   ///

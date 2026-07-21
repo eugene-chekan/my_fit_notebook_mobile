@@ -48,6 +48,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navProfile => 'Profile';
 
   @override
+  String get navSettings => 'Settings';
+
+  @override
   String get thisWeek => 'This week';
 
   @override
@@ -337,6 +340,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageLabel => 'language:';
+
+  @override
+  String get themeLabel => 'theme:';
+
+  @override
+  String get themePaper => 'Paper';
+
+  @override
+  String get themeBlueprint => 'Blueprint';
 
   @override
   String get measurements => 'Measurements';

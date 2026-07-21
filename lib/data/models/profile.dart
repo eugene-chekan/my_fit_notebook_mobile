@@ -7,6 +7,7 @@ class Profile {
     this.heightCm,
     this.units = Units.metric,
     this.language = AppLanguage.system,
+    this.theme = AppTheme.paper,
   });
 
   final String name;
@@ -19,6 +20,9 @@ class Profile {
   /// UI language preference: [AppLanguage.system] (follow device),
   /// [AppLanguage.en], or [AppLanguage.ru].
   final String language;
+  /// Selected notebook theme id (see [AppTheme] / `ThemeId`). Defaults to the
+  /// light [AppTheme.paper].
+  final String theme;
 
   factory Profile.fromMap(Map<String, Object?> map) {
     return Profile(
@@ -27,6 +31,7 @@ class Profile {
       heightCm: (map['height_cm'] as num?)?.toDouble(),
       units: (map['units'] as String?) ?? Units.metric,
       language: (map['language'] as String?) ?? AppLanguage.system,
+      theme: (map['theme'] as String?) ?? AppTheme.paper,
     );
   }
 }
@@ -40,6 +45,13 @@ abstract final class AppLanguage {
   static const system = 'system';
   static const en = 'en';
   static const ru = 'ru';
+}
+
+/// Persisted notebook-theme ids, mirroring the `ThemeId` enum. Kept as plain
+/// strings here so the data layer stays free of UI imports.
+abstract final class AppTheme {
+  static const paper = 'paper';
+  static const blueprint = 'blueprint';
 }
 
 /// One dated entry in a body-measurement history. [value] is canonical

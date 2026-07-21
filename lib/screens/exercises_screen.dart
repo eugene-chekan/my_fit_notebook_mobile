@@ -102,10 +102,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   void _snack(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: NotebookColors.ink,
+        backgroundColor: context.notebook.ink,
         content: Text(
           text,
-          style: const TextStyle(fontFamily: 'Caveat', fontSize: 18, color: NotebookColors.paper),
+          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.bg),
         ),
       ),
     );
@@ -184,17 +184,17 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             padding: const EdgeInsets.only(bottom: 3),
             child: Text.rich(
               TextSpan(
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 20,
-                  color: NotebookColors.ink,
+                  color: context.notebook.ink,
                 ),
                 children: [
                   TextSpan(text: entry.name),
                   if (suffix.isNotEmpty)
                     TextSpan(
                       text: '  $suffix',
-                      style: const TextStyle(color: NotebookColors.inkSoft),
+                      style: TextStyle(color: context.notebook.sec),
                     ),
                 ],
               ),
@@ -216,10 +216,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           padding: const EdgeInsets.only(bottom: 3),
           child: Text(
             AppLocalizations.of(context).newExerciseLine,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 20,
-              color: NotebookColors.inkSoft,
+              color: context.notebook.sec,
             ),
           ),
         ),
@@ -298,11 +298,11 @@ class _ExerciseFormState extends State<_ExerciseForm> {
       children: [
         Text(
           widget.title,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: NotebookColors.ink,
+            color: context.notebook.ink,
           ),
         ),
         const SizedBox(height: 8),
@@ -361,7 +361,7 @@ class _ExerciseFormState extends State<_ExerciseForm> {
               fontFamily: 'Caveat',
               fontSize: 19,
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              color: active ? NotebookColors.ink : NotebookColors.inkSoft,
+              color: active ? context.notebook.ink : context.notebook.sec,
             ),
           ),
         ),
@@ -372,22 +372,22 @@ class _ExerciseFormState extends State<_ExerciseForm> {
       children: [
         Text(
           '${AppLocalizations.of(context).unitLabel}  ',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 16,
             fontStyle: FontStyle.italic,
-            color: NotebookColors.inkSoft,
+            color: context.notebook.sec,
           ),
         ),
         option(RepUnit.reps, 'reps'),
-        const Text(
+        Text(
           '·',
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: NotebookColors.inkSoft),
+          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.sec),
         ),
         option(RepUnit.seconds, 'sec'),
-        const Text(
+        Text(
           '·',
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: NotebookColors.inkSoft),
+          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.sec),
         ),
         option(RepUnit.minutes, 'min'),
       ],
@@ -398,11 +398,11 @@ class _ExerciseFormState extends State<_ExerciseForm> {
     padding: const EdgeInsets.only(bottom: 2),
     child: Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'Caveat',
         fontSize: 16,
         fontStyle: FontStyle.italic,
-        color: NotebookColors.inkSoft,
+        color: context.notebook.sec,
       ),
     ),
   );
@@ -417,21 +417,21 @@ class _ExerciseFormState extends State<_ExerciseForm> {
       controller: controller,
       autofocus: autofocus,
       maxLines: maxLines,
-      cursorColor: NotebookColors.ink,
-      style: const TextStyle(fontFamily: 'Caveat', fontSize: 20, color: NotebookColors.ink),
+      cursorColor: context.notebook.ink,
+      style: TextStyle(fontFamily: 'Caveat', fontSize: 20, color: context.notebook.ink),
       decoration: InputDecoration(
         isDense: true,
         hintText: hint,
-        hintStyle: const TextStyle(
+        hintStyle: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 18,
-          color: NotebookColors.inkSoft,
+          color: context.notebook.sec,
         ),
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: NotebookColors.ink),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: context.notebook.ink),
         ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: context.notebook.ink, width: 2),
         ),
       ),
     );
@@ -443,22 +443,22 @@ class _ExerciseFormState extends State<_ExerciseForm> {
       child: TextField(
         controller: controller,
         keyboardType: TextInputType.number,
-        cursorColor: NotebookColors.ink,
+        cursorColor: context.notebook.ink,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontFamily: 'Caveat', fontSize: 21, color: NotebookColors.ink),
+        style: TextStyle(fontFamily: 'Caveat', fontSize: 21, color: context.notebook.ink),
         decoration: InputDecoration(
           isDense: true,
           hintText: hint,
-          hintStyle: const TextStyle(
+          hintStyle: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 15,
-            color: NotebookColors.inkSoft,
+            color: context.notebook.sec,
           ),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: NotebookColors.ink),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: context.notebook.ink),
           ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: context.notebook.ink, width: 2),
           ),
         ),
       ),
@@ -469,7 +469,7 @@ class _ExerciseFormState extends State<_ExerciseForm> {
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
     child: Text(
       s,
-      style: const TextStyle(fontFamily: 'Caveat', fontSize: 20, color: NotebookColors.inkSoft),
+      style: TextStyle(fontFamily: 'Caveat', fontSize: 20, color: context.notebook.sec),
     ),
   );
 }

@@ -62,11 +62,11 @@ class MonthCalendar extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
                     monthLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Caveat',
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: NotebookColors.ink,
+                      color: context.notebook.ink,
                     ),
                   ),
                 ),
@@ -88,11 +88,11 @@ class MonthCalendar extends StatelessWidget {
                   child: Center(
                     child: Text(
                       d,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Caveat',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: NotebookColors.inkSoft,
+                        color: context.notebook.sec,
                       ),
                     ),
                   ),
@@ -151,10 +151,10 @@ class MonthCalendar extends StatelessWidget {
     final unique = names.toSet().toList();
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: NotebookColors.paper,
-      shape: const RoundedRectangleBorder(
-        side: BorderSide(color: NotebookColors.ink, width: 2),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+      backgroundColor: context.notebook.bg,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: context.notebook.ink, width: 2),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
       ),
       builder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -164,11 +164,11 @@ class MonthCalendar extends StatelessWidget {
           children: [
             Text(
               formatCompletionDt(iso),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: NotebookColors.ink,
+                color: context.notebook.ink,
               ),
             ),
             const SizedBox(height: 8),
@@ -177,10 +177,10 @@ class MonthCalendar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Caveat',
                     fontSize: 20,
-                    color: NotebookColors.ink,
+                    color: context.notebook.ink,
                   ),
                 ),
               ),
@@ -197,10 +197,10 @@ class MonthCalendar extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: NotebookColors.paper,
-      shape: const RoundedRectangleBorder(
-        side: BorderSide(color: NotebookColors.ink, width: 2),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+      backgroundColor: context.notebook.bg,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: context.notebook.ink, width: 2),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
       ),
       builder: (sheetContext) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
@@ -284,11 +284,11 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
         children: [
           Text(
             formatCompletionDt(widget.iso),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
+              color: context.notebook.ink,
             ),
           ),
           if (_plans.isNotEmpty) ...[
@@ -299,16 +299,16 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
                   Expanded(
                     child: Text.rich(
                       TextSpan(
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 20,
-                          color: NotebookColors.ink,
+                          color: context.notebook.ink,
                         ),
                         children: [
                           if (plan.scheduledTime != null)
                             TextSpan(
                               text: '${plan.scheduledTime}  ',
-                              style: const TextStyle(color: NotebookColors.inkSoft),
+                              style: TextStyle(color: context.notebook.sec),
                             ),
                           TextSpan(text: plan.routineName),
                         ],
@@ -328,30 +328,30 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
           const SizedBox(height: 10),
           Text(
             t.scheduleWorkout,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 16,
               fontStyle: FontStyle.italic,
-              color: NotebookColors.inkSoft,
+              color: context.notebook.sec,
             ),
           ),
           const SizedBox(height: 4),
           if (widget.routines.isEmpty)
             Text(
               t.startRoutineEmpty,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 18,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
             )
           else if (addable.isEmpty)
             Text(
               t.allRoutinesPlanned,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 18,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
             )
           else
@@ -367,21 +367,21 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
-                            const Text(
+                            Text(
                               '+ ',
                               style: TextStyle(
                                 fontFamily: 'Caveat',
                                 fontSize: 20,
-                                color: NotebookColors.inkSoft,
+                                color: context.notebook.sec,
                               ),
                             ),
                             Expanded(
                               child: Text(
                                 routine.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Caveat',
                                   fontSize: 20,
-                                  color: NotebookColors.ink,
+                                  color: context.notebook.ink,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -420,9 +420,9 @@ class _DayCell extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: trained ? NotebookColors.trainedFill : Colors.white.withValues(alpha: 0.12),
+          color: trained ? context.notebook.trainedFill : context.notebook.cardFill,
           border: Border.all(
-            color: isToday ? NotebookColors.inkSoft : NotebookColors.ink,
+            color: isToday ? context.notebook.accent : context.notebook.ink,
             width: isToday ? 3 : 2,
           ),
           borderRadius: BorderRadius.circular(4),
@@ -436,15 +436,15 @@ class _DayCell extends StatelessWidget {
                 fontFamily: 'Caveat',
                 fontSize: 16,
                 fontWeight: isToday ? FontWeight.w700 : FontWeight.w600,
-                color: NotebookColors.ink,
+                color: context.notebook.ink,
               ),
             ),
             // A trained day gets a filled ink dot; a planned (future) day gets a
             // hollow "pencilled-in" ring.
             if (trained)
-              const Padding(
-                padding: EdgeInsets.only(top: 1),
-                child: CircleAvatar(radius: 2.5, backgroundColor: NotebookColors.ink),
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: CircleAvatar(radius: 2.5, backgroundColor: context.notebook.ink),
               )
             else if (planned)
               Container(
@@ -453,7 +453,7 @@ class _DayCell extends StatelessWidget {
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: NotebookColors.inkSoft, width: 1.5),
+                  border: Border.all(color: context.notebook.sec, width: 1.5),
                 ),
               ),
           ],

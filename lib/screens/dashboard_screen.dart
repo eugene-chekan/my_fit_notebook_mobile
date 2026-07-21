@@ -99,21 +99,21 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
         children: [
           Text(
             t.startRoutine,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
+              color: context.notebook.ink,
             ),
           ),
           const SizedBox(height: 8),
           if (routines.isEmpty)
             Text(
               t.startRoutineEmpty,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 19,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
             )
           else
@@ -130,30 +130,30 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                         child: Row(
                           children: [
                             if (routine.isStarted)
-                              const Padding(
-                                padding: EdgeInsets.only(right: 6),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 6),
                                 child: Icon(
                                   Icons.fiber_manual_record,
                                   size: 9,
-                                  color: NotebookColors.ink,
+                                  color: context.notebook.ink,
                                 ),
                               ),
                             Expanded(
                               child: Text(
                                 routine.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Caveat',
                                   fontSize: 21,
-                                  color: NotebookColors.ink,
+                                  color: context.notebook.ink,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const Text(
+                            Text(
                               '▸',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: NotebookColors.inkSoft,
+                                color: context.notebook.sec,
                               ),
                             ),
                           ],
@@ -208,11 +208,11 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                             DateTime.now(),
                             Localizations.localeOf(context).languageCode,
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Caveat',
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: NotebookColors.inkSoft,
+                            color: context.notebook.sec,
                           ),
                         ),
                       ),
@@ -234,7 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                                 muted: stats.weekWorkouts == 0,
                               ),
                               if (stats.streakDays > 0)
-                                _statLine(t.streakLine(stats.streakDays)),
+                                _statLine(t.streakLine(stats.streakDays), accent: true),
                             ],
                           );
                         },
@@ -292,11 +292,11 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(
                 t.resumeNamed(routine.name),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: NotebookColors.ink,
+                  color: context.notebook.ink,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -331,11 +331,11 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(
                 text,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: NotebookColors.inkSoft,
+                  color: context.notebook.sec,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -346,7 +346,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
     );
   }
 
-  Widget _statLine(String text, {bool muted = false}) {
+  Widget _statLine(String text, {bool muted = false, bool accent = false}) {
     return Container(
       height: kNotebookLine,
       alignment: Alignment.bottomLeft,
@@ -362,7 +362,9 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
           style: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 20,
-            color: muted ? NotebookColors.inkSoft : NotebookColors.ink,
+            color: accent
+                ? context.notebook.accent
+                : (muted ? context.notebook.sec : context.notebook.ink),
           ),
         ),
       ),

@@ -48,6 +48,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get navProfile => 'Профиль';
 
   @override
+  String get navSettings => 'Настройки';
+
+  @override
   String get thisWeek => 'Эта неделя';
 
   @override
@@ -352,6 +355,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get languageLabel => 'язык:';
+
+  @override
+  String get themeLabel => 'тема:';
+
+  @override
+  String get themePaper => 'Бумага';
+
+  @override
+  String get themeBlueprint => 'Чертёж';
 
   @override
   String get measurements => 'Замеры';

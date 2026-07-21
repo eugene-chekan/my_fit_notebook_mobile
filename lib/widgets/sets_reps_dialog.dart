@@ -91,11 +91,11 @@ class _SetsRepsFormState extends State<_SetsRepsForm> {
       children: [
         Text(
           widget.title,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: NotebookColors.ink,
+            color: context.notebook.ink,
           ),
         ),
         const SizedBox(height: 10),
@@ -148,7 +148,7 @@ class _SetsRepsFormState extends State<_SetsRepsForm> {
               fontFamily: 'Caveat',
               fontSize: 19,
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              color: active ? NotebookColors.ink : NotebookColors.inkSoft,
+              color: active ? context.notebook.ink : context.notebook.sec,
             ),
           ),
         ),
@@ -159,22 +159,22 @@ class _SetsRepsFormState extends State<_SetsRepsForm> {
       children: [
         Text(
           '${AppLocalizations.of(context).unitLabel}  ',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 16,
             fontStyle: FontStyle.italic,
-            color: NotebookColors.inkSoft,
+            color: context.notebook.sec,
           ),
         ),
         option(RepUnit.reps, 'reps'),
-        const Text(
+        Text(
           '·',
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: NotebookColors.inkSoft),
+          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.sec),
         ),
         option(RepUnit.seconds, 'sec'),
-        const Text(
+        Text(
           '·',
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: NotebookColors.inkSoft),
+          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.sec),
         ),
         option(RepUnit.minutes, 'min'),
       ],
@@ -188,22 +188,22 @@ class _SetsRepsFormState extends State<_SetsRepsForm> {
         controller: controller,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        cursorColor: NotebookColors.ink,
+        cursorColor: context.notebook.ink,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontFamily: 'Caveat', fontSize: 22, color: NotebookColors.ink),
+        style: TextStyle(fontFamily: 'Caveat', fontSize: 22, color: context.notebook.ink),
         decoration: InputDecoration(
           isDense: true,
           hintText: hint,
-          hintStyle: const TextStyle(
+          hintStyle: TextStyle(
             fontFamily: 'Caveat',
             fontSize: 15,
-            color: NotebookColors.inkSoft,
+            color: context.notebook.sec,
           ),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: NotebookColors.ink),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: context.notebook.ink),
           ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: context.notebook.ink, width: 2),
           ),
         ),
       ),
@@ -222,7 +222,7 @@ class _Glyph extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
       child: Text(
         text,
-        style: const TextStyle(fontFamily: 'Caveat', fontSize: 20, color: NotebookColors.inkSoft),
+        style: TextStyle(fontFamily: 'Caveat', fontSize: 20, color: context.notebook.sec),
       ),
     );
   }

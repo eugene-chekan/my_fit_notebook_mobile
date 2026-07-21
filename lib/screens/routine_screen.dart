@@ -67,11 +67,11 @@ class _RoutineScreenState extends State<RoutineScreen> {
           Text(
             t.workoutComplete,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 26,
               fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
+              color: context.notebook.ink,
             ),
           ),
           const SizedBox(height: 10),
@@ -97,19 +97,19 @@ class _RoutineScreenState extends State<RoutineScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 19,
-              color: NotebookColors.inkSoft,
+              color: context.notebook.sec,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
+              color: context.notebook.ink,
             ),
           ),
         ],
@@ -143,11 +143,11 @@ class _RoutineScreenState extends State<RoutineScreen> {
         children: [
           Text(
             t.setActual(set.setIndex, unitWord),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
+              color: context.notebook.ink,
             ),
           ),
           const SizedBox(height: 8),
@@ -155,21 +155,21 @@ class _RoutineScreenState extends State<RoutineScreen> {
             controller: controller,
             autofocus: true,
             keyboardType: TextInputType.number,
-            cursorColor: NotebookColors.ink,
-            style: const TextStyle(fontFamily: 'Caveat', fontSize: 22, color: NotebookColors.ink),
+            cursorColor: context.notebook.ink,
+            style: TextStyle(fontFamily: 'Caveat', fontSize: 22, color: context.notebook.ink),
             decoration: InputDecoration(
               isDense: true,
               suffixText: unitWord,
-              suffixStyle: const TextStyle(
+              suffixStyle: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 18,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: NotebookColors.ink),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: context.notebook.ink),
               ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: context.notebook.ink, width: 2),
               ),
             ),
             onSubmitted: (v) => Navigator.pop(context, int.tryParse(v.trim())),
@@ -247,10 +247,10 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                     padding: const EdgeInsets.only(top: 8),
                                     child: Text(
                                       routine.description,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Caveat',
                                         fontSize: 17,
-                                        color: NotebookColors.inkSoft,
+                                        color: context.notebook.sec,
                                       ),
                                     ),
                                   ),
@@ -357,7 +357,7 @@ class _WorkoutStrip extends StatelessWidget {
     return Transform.rotate(
       angle: -0.022, // ~1.3° — clearly hand-placed
       child: CustomPaint(
-        painter: const _TornPaperPainter(),
+        painter: _TornPaperPainter(context.notebook),
         child: Padding(
           // Generous insets: the top clears the tear's jag band, the sides
           // clear the off-screen bleed, the bottom clears the tilt.
@@ -387,7 +387,7 @@ class _WorkoutStrip extends StatelessWidget {
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
                 fontStyle: paused ? FontStyle.italic : FontStyle.normal,
-                color: paused ? NotebookColors.inkSoft : NotebookColors.ink,
+                color: paused ? context.notebook.sec : context.notebook.ink,
               ),
             ),
             if (progress.total > 0) ...[
@@ -400,7 +400,7 @@ class _WorkoutStrip extends StatelessWidget {
                   fontFamily: 'Caveat',
                   fontSize: 19,
                   fontWeight: FontWeight.w700,
-                  color: allDone ? NotebookColors.ink : NotebookColors.inkSoft,
+                  color: allDone ? context.notebook.ink : context.notebook.sec,
                 ),
               ),
             ],
@@ -422,24 +422,28 @@ class _WorkoutStrip extends StatelessWidget {
 /// Paints the torn strip: an upward shadow along the jagged tear, the strip
 /// fill in a slightly brighter paper tone, and one carried-over rule line.
 class _TornPaperPainter extends CustomPainter {
-  const _TornPaperPainter();
+  const _TornPaperPainter(this.palette);
 
-  /// A touch brighter than the page so the strip reads as a separate sheet.
-  static const _stripPaper = Color(0xFFFDF9E9);
+  final NotebookPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
+    // A touch brighter than the page so the strip reads as a separate sheet —
+    // lifted off the ground differently on light vs. dark themes.
+    final stripPaper = palette.isDark
+        ? Color.alphaBlend(palette.ink.withValues(alpha: 0.08), palette.bg)
+        : const Color(0xFFFDF9E9);
     final path = _tornPath(size);
     canvas.drawPath(
       path.shift(const Offset(0, -5)),
       Paint()
-        ..color = NotebookColors.shadow
+        ..color = palette.shadow
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
     );
-    canvas.drawPath(path, Paint()..color = _stripPaper);
+    canvas.drawPath(path, Paint()..color = stripPaper);
 
     final linePaint = Paint()
-      ..color = NotebookColors.paperLine
+      ..color = palette.ruleTint
       ..strokeWidth = 1;
     final y = size.height * 0.62;
     canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
@@ -462,7 +466,8 @@ class _TornPaperPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _TornPaperPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _TornPaperPainter oldDelegate) =>
+      oldDelegate.palette != palette;
 }
 
 class _PulsingDot extends StatefulWidget {
@@ -488,7 +493,7 @@ class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderState
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: Tween(begin: 1.0, end: 0.3).animate(_controller),
-      child: const Icon(Icons.fiber_manual_record, size: 10, color: NotebookColors.ink),
+      child: Icon(Icons.fiber_manual_record, size: 10, color: context.notebook.ink),
     );
   }
 }
@@ -523,7 +528,7 @@ class _ExerciseRow extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'Caveat',
                       fontSize: 20,
-                      color: exercise.isDone ? NotebookColors.inkSoft : NotebookColors.ink,
+                      color: exercise.isDone ? context.notebook.sec : context.notebook.ink,
                       decoration: exercise.isDone ? TextDecoration.lineThrough : null,
                     ),
                     children: [
@@ -537,7 +542,7 @@ class _ExerciseRow extends StatelessWidget {
                         TextSpan(
                           text:
                               '  ${formatPrescription(exercise.sets, exercise.repsMin, exercise.repsMax, exercise.unit)}',
-                          style: const TextStyle(color: NotebookColors.inkSoft),
+                          style: TextStyle(color: context.notebook.sec),
                         ),
                     ],
                   ),
@@ -600,7 +605,7 @@ class _PrescribedExerciseRow extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
                     expanded ? '▾' : '▸',
-                    style: const TextStyle(fontSize: 15, color: NotebookColors.inkSoft),
+                    style: TextStyle(fontSize: 15, color: context.notebook.sec),
                   ),
                 ),
               ),
@@ -623,7 +628,7 @@ class _PrescribedExerciseRow extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 20,
-                          color: allDone ? NotebookColors.inkSoft : NotebookColors.ink,
+                          color: allDone ? context.notebook.sec : context.notebook.ink,
                           decoration: allDone ? TextDecoration.lineThrough : null,
                         ),
                         children: [
@@ -631,11 +636,11 @@ class _PrescribedExerciseRow extends StatelessWidget {
                           if (prescription.isNotEmpty)
                             TextSpan(
                               text: '  $prescription',
-                              style: const TextStyle(color: NotebookColors.inkSoft),
+                              style: TextStyle(color: context.notebook.sec),
                             ),
                           TextSpan(
                             text: '   ${progress.done}/${progress.total}',
-                            style: const TextStyle(color: NotebookColors.inkSoft),
+                            style: TextStyle(color: context.notebook.sec),
                           ),
                         ],
                       ),
@@ -702,7 +707,7 @@ class _SetRow extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 18,
-                  color: set.isDone ? NotebookColors.inkSoft : NotebookColors.ink,
+                  color: set.isDone ? context.notebook.sec : context.notebook.ink,
                   decoration: set.isDone ? TextDecoration.lineThrough : null,
                 ),
               ),
@@ -717,18 +722,18 @@ class _SetRow extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: repsText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 19,
                           fontWeight: FontWeight.w600,
-                          color: NotebookColors.ink,
+                          color: context.notebook.ink,
                           decoration: TextDecoration.underline,
-                          decorationColor: NotebookColors.inkSoft,
+                          decorationColor: context.notebook.sec,
                         ),
                       ),
-                      const TextSpan(
+                      TextSpan(
                         text: '  ✐',
-                        style: TextStyle(fontSize: 15, color: NotebookColors.inkSoft),
+                        style: TextStyle(fontSize: 15, color: context.notebook.sec),
                       ),
                     ],
                   ),
@@ -755,7 +760,11 @@ class _InkCheckbox extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        border: Border.all(color: NotebookColors.ink, width: 2),
+        color: checked ? context.notebook.accent : null,
+        border: Border.all(
+          color: checked ? context.notebook.accent : context.notebook.ink,
+          width: 2,
+        ),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(3),
           topRight: Radius.circular(5),
@@ -771,7 +780,7 @@ class _InkCheckbox extends StatelessWidget {
                   fontSize: fontSize,
                   height: 1,
                   fontWeight: FontWeight.w700,
-                  color: NotebookColors.ink,
+                  color: context.notebook.bg,
                 ),
               ),
             )
@@ -817,17 +826,17 @@ class _CompletionRow extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text.rich(
                     TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Caveat',
                         fontSize: 18,
-                        color: NotebookColors.ink,
+                        color: context.notebook.ink,
                       ),
                       children: [
                         TextSpan(text: formatCompletionDt(completion.completedOn)),
                         if (completion.durationMinutes != null && completion.durationMinutes! >= 0)
                           TextSpan(
                             text: '  (${formatDurationMinutes(completion.durationMinutes!)})',
-                            style: const TextStyle(color: NotebookColors.inkSoft),
+                            style: TextStyle(color: context.notebook.sec),
                           ),
                       ],
                     ),
@@ -852,10 +861,10 @@ class _CompletionRow extends StatelessWidget {
               padding: const EdgeInsets.only(left: 2, bottom: 3),
               child: Text(
                 summary,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 16,
-                  color: NotebookColors.inkSoft,
+                  color: context.notebook.sec,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

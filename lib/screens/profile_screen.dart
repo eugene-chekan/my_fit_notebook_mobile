@@ -101,12 +101,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _toggleUnits() async {
-    await _provider.toggleUnits();
-    final profile = _provider.profile;
-    if (profile != null) _syncHeightField(profile);
-  }
-
   Future<void> _logMeasurement(BodyMetric metric) async {
     final t = AppLocalizations.of(context);
     final controller = TextEditingController();
@@ -118,11 +112,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(
             t.logMetric(localizedMetric(context, metric.key)),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: NotebookColors.ink,
+              color: context.notebook.ink,
             ),
           ),
           const SizedBox(height: 8),
@@ -130,21 +124,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             controller: controller,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            cursorColor: NotebookColors.ink,
-            style: const TextStyle(fontFamily: 'Caveat', fontSize: 22, color: NotebookColors.ink),
+            cursorColor: context.notebook.ink,
+            style: TextStyle(fontFamily: 'Caveat', fontSize: 22, color: context.notebook.ink),
             decoration: InputDecoration(
               isDense: true,
               suffixText: unitSuffix(metric, _units),
-              suffixStyle: const TextStyle(
+              suffixStyle: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 18,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: NotebookColors.ink),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: context.notebook.ink),
               ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: context.notebook.ink, width: 2),
               ),
             ),
             onSubmitted: (v) => Navigator.pop(context, parseDisplayNumber(v)),
@@ -179,10 +173,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: NotebookColors.paper,
-      shape: const RoundedRectangleBorder(
-        side: BorderSide(color: NotebookColors.ink, width: 2),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+      backgroundColor: context.notebook.bg,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: context.notebook.ink, width: 2),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
       ),
       builder: (sheetContext) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
@@ -223,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     TextField(
                       controller: _nameController,
                       maxLength: 200,
-                      cursorColor: NotebookColors.ink,
+                      cursorColor: context.notebook.ink,
                       style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
                       decoration: _underline(),
                     ),
@@ -233,9 +227,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: _pickBirthDate,
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           border: Border(
-                            bottom: BorderSide(color: NotebookColors.ink),
+                            bottom: BorderSide(color: context.notebook.ink),
                           ),
                         ),
                         child: Text(
@@ -247,8 +241,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontFamily: 'Caveat',
                             fontSize: 20,
                             color: _birthDate == null
-                                ? NotebookColors.inkSoft
-                                : NotebookColors.ink,
+                                ? context.notebook.sec
+                                : context.notebook.ink,
                           ),
                         ),
                       ),
@@ -258,20 +252,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     TextField(
                       controller: _heightController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      cursorColor: NotebookColors.ink,
+                      cursorColor: context.notebook.ink,
                       style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
                       decoration: _underline().copyWith(
                         suffixText: heightSuffix(profile.units),
-                        suffixStyle: const TextStyle(
+                        suffixStyle: TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 18,
-                          color: NotebookColors.inkSoft,
+                          color: context.notebook.sec,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    _unitsLine(profile.units),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: PenButton(label: t.saveDetails, onPressed: _saveDetails),
@@ -297,59 +289,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.only(bottom: 2),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 17,
           fontStyle: FontStyle.italic,
-          color: NotebookColors.inkSoft,
+          color: context.notebook.sec,
         ),
       ),
     );
   }
 
   InputDecoration _underline() {
-    return const InputDecoration(
+    return InputDecoration(
       isDense: true,
       counterText: '',
       enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: NotebookColors.ink),
+        borderSide: BorderSide(color: context.notebook.ink),
       ),
       focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+        borderSide: BorderSide(color: context.notebook.ink, width: 2),
       ),
-    );
-  }
-
-  /// "units: kg · cm / lb · in" — the active choice in ink, tap to switch.
-  Widget _unitsLine(String units) {
-    final metricActive = units == Units.metric;
-    TextStyle style(bool active) => TextStyle(
-      fontFamily: 'Caveat',
-      fontSize: 19,
-      fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-      color: active ? NotebookColors.ink : NotebookColors.inkSoft,
-    );
-    return Row(
-      children: [
-        Text(
-          '${AppLocalizations.of(context).unitsLabel}  ',
-          style: const TextStyle(
-            fontFamily: 'Caveat',
-            fontSize: 17,
-            fontStyle: FontStyle.italic,
-            color: NotebookColors.inkSoft,
-          ),
-        ),
-        InkWell(
-          onTap: metricActive ? null : _toggleUnits,
-          child: Text('kg · cm', style: style(metricActive)),
-        ),
-        Text('   /   ', style: style(false)),
-        InkWell(
-          onTap: metricActive ? _toggleUnits : null,
-          child: Text('lb · in', style: style(!metricActive)),
-        ),
-      ],
     );
   }
 
@@ -371,10 +330,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.only(bottom: 3),
                 child: Text.rich(
                   TextSpan(
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Caveat',
                       fontSize: 20,
-                      color: NotebookColors.ink,
+                      color: context.notebook.ink,
                     ),
                     children: [
                       TextSpan(text: label),
@@ -384,15 +343,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             : '   ${formatMeasurement(latest.value, metric, _units)}',
                         style: TextStyle(
                           color: latest == null
-                              ? NotebookColors.inkSoft
-                              : NotebookColors.ink,
+                              ? context.notebook.sec
+                              : context.notebook.ink,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       if (target != null)
                         TextSpan(
                           text: '  → ${formatMeasurement(target, metric, _units)}',
-                          style: const TextStyle(color: NotebookColors.inkSoft),
+                          style: TextStyle(color: context.notebook.sec),
                         ),
                     ],
                   ),
@@ -404,7 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           GlyphButton(
             glyph: '+',
             size: 24,
-            color: NotebookColors.ink,
+            color: context.notebook.ink,
             semanticLabel: t.logMetric(label),
             onTap: () => _logMeasurement(metric),
           ),
@@ -480,11 +439,11 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
             children: [
               Text(
                 localizedMetric(context, metric.key),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
-                  color: NotebookColors.ink,
+                  color: context.notebook.ink,
                 ),
               ),
               const SizedBox(height: 6),
@@ -492,11 +451,11 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                 children: [
                   Text(
                     '${t.goalLabel}  ',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Caveat',
                       fontSize: 19,
                       fontStyle: FontStyle.italic,
-                      color: NotebookColors.inkSoft,
+                      color: context.notebook.sec,
                     ),
                   ),
                   SizedBox(
@@ -504,25 +463,25 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                     child: TextField(
                       controller: _goalController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      cursorColor: NotebookColors.ink,
-                      style: const TextStyle(
+                      cursorColor: context.notebook.ink,
+                      style: TextStyle(
                         fontFamily: 'Caveat',
                         fontSize: 20,
-                        color: NotebookColors.ink,
+                        color: context.notebook.ink,
                       ),
                       decoration: InputDecoration(
                         isDense: true,
                         suffixText: unitSuffix(metric, _units),
-                        suffixStyle: const TextStyle(
+                        suffixStyle: TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 17,
-                          color: NotebookColors.inkSoft,
+                          color: context.notebook.sec,
                         ),
-                        enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: NotebookColors.ink),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: context.notebook.ink),
                         ),
-                        focusedBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: NotebookColors.ink, width: 2),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: context.notebook.ink, width: 2),
                         ),
                       ),
                       onSubmitted: (_) => _saveGoal(),
@@ -530,7 +489,7 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                   ),
                   GlyphButton(
                     glyph: '✓',
-                    color: NotebookColors.ink,
+                    color: context.notebook.ink,
                     semanticLabel: t.saveGoalSemantic,
                     onTap: _saveGoal,
                   ),
@@ -540,10 +499,10 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
               if (entries.isEmpty)
                 Text(
                   t.noEntries,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Caveat',
                     fontSize: 18,
-                    color: NotebookColors.inkSoft,
+                    color: context.notebook.sec,
                   ),
                 )
               else
@@ -560,10 +519,10 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                             child: Text(
                               '${formatCompletionDt(entry.measuredOn)}   '
                               '${formatMeasurement(entry.value, metric, _units)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Caveat',
                                 fontSize: 19,
-                                color: NotebookColors.ink,
+                                color: context.notebook.ink,
                               ),
                             ),
                           ),

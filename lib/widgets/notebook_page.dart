@@ -13,31 +13,52 @@ const double kNotebookLine = 36.0;
 const double kMarginRuleX = 52.0;
 
 class RuledPaperPainter extends CustomPainter {
-  const RuledPaperPainter();
+  const RuledPaperPainter(this.palette);
+
+  final NotebookPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = NotebookColors.paper);
+    canvas.drawRect(Offset.zero & size, Paint()..color = palette.bg);
 
     final linePaint = Paint()
-      ..color = NotebookColors.paperLine
+      ..color = palette.ruleTint
       ..strokeWidth = 1;
     for (double y = kNotebookLine; y < size.height; y += kNotebookLine) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
     }
 
+    // The margin rule reads as a brick "double line" — two thin strokes a few
+    // pixels apart, like a ruled notebook's red margin.
     final marginPaint = Paint()
-      ..color = NotebookColors.marginLine
+      ..color = palette.marginRule
       ..strokeWidth = 2;
-    canvas.drawLine(
-      const Offset(kMarginRuleX, 0),
-      Offset(kMarginRuleX, size.height),
-      marginPaint,
-    );
+    for (final dx in const [-2.0, 2.0]) {
+      canvas.drawLine(
+        Offset(kMarginRuleX + dx, 0),
+        Offset(kMarginRuleX + dx, size.height),
+        marginPaint,
+      );
+    }
+
+    // Dark grounds get a soft radial vignette so the page edges recede.
+    if (palette.isDark) {
+      final rect = Offset.zero & size;
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = RadialGradient(
+            radius: 0.9,
+            colors: [const Color(0x00000000), palette.vignette],
+            stops: const [0.6, 1.0],
+          ).createShader(rect),
+      );
+    }
   }
 
   @override
-  bool shouldRepaint(covariant RuledPaperPainter oldDelegate) => false;
+  bool shouldRepaint(covariant RuledPaperPainter oldDelegate) =>
+      oldDelegate.palette != palette;
 }
 
 /// A full-bleed page of ruled notebook paper with a left margin rule — no
@@ -62,7 +83,7 @@ class NotebookPage extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: CustomPaint(
-            painter: const RuledPaperPainter(),
+            painter: RuledPaperPainter(context.notebook),
             child: Stack(
               children: [
                 Padding(
@@ -99,11 +120,11 @@ class HeadingLine extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 3),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          color: NotebookColors.ink,
+          color: context.notebook.ink,
         ),
       ),
     );
@@ -124,10 +145,10 @@ class MutedLine extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 3),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 18,
-          color: NotebookColors.inkSoft,
+          color: context.notebook.sec,
         ),
         overflow: TextOverflow.ellipsis,
       ),

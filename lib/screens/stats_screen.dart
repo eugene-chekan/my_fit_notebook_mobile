@@ -107,7 +107,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       _statRow(t.statThisMonth, _countAndTime(s.monthWorkouts, s.monthMinutes)),
     ];
     if (s.hasPrevMonthData) {
-      rows.add(_statRow(t.statVsLastMonth, _monthDelta(s)));
+      rows.add(_statRow(t.statVsLastMonth, _monthDelta(s), accent: true));
     }
     if (s.avgMinutes != null) {
       rows.add(_statRow(t.statAvgSession, formatDurationMinutes(s.avgMinutes!.round())));
@@ -210,10 +210,10 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             width: 130,
             child: Text.rich(
               TextSpan(
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 20,
-                  color: NotebookColors.ink,
+                  color: context.notebook.ink,
                 ),
                 children: [
                   TextSpan(text: localizedMetric(context, metric.key)),
@@ -247,7 +247,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   // --- shared -----------------------------------------------------------
 
   /// A ruled-line stat: an italic muted label followed by the value in ink.
-  Widget _statRow(String label, String value) {
+  Widget _statRow(String label, String value, {bool accent = false}) {
     return Container(
       height: kNotebookLine,
       alignment: Alignment.bottomLeft,
@@ -257,19 +257,19 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
           children: [
             TextSpan(
               text: '$label   ',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 17,
                 fontStyle: FontStyle.italic,
-                color: NotebookColors.inkSoft,
+                color: context.notebook.sec,
               ),
             ),
             TextSpan(
               text: value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 20,
-                color: NotebookColors.ink,
+                color: accent ? context.notebook.accent : context.notebook.ink,
               ),
             ),
           ],

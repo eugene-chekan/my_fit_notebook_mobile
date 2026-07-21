@@ -24,16 +24,16 @@ class NotebookBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxMinutes = weeks.fold<int>(1, (m, w) => w.minutes > m ? w.minutes : m);
-    const muted = TextStyle(
+    final muted = TextStyle(
       fontFamily: 'Caveat',
       fontSize: 14,
-      color: NotebookColors.inkSoft,
+      color: context.notebook.sec,
     );
-    const valueStyle = TextStyle(
+    final valueStyle = TextStyle(
       fontFamily: 'Caveat',
       fontSize: 14,
       fontWeight: FontWeight.w600,
-      color: NotebookColors.inkSoft,
+      color: context.notebook.sec,
     );
     return SizedBox(
       height: height,
@@ -68,9 +68,9 @@ class NotebookBarChart extends StatelessWidget {
                                     barMax,
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: NotebookColors.trainedFill,
+                                    color: context.notebook.trainedFill,
                                     border: Border.all(
-                                        color: NotebookColors.ink, width: 1.5),
+                                        color: context.notebook.ink, width: 1.5),
                                     borderRadius: const BorderRadius.vertical(
                                         top: Radius.circular(2)),
                                   ),
@@ -85,7 +85,7 @@ class NotebookBarChart extends StatelessWidget {
               },
             ),
           ),
-          Container(height: 2, color: NotebookColors.marginLine),
+          Container(height: 2, color: context.notebook.marginRule),
           const SizedBox(height: 2),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

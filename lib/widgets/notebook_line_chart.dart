@@ -38,6 +38,7 @@ class NotebookLineChart extends StatelessWidget {
       height: height,
       child: CustomPaint(
         painter: _LineChartPainter(
+          palette: context.notebook,
           values: values,
           target: target,
           goalLabel: goalLabel,
@@ -52,6 +53,7 @@ class NotebookLineChart extends StatelessWidget {
 
 class _LineChartPainter extends CustomPainter {
   _LineChartPainter({
+    required this.palette,
     required this.values,
     required this.target,
     required this.goalLabel,
@@ -59,6 +61,7 @@ class _LineChartPainter extends CustomPainter {
     required this.strokeWidth,
   });
 
+  final NotebookPalette palette;
   final List<double> values;
   final double? target;
   final String? goalLabel;
@@ -100,7 +103,7 @@ class _LineChartPainter extends CustomPainter {
       Offset(0, size.height - 1),
       Offset(size.width, size.height - 1),
       Paint()
-        ..color = NotebookColors.paperLine
+        ..color = palette.ruleTint
         ..strokeWidth = 1,
     );
 
@@ -112,18 +115,18 @@ class _LineChartPainter extends CustomPainter {
         Offset(padLeft, gy),
         Offset(size.width - padRight, gy),
         Paint()
-          ..color = NotebookColors.marginLine
+          ..color = palette.marginRule
           ..strokeWidth = 1.5,
       );
       if (goalLabel != null) {
         final tp = TextPainter(
           text: TextSpan(
             text: goalLabel,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: NotebookColors.inkSoft,
+              color: palette.sec,
             ),
           ),
           textDirection: TextDirection.ltr,
@@ -138,7 +141,7 @@ class _LineChartPainter extends CustomPainter {
 
     // The ink polyline.
     final linePaint = Paint()
-      ..color = NotebookColors.ink
+      ..color = palette.ink
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeJoin = StrokeJoin.round
@@ -151,9 +154,9 @@ class _LineChartPainter extends CustomPainter {
 
     // Dots at each point, with a filled marker on the latest.
     if (showDots) {
-      final dot = Paint()..color = NotebookColors.ink;
+      final dot = Paint()..color = palette.ink;
       final hollow = Paint()
-        ..color = NotebookColors.paper
+        ..color = palette.bg
         ..style = PaintingStyle.fill;
       for (var i = 0; i < values.length; i++) {
         final center = Offset(x(i), y(values[i]));
@@ -165,7 +168,7 @@ class _LineChartPainter extends CustomPainter {
             center,
             2.5,
             Paint()
-              ..color = NotebookColors.ink
+              ..color = palette.ink
               ..style = PaintingStyle.stroke
               ..strokeWidth = 1.5,
           );
@@ -190,6 +193,7 @@ class _LineChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LineChartPainter old) =>
+      old.palette != palette ||
       !listEquals(old.values, values) ||
       old.target != target ||
       old.goalLabel != goalLabel ||

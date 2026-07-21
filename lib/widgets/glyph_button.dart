@@ -39,7 +39,7 @@ class GlyphButton extends StatelessWidget {
                 fontSize: size,
                 height: 1,
                 fontWeight: FontWeight.w600,
-                color: color ?? NotebookColors.inkSoft,
+                color: color ?? context.notebook.sec,
               ),
             ),
           ),

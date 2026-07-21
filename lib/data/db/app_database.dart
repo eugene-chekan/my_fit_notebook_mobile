@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 10,
+      version: 11,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -46,6 +46,7 @@ class AppDatabase {
         if (oldVersion < 8) await _migrateToCompletionStats(db);
         if (oldVersion < 9) await _migrateToSchedule(db);
         if (oldVersion < 10) await _migrateToScheduleTime(db);
+        if (oldVersion < 11) await _migrateToTheme(db);
       },
     );
   }
@@ -106,7 +107,8 @@ class AppDatabase {
         birth_date TEXT,
         height_cm REAL,
         units TEXT NOT NULL DEFAULT 'metric',
-        language TEXT NOT NULL DEFAULT 'system'
+        language TEXT NOT NULL DEFAULT 'system',
+        theme TEXT NOT NULL DEFAULT 'paper'
       )
     ''');
     await db.execute('''
@@ -299,5 +301,13 @@ class AppDatabase {
   /// gets a reminder; date-only plans stay quiet. Additive and nullable.
   Future<void> _migrateToScheduleTime(Database db) async {
     await db.execute('ALTER TABLE scheduled_workouts ADD COLUMN scheduled_time TEXT');
+  }
+
+  /// v10 → v11: a selectable notebook theme on the profile. `'paper'` is the
+  /// light default; other ids name a dark ground. Additive, non-destructive.
+  Future<void> _migrateToTheme(Database db) async {
+    await db.execute(
+      "ALTER TABLE profile ADD COLUMN theme TEXT NOT NULL DEFAULT 'paper'",
+    );
   }
 }

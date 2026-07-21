@@ -9,7 +9,7 @@ void main() {
     var tapped = false;
     await tester.pumpWidget(
       MaterialApp(
-        theme: NotebookTheme.light,
+        theme: NotebookTheme.forId(ThemeId.paper),
         home: Scaffold(
           body: PenButton(label: 'Start workout', onPressed: () => tapped = true),
         ),

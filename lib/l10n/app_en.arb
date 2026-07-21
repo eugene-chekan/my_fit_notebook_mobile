@@ -15,6 +15,7 @@
   "navExercises": "Exercises",
   "navStats": "Stats",
   "navProfile": "Profile",
+  "navSettings": "Settings",
 
   "thisWeek": "This week",
   "trainingDays": "Training days",
@@ -134,6 +135,9 @@
   },
   "unitsLabel": "units:",
   "languageLabel": "language:",
+  "themeLabel": "theme:",
+  "themePaper": "Paper",
+  "themeBlueprint": "Blueprint",
   "measurements": "Measurements",
   "measurementsHint": "tap a line for history & goal, + to log",
   "saveDetails": "Save details",
