@@ -33,14 +33,14 @@ class NotebookDrawer extends StatelessWidget {
     final palette = context.notebook;
     return Drawer(
       backgroundColor: palette.bg,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: palette.ink, width: 2),
-      ),
+      // No outline — the brick double margin rule painted at the panel's right
+      // edge is the sidebar's boundary, as if it were the page's left margin.
+      shape: const RoundedRectangleBorder(),
       child: CustomPaint(
-        painter: RuledPaperPainter(palette),
+        painter: RuledPaperPainter(palette, marginOnRight: true),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(64, 4, 18, 16),
+            padding: const EdgeInsets.fromLTRB(26, 4, 34, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

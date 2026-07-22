@@ -16,9 +16,14 @@ const double kGraphGrid = 28.0;
 const double kMarginRuleX = 52.0;
 
 class RuledPaperPainter extends CustomPainter {
-  const RuledPaperPainter(this.palette);
+  const RuledPaperPainter(this.palette, {this.marginOnRight = false});
 
   final NotebookPalette palette;
+
+  /// When true the brick double margin rule is painted at the right edge
+  /// instead of at [kMarginRuleX] — used by the drawer, which reads as the
+  /// page's left margin expanded into a full panel.
+  final bool marginOnRight;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -43,14 +48,16 @@ class RuledPaperPainter extends CustomPainter {
     }
 
     // The margin rule reads as a brick "double line" — two thin strokes a few
-    // pixels apart, like a ruled notebook's red margin.
+    // pixels apart, like a ruled notebook's red margin. The drawer paints it at
+    // its right edge so the panel reads as the paper's expanded left margin.
     final marginPaint = Paint()
       ..color = palette.marginRule
       ..strokeWidth = 2;
+    final marginCenter = marginOnRight ? size.width - 6 : kMarginRuleX;
     for (final dx in const [-2.0, 2.0]) {
       canvas.drawLine(
-        Offset(kMarginRuleX + dx, 0),
-        Offset(kMarginRuleX + dx, size.height),
+        Offset(marginCenter + dx, 0),
+        Offset(marginCenter + dx, size.height),
         marginPaint,
       );
     }
@@ -70,7 +77,8 @@ class RuledPaperPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant RuledPaperPainter oldDelegate) =>
-      oldDelegate.palette != palette;
+      oldDelegate.palette != palette ||
+      oldDelegate.marginOnRight != marginOnRight;
 }
 
 /// A full-bleed page of ruled notebook paper with a left margin rule — no
