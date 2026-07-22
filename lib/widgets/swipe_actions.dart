@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/notebook_theme.dart';
 
 /// Reveal shown behind a row while swiping right (startToEnd) — copy.
@@ -13,7 +14,7 @@ class SwipeCopyBackground extends StatelessWidget {
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.only(left: 10),
       child: Text(
-        'copy ⟶',
+        '${AppLocalizations.of(context).swipeCopy} ⟶',
         style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 19,
@@ -36,7 +37,7 @@ class SwipeDeleteBackground extends StatelessWidget {
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 10),
       child: Text(
-        '⟵ delete',
+        '⟵ ${AppLocalizations.of(context).swipeDelete}',
         style: TextStyle(
           fontFamily: 'Caveat',
           fontSize: 19,

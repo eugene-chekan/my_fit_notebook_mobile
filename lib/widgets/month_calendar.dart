@@ -13,6 +13,7 @@ import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
 import 'glyph_button.dart';
 import 'notebook_page.dart';
+import 'swipe_actions.dart';
 
 /// The month grid with ← month → navigation. A trained day shows a filled ink
 /// dot and opens that day's history; a future/today day with a plan shows a
@@ -294,35 +295,36 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
           if (_plans.isNotEmpty) ...[
             const SizedBox(height: 8),
             for (final plan in _plans)
-              Row(
-                children: [
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        style: TextStyle(
-                          fontFamily: 'Caveat',
-                          fontSize: 20,
-                          color: context.notebook.ink,
-                        ),
-                        children: [
-                          if (plan.scheduledTime != null)
-                            TextSpan(
-                              text: '${plan.scheduledTime}  ',
-                              style: TextStyle(color: context.notebook.sec),
-                            ),
-                          TextSpan(text: plan.routineName),
-                        ],
+              Dismissible(
+                key: ValueKey('day-plan-${plan.id}'),
+                direction: DismissDirection.endToStart,
+                background: const SwipeDeleteBackground(),
+                secondaryBackground: const SwipeDeleteBackground(),
+                confirmDismiss: (_) async {
+                  await _remove(plan.id);
+                  return false; // _reload() rebuilds the sheet's list
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text.rich(
+                    TextSpan(
+                      style: TextStyle(
+                        fontFamily: 'Caveat',
+                        fontSize: 20,
+                        color: context.notebook.ink,
                       ),
-                      overflow: TextOverflow.ellipsis,
+                      children: [
+                        if (plan.scheduledTime != null)
+                          TextSpan(
+                            text: '${plan.scheduledTime}  ',
+                            style: TextStyle(color: context.notebook.sec),
+                          ),
+                        TextSpan(text: plan.routineName),
+                      ],
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  GlyphButton(
-                    glyph: '×',
-                    size: 22,
-                    semanticLabel: t.remove,
-                    onTap: () => _remove(plan.id),
-                  ),
-                ],
+                ),
               ),
           ],
           const SizedBox(height: 10),

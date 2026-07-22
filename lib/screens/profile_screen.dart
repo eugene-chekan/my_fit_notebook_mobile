@@ -14,6 +14,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/swipe_actions.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -513,26 +514,27 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                     itemCount: entries.length,
                     itemBuilder: (context, index) {
                       final entry = entries[index];
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${formatCompletionDt(entry.measuredOn)}   '
-                              '${formatMeasurement(entry.value, metric, _units)}',
-                              style: TextStyle(
-                                fontFamily: 'Caveat',
-                                fontSize: 19,
-                                color: context.notebook.ink,
-                              ),
+                      return Dismissible(
+                        key: ValueKey('measurement-${entry.id}'),
+                        direction: DismissDirection.endToStart,
+                        background: const SwipeDeleteBackground(),
+                        secondaryBackground: const SwipeDeleteBackground(),
+                        confirmDismiss: (_) async {
+                          await widget.provider.deleteMeasurement(entry.id);
+                          return false; // provider reload rebuilds the list
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            '${formatCompletionDt(entry.measuredOn)}   '
+                            '${formatMeasurement(entry.value, metric, _units)}',
+                            style: TextStyle(
+                              fontFamily: 'Caveat',
+                              fontSize: 19,
+                              color: context.notebook.ink,
                             ),
                           ),
-                          GlyphButton(
-                            glyph: '×',
-                            size: 22,
-                            semanticLabel: t.deleteEntrySemantic,
-                            onTap: () => widget.provider.deleteMeasurement(entry.id),
-                          ),
-                        ],
+                        ),
                       );
                     },
                   ),

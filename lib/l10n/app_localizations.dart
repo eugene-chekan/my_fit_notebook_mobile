@@ -140,6 +140,18 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get remove;
 
+  /// No description provided for @swipeCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'copy'**
+  String get swipeCopy;
+
+  /// No description provided for @swipeDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'delete'**
+  String get swipeDelete;
+
   /// No description provided for @gotIt.
   ///
   /// In en, this message translates to:

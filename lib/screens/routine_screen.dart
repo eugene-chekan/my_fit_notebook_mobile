@@ -19,6 +19,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/swipe_actions.dart';
 import 'manage_routine_screen.dart';
 
 class RoutineScreen extends StatefulWidget {
@@ -793,7 +794,8 @@ class _CompletionRow extends StatelessWidget {
   const _CompletionRow({required this.completion, required this.onDelete});
 
   final models.Completion completion;
-  final VoidCallback onDelete;
+  /// Shows the confirm dialog and deletes if confirmed; awaited by the swipe.
+  final Future<void> Function() onDelete;
 
   /// "3 exercises · 12 sets · 140 reps" from the snapshotted totals (DB v8);
   /// empty for pre-v8 sessions that never captured them, and sets/reps are
@@ -813,6 +815,20 @@ class _CompletionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final summary = _summary(t);
+    return Dismissible(
+      key: ValueKey('completion-${completion.id}'),
+      direction: DismissDirection.endToStart,
+      background: const SwipeDeleteBackground(),
+      secondaryBackground: const SwipeDeleteBackground(),
+      confirmDismiss: (_) async {
+        await onDelete();
+        return false; // deletion (with confirm) handled by the callback
+      },
+      child: _content(context, t, summary),
+    );
+  }
+
+  Widget _content(BuildContext context, AppLocalizations t, String summary) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -843,12 +859,6 @@ class _CompletionRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-              GlyphButton(
-                glyph: '×',
-                size: 24,
-                semanticLabel: t.remove,
-                onTap: onDelete,
               ),
             ],
           ),

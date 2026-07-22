@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
@@ -15,6 +16,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/swipe_actions.dart';
 import 'routine_screen.dart';
 
 /// The planned-workouts library, reached from the side menu: upcoming plans
@@ -227,52 +229,57 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _planRow(AppLocalizations t, ScheduledWorkout plan, {required bool missed}) {
     final color = missed ? context.notebook.sec : context.notebook.ink;
-    return SizedBox(
-      height: kNotebookLine,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: InkWell(
-              onTap: () => _startRoutine(plan.routineId),
-              child: Container(
-                alignment: Alignment.bottomLeft,
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Text.rich(
-                  TextSpan(
-                    style: TextStyle(fontFamily: 'Caveat', fontSize: 20, color: color),
-                    children: [
-                      TextSpan(
-                        text: plan.scheduledTime == null
-                            ? '${_dateLabel(t, plan.scheduledDate)}  '
-                            : '${_dateLabel(t, plan.scheduledDate)} ${plan.scheduledTime}  ',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontStyle: FontStyle.italic,
-                          color: context.notebook.sec,
+    return Dismissible(
+      key: ValueKey('plan-${plan.id}'),
+      direction: DismissDirection.endToStart,
+      background: const SwipeDeleteBackground(),
+      secondaryBackground: const SwipeDeleteBackground(),
+      confirmDismiss: (_) async {
+        HapticFeedback.lightImpact();
+        await _provider.remove(plan.id);
+        return false; // provider reload rebuilds the list authoritatively
+      },
+      child: SizedBox(
+        height: kNotebookLine,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () => _startRoutine(plan.routineId),
+                child: Container(
+                  alignment: Alignment.bottomLeft,
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text.rich(
+                    TextSpan(
+                      style: TextStyle(fontFamily: 'Caveat', fontSize: 20, color: color),
+                      children: [
+                        TextSpan(
+                          text: plan.scheduledTime == null
+                              ? '${_dateLabel(t, plan.scheduledDate)}  '
+                              : '${_dateLabel(t, plan.scheduledDate)} ${plan.scheduledTime}  ',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: context.notebook.sec,
+                          ),
                         ),
-                      ),
-                      TextSpan(text: plan.routineName),
-                    ],
+                        TextSpan(text: plan.routineName),
+                      ],
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
-          ),
-          GlyphButton(
-            glyph: '↻',
-            size: 20,
-            semanticLabel: t.rescheduleSemantic,
-            onTap: () => _reschedule(plan),
-          ),
-          GlyphButton(
-            glyph: '×',
-            size: 22,
-            semanticLabel: t.remove,
-            onTap: () => _provider.remove(plan.id),
-          ),
-        ],
+            GlyphButton(
+              glyph: '↻',
+              size: 20,
+              semanticLabel: t.rescheduleSemantic,
+              onTap: () => _reschedule(plan),
+            ),
+          ],
+        ),
       ),
     );
   }

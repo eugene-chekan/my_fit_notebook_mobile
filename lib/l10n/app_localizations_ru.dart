@@ -30,6 +30,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get remove => 'Убрать';
 
   @override
+  String get swipeCopy => 'копия';
+
+  @override
+  String get swipeDelete => 'удалить';
+
+  @override
   String get gotIt => 'Понятно';
 
   @override

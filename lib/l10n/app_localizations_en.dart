@@ -30,6 +30,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remove => 'Remove';
 
   @override
+  String get swipeCopy => 'copy';
+
+  @override
+  String get swipeDelete => 'delete';
+
+  @override
   String get gotIt => 'Got it';
 
   @override

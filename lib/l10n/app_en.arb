@@ -8,6 +8,8 @@
   "save": "Save",
   "delete": "Delete",
   "remove": "Remove",
+  "swipeCopy": "copy",
+  "swipeDelete": "delete",
   "gotIt": "Got it",
 
   "navRoutines": "Routines",
