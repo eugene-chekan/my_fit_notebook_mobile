@@ -82,7 +82,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _themeLine() {
     final t = AppLocalizations.of(context);
-    final current = context.watch<ThemeProvider>().themeId;
+    final provider = context.watch<ThemeProvider>();
+    final current = provider.themeId;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -96,6 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 id: id,
                 label: _themeName(t, id),
                 active: id == current,
+                grid: provider.graphGrid,
                 onTap: () => context.read<ThemeProvider>().setTheme(id),
               ),
           ],
@@ -123,9 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _paperLine() {
     final t = AppLocalizations.of(context);
-    final provider = context.watch<ThemeProvider>();
-    final id = provider.themeId;
-    final isGrid = provider.graphGridFor(id);
+    final isGrid = context.watch<ThemeProvider>().graphGrid;
     TextStyle style(bool on) => TextStyle(
       fontFamily: 'Caveat',
       fontSize: 20,
@@ -138,7 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(width: 8),
         InkWell(
           onTap: isGrid
-              ? () => context.read<ThemeProvider>().setPaperStyle(id, PaperStyle.ruled)
+              ? () => context.read<ThemeProvider>().setPaperStyle(PaperStyle.ruled)
               : null,
           child: Text(t.paperRuled, style: style(!isGrid)),
         ),
@@ -146,7 +146,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         InkWell(
           onTap: isGrid
               ? null
-              : () => context.read<ThemeProvider>().setPaperStyle(id, PaperStyle.grid),
+              : () => context.read<ThemeProvider>().setPaperStyle(PaperStyle.grid),
           child: Text(t.paperGrid, style: style(isGrid)),
         ),
       ],
@@ -233,12 +233,15 @@ class _ThemeSwatch extends StatelessWidget {
     required this.id,
     required this.label,
     required this.active,
+    required this.grid,
     required this.onTap,
   });
 
   final ThemeId id;
   final String label;
   final bool active;
+  /// The global paper style, so the preview shows ruled vs graph lines.
+  final bool grid;
   final VoidCallback onTap;
 
   @override
@@ -272,12 +275,12 @@ class _ThemeSwatch extends StatelessWidget {
                   ),
                   Positioned(
                     left: 7,
-                    right: p.graphGrid ? 7 : 18,
+                    right: grid ? 7 : 18,
                     top: 21,
                     child: Container(height: 1.5, color: p.ink.withValues(alpha: 0.5)),
                   ),
-                  // Carbon previews its graph grid with a couple of verticals.
-                  if (p.graphGrid) ...[
+                  // Grid style previews with a couple of verticals.
+                  if (grid) ...[
                     Positioned(
                       top: 6,
                       bottom: 6,

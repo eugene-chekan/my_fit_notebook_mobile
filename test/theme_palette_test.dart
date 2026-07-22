@@ -44,13 +44,9 @@ void main() {
       }
     });
 
-    test('only carbon uses the graph grid', () {
+    test('no palette hardcodes a graph grid (paper style is global)', () {
       for (final id in ThemeId.values) {
-        expect(
-          NotebookTheme.paletteFor(id).graphGrid,
-          id == ThemeId.carbon,
-          reason: '$id graphGrid',
-        );
+        expect(NotebookTheme.paletteFor(id).graphGrid, isFalse, reason: '$id');
       }
     });
 
@@ -74,17 +70,23 @@ void main() {
     });
   });
 
-  group('Profile.decodePaperStyles', () {
-    test('parses a valid JSON map', () {
-      final map = Profile.decodePaperStyles('{"carbon":"ruled","paper":"grid"}');
-      expect(map, {'carbon': 'ruled', 'paper': 'grid'});
+  group('Profile paper style (global)', () {
+    test('decodes the stored grid value', () {
+      expect(Profile.decodePaperStyle('{"style":"grid"}'), PaperStyle.grid);
     });
 
-    test('tolerates null, empty, and malformed input', () {
-      expect(Profile.decodePaperStyles(null), isEmpty);
-      expect(Profile.decodePaperStyles(''), isEmpty);
-      expect(Profile.decodePaperStyles('not json'), isEmpty);
-      expect(Profile.decodePaperStyles('[1,2,3]'), isEmpty);
+    test('defaults to ruled for null, empty, malformed, or unset', () {
+      expect(Profile.decodePaperStyle(null), PaperStyle.ruled);
+      expect(Profile.decodePaperStyle(''), PaperStyle.ruled);
+      expect(Profile.decodePaperStyle('{}'), PaperStyle.ruled);
+      expect(Profile.decodePaperStyle('not json'), PaperStyle.ruled);
+      expect(Profile.decodePaperStyle('{"style":"ruled"}'), PaperStyle.ruled);
+    });
+
+    test('encode/decode round-trips', () {
+      for (final style in [PaperStyle.ruled, PaperStyle.grid]) {
+        expect(Profile.decodePaperStyle(Profile.encodePaperStyle(style)), style);
+      }
     });
   });
 }

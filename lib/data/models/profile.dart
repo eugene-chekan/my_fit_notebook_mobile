@@ -10,7 +10,7 @@ class Profile {
     this.units = Units.metric,
     this.language = AppLanguage.system,
     this.theme = AppTheme.paper,
-    this.paperStyles = const {},
+    this.paperStyle = PaperStyle.ruled,
   });
 
   final String name;
@@ -26,10 +26,10 @@ class Profile {
   /// Selected notebook theme id (see [AppTheme] / `ThemeId`). Defaults to the
   /// light [AppTheme.paper].
   final String theme;
-  /// Per-theme paper-style overrides, keyed by `ThemeId` name →
-  /// [PaperStyle.ruled] / [PaperStyle.grid]. A theme absent from the map uses
-  /// its built-in default. Persisted as a JSON object string.
-  final Map<String, String> paperStyles;
+  /// Global paper style — [PaperStyle.ruled] or [PaperStyle.grid] — applied to
+  /// every theme. Persisted in the `paper_styles` column as JSON
+  /// (`{"style":"grid"}`).
+  final String paperStyle;
 
   factory Profile.fromMap(Map<String, Object?> map) {
     return Profile(
@@ -39,27 +39,27 @@ class Profile {
       units: (map['units'] as String?) ?? Units.metric,
       language: (map['language'] as String?) ?? AppLanguage.system,
       theme: (map['theme'] as String?) ?? AppTheme.paper,
-      paperStyles: decodePaperStyles(map['paper_styles'] as String?),
+      paperStyle: decodePaperStyle(map['paper_styles'] as String?),
     );
   }
 
-  /// Parse the stored JSON map of per-theme paper styles, tolerating null,
-  /// empty, or malformed values (returns an empty map).
-  static Map<String, String> decodePaperStyles(String? raw) {
-    if (raw == null || raw.isEmpty) return const {};
+  /// Read the global paper style from the stored JSON, tolerating null, empty,
+  /// or malformed values (defaults to [PaperStyle.ruled]).
+  static String decodePaperStyle(String? raw) {
+    if (raw == null || raw.isEmpty) return PaperStyle.ruled;
     try {
       final decoded = jsonDecode(raw);
-      if (decoded is Map) {
-        return {
-          for (final entry in decoded.entries)
-            entry.key.toString(): entry.value.toString(),
-        };
+      if (decoded is Map && decoded['style'] == PaperStyle.grid) {
+        return PaperStyle.grid;
       }
     } catch (_) {
-      // Malformed — fall back to no overrides.
+      // Malformed — fall back to the default.
     }
-    return const {};
+    return PaperStyle.ruled;
   }
+
+  /// Encode a global paper style for storage in the `paper_styles` column.
+  static String encodePaperStyle(String style) => jsonEncode({'style': style});
 }
 
 abstract final class Units {

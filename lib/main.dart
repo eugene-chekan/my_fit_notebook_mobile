@@ -59,10 +59,7 @@ class MyFitNotebookApp extends StatelessWidget {
         builder: (context, locale, theme, _) => MaterialApp(
           title: 'My Fit Notebook',
           debugShowCheckedModeBanner: false,
-          theme: NotebookTheme.forId(
-            theme.themeId,
-            graphGrid: theme.graphGridFor(theme.themeId),
-          ),
+          theme: NotebookTheme.forId(theme.themeId, graphGrid: theme.graphGrid),
           navigatorKey: navigatorKey,
           navigatorObservers: [appRouteObserver],
           locale: locale.locale,

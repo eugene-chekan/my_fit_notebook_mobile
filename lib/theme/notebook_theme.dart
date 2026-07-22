@@ -218,8 +218,8 @@ class NotebookTheme {
     isDark: true,
   );
 
-  /// Dark "carbon" ground — cool grey on charcoal with a brick accent, drawn
-  /// on a 28px engineering graph grid instead of ruled lines.
+  /// Dark "carbon" ground — cool grey on charcoal with a brick accent. Its
+  /// paper style (ruled vs 28px graph grid) follows the global setting.
   static const carbon = NotebookPalette(
     bg: Color(0xFF202329),
     ink: Color(0xFF95999F),
@@ -233,7 +233,6 @@ class NotebookTheme {
     desk: Color(0xFF17191E),
     vignette: Color(0x66141619), // charcoal darkening at edges
     isDark: true,
-    graphGrid: true,
   );
 
   static NotebookPalette paletteFor(ThemeId id) {

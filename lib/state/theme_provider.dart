@@ -17,14 +17,17 @@ class ThemeProvider extends ChangeNotifier {
   ThemeId _themeId = ThemeId.paper;
   ThemeId get themeId => _themeId;
 
-  /// Per-theme paper-style overrides (ThemeId.name → 'ruled'/'grid'). Absent =
-  /// use the theme's built-in default.
-  Map<String, String> _paperStyles = const {};
+  /// Global paper style (ruled/grid), applied to every theme.
+  String _paperStyle = PaperStyle.ruled;
+  String get paperStyle => _paperStyle;
+
+  /// Whether the app draws a graph grid instead of horizontal ruling.
+  bool get graphGrid => _paperStyle == PaperStyle.grid;
 
   Future<void> load() async {
     final profile = await _repository.getProfile();
     _themeId = ThemeId.fromName(profile.theme);
-    _paperStyles = profile.paperStyles;
+    _paperStyle = profile.paperStyle;
     notifyListeners();
   }
 
@@ -35,22 +38,10 @@ class ThemeProvider extends ChangeNotifier {
     await _repository.setTheme(id.name);
   }
 
-  /// Whether [id] draws a graph grid — the user's override if set, else the
-  /// theme's built-in default (only Carbon defaults to a grid).
-  bool graphGridFor(ThemeId id) {
-    final override = _paperStyles[id.name];
-    if (override != null) return override == PaperStyle.grid;
-    return NotebookTheme.paletteFor(id).graphGrid;
-  }
-
-  /// The effective paper style for [id] as a [PaperStyle] value.
-  String paperStyleFor(ThemeId id) =>
-      graphGridFor(id) ? PaperStyle.grid : PaperStyle.ruled;
-
-  Future<void> setPaperStyle(ThemeId id, String style) async {
-    if (paperStyleFor(id) == style) return;
-    _paperStyles = {..._paperStyles, id.name: style};
+  Future<void> setPaperStyle(String style) async {
+    if (_paperStyle == style) return;
+    _paperStyle = style;
     notifyListeners();
-    await _repository.setPaperStyle(id.name, style);
+    await _repository.setPaperStyle(style);
   }
 }
