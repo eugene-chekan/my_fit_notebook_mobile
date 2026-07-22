@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:my_fit_notebook_mobile/data/models/profile.dart';
 import 'package:my_fit_notebook_mobile/theme/notebook_theme.dart';
 
 void main() {
@@ -57,6 +58,33 @@ void main() {
       for (final id in ThemeId.values) {
         expect(ThemeId.fromName(id.name), id);
       }
+    });
+
+    test('forId honours a graphGrid override', () {
+      // Force a ruled Carbon and a gridded Paper.
+      final ruledCarbon =
+          NotebookTheme.forId(ThemeId.carbon, graphGrid: false)
+              .extension<NotebookPalette>()!;
+      final gridPaper = NotebookTheme.forId(ThemeId.paper, graphGrid: true)
+          .extension<NotebookPalette>()!;
+      expect(ruledCarbon.graphGrid, isFalse);
+      expect(gridPaper.graphGrid, isTrue);
+      // Overriding grid alone keeps every other token intact.
+      expect(gridPaper.bg, NotebookTheme.paper.bg);
+    });
+  });
+
+  group('Profile.decodePaperStyles', () {
+    test('parses a valid JSON map', () {
+      final map = Profile.decodePaperStyles('{"carbon":"ruled","paper":"grid"}');
+      expect(map, {'carbon': 'ruled', 'paper': 'grid'});
+    });
+
+    test('tolerates null, empty, and malformed input', () {
+      expect(Profile.decodePaperStyles(null), isEmpty);
+      expect(Profile.decodePaperStyles(''), isEmpty);
+      expect(Profile.decodePaperStyles('not json'), isEmpty);
+      expect(Profile.decodePaperStyles('[1,2,3]'), isEmpty);
     });
   });
 }

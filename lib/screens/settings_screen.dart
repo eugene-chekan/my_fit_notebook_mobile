@@ -66,6 +66,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               _themeLine(),
               const SizedBox(height: 14),
+              _paperLine(),
+              const SizedBox(height: 14),
               _languageLine(),
               const SizedBox(height: 14),
               _unitsLine(),
@@ -115,6 +117,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case ThemeId.carbon:
         return t.themeCarbon;
     }
+  }
+
+  // --- Paper style (ruled / grid, per theme) ---------------------------
+
+  Widget _paperLine() {
+    final t = AppLocalizations.of(context);
+    final provider = context.watch<ThemeProvider>();
+    final id = provider.themeId;
+    final isGrid = provider.graphGridFor(id);
+    TextStyle style(bool on) => TextStyle(
+      fontFamily: 'Caveat',
+      fontSize: 20,
+      fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+      color: on ? context.notebook.ink : context.notebook.sec,
+    );
+    return Row(
+      children: [
+        _label(t.paperLabel),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: isGrid
+              ? () => context.read<ThemeProvider>().setPaperStyle(id, PaperStyle.ruled)
+              : null,
+          child: Text(t.paperRuled, style: style(!isGrid)),
+        ),
+        Text('   /   ', style: style(false)),
+        InkWell(
+          onTap: isGrid
+              ? null
+              : () => context.read<ThemeProvider>().setPaperStyle(id, PaperStyle.grid),
+          child: Text(t.paperGrid, style: style(isGrid)),
+        ),
+      ],
+    );
   }
 
   // --- Language --------------------------------------------------------

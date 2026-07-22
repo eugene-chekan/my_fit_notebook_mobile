@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 11,
+      version: 12,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -47,6 +47,7 @@ class AppDatabase {
         if (oldVersion < 9) await _migrateToSchedule(db);
         if (oldVersion < 10) await _migrateToScheduleTime(db);
         if (oldVersion < 11) await _migrateToTheme(db);
+        if (oldVersion < 12) await _migrateToPaperStyles(db);
       },
     );
   }
@@ -108,7 +109,8 @@ class AppDatabase {
         height_cm REAL,
         units TEXT NOT NULL DEFAULT 'metric',
         language TEXT NOT NULL DEFAULT 'system',
-        theme TEXT NOT NULL DEFAULT 'paper'
+        theme TEXT NOT NULL DEFAULT 'paper',
+        paper_styles TEXT NOT NULL DEFAULT '{}'
       )
     ''');
     await db.execute('''
@@ -308,6 +310,14 @@ class AppDatabase {
   Future<void> _migrateToTheme(Database db) async {
     await db.execute(
       "ALTER TABLE profile ADD COLUMN theme TEXT NOT NULL DEFAULT 'paper'",
+    );
+  }
+
+  /// v11 → v12: per-theme ruled/grid paper-style overrides, stored as a JSON
+  /// object string on the profile row. Additive; empty map = all defaults.
+  Future<void> _migrateToPaperStyles(Database db) async {
+    await db.execute(
+      "ALTER TABLE profile ADD COLUMN paper_styles TEXT NOT NULL DEFAULT '{}'",
     );
   }
 }

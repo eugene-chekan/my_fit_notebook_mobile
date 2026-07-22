@@ -650,6 +650,24 @@ abstract class AppLocalizations {
   /// **'Carbon'**
   String get themeCarbon;
 
+  /// No description provided for @paperLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'paper:'**
+  String get paperLabel;
+
+  /// No description provided for @paperRuled.
+  ///
+  /// In en, this message translates to:
+  /// **'ruled'**
+  String get paperRuled;
+
+  /// No description provided for @paperGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'grid'**
+  String get paperGrid;
+
   /// No description provided for @measurements.
   ///
   /// In en, this message translates to:

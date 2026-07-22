@@ -375,6 +375,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get themeCarbon => 'Карбон';
 
   @override
+  String get paperLabel => 'бумага:';
+
+  @override
+  String get paperRuled => 'в линейку';
+
+  @override
+  String get paperGrid => 'в клетку';
+
+  @override
   String get measurements => 'Замеры';
 
   @override

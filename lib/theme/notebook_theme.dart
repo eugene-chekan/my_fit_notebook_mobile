@@ -252,8 +252,15 @@ class NotebookTheme {
   }
 
   /// Builds the [ThemeData] for [id], registering its [NotebookPalette] so
-  /// widgets can read tokens via `context.notebook`.
-  static ThemeData forId(ThemeId id) => _build(paletteFor(id));
+  /// widgets can read tokens via `context.notebook`. Pass [graphGrid] to
+  /// override the theme's default paper style (ruled vs graph grid) from the
+  /// user's per-theme preference.
+  static ThemeData forId(ThemeId id, {bool? graphGrid}) {
+    final palette = paletteFor(id);
+    return _build(
+      graphGrid == null ? palette : palette.copyWith(graphGrid: graphGrid),
+    );
+  }
 
   static ThemeData _build(NotebookPalette p) {
     final brightness = p.isDark ? Brightness.dark : Brightness.light;

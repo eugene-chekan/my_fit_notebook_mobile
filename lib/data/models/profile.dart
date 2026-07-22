@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Local-only user profile. Lives entirely in the on-device database —
 /// nothing here is ever transmitted anywhere.
 class Profile {
@@ -8,6 +10,7 @@ class Profile {
     this.units = Units.metric,
     this.language = AppLanguage.system,
     this.theme = AppTheme.paper,
+    this.paperStyles = const {},
   });
 
   final String name;
@@ -23,6 +26,10 @@ class Profile {
   /// Selected notebook theme id (see [AppTheme] / `ThemeId`). Defaults to the
   /// light [AppTheme.paper].
   final String theme;
+  /// Per-theme paper-style overrides, keyed by `ThemeId` name →
+  /// [PaperStyle.ruled] / [PaperStyle.grid]. A theme absent from the map uses
+  /// its built-in default. Persisted as a JSON object string.
+  final Map<String, String> paperStyles;
 
   factory Profile.fromMap(Map<String, Object?> map) {
     return Profile(
@@ -32,7 +39,26 @@ class Profile {
       units: (map['units'] as String?) ?? Units.metric,
       language: (map['language'] as String?) ?? AppLanguage.system,
       theme: (map['theme'] as String?) ?? AppTheme.paper,
+      paperStyles: decodePaperStyles(map['paper_styles'] as String?),
     );
+  }
+
+  /// Parse the stored JSON map of per-theme paper styles, tolerating null,
+  /// empty, or malformed values (returns an empty map).
+  static Map<String, String> decodePaperStyles(String? raw) {
+    if (raw == null || raw.isEmpty) return const {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return {
+          for (final entry in decoded.entries)
+            entry.key.toString(): entry.value.toString(),
+        };
+      }
+    } catch (_) {
+      // Malformed — fall back to no overrides.
+    }
+    return const {};
   }
 }
 
@@ -52,6 +78,12 @@ abstract final class AppLanguage {
 abstract final class AppTheme {
   static const paper = 'paper';
   static const blueprint = 'blueprint';
+}
+
+/// Persisted paper-style values for the per-theme ruled/grid override.
+abstract final class PaperStyle {
+  static const ruled = 'ruled';
+  static const grid = 'grid';
 }
 
 /// One dated entry in a body-measurement history. [value] is canonical

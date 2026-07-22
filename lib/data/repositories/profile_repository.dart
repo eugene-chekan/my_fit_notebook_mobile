@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 
 import '../db/app_database.dart';
@@ -55,6 +57,19 @@ class ProfileRepository {
     final db = await _db;
     await getProfile();
     await db.update('profile', {'theme': theme}, where: 'id = 1');
+  }
+
+  /// Set (or overwrite) the paper style for one theme, merging into the stored
+  /// per-theme map.
+  Future<void> setPaperStyle(String theme, String style) async {
+    final db = await _db;
+    final profile = await getProfile();
+    final map = Map<String, String>.from(profile.paperStyles)..[theme] = style;
+    await db.update(
+      'profile',
+      {'paper_styles': jsonEncode(map)},
+      where: 'id = 1',
+    );
   }
 
   /// Full history for one metric, newest first.

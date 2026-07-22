@@ -360,6 +360,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeCarbon => 'Carbon';
 
   @override
+  String get paperLabel => 'paper:';
+
+  @override
+  String get paperRuled => 'ruled';
+
+  @override
+  String get paperGrid => 'grid';
+
+  @override
   String get measurements => 'Measurements';
 
   @override
