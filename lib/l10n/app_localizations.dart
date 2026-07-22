@@ -632,6 +632,24 @@ abstract class AppLocalizations {
   /// **'Blueprint'**
   String get themeBlueprint;
 
+  /// No description provided for @themeChalkboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Chalkboard'**
+  String get themeChalkboard;
+
+  /// No description provided for @themeLamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Aged lamp'**
+  String get themeLamp;
+
+  /// No description provided for @themeCarbon.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbon'**
+  String get themeCarbon;
+
   /// No description provided for @measurements.
   ///
   /// In en, this message translates to:

@@ -9,12 +9,15 @@ library;
 
 import 'package:flutter/material.dart';
 
-/// The selectable themes. This pass ships the light default ([ThemeId.paper])
-/// and one dark ground ([ThemeId.blueprint]); the enum leaves room for the
-/// follow-up dark themes (chalkboard, lamp, carbon).
+/// The selectable themes: the light default ([ThemeId.paper]) and four dark
+/// "ink-on-paper" grounds — [blueprint], [chalkboard], [lamp], and [carbon]
+/// (the last swaps the ruled lines for an engineering graph grid).
 enum ThemeId {
   paper,
-  blueprint;
+  blueprint,
+  chalkboard,
+  lamp,
+  carbon;
 
   /// Parses a persisted id, falling back to [paper] for anything unknown
   /// (including the not-yet-shipped follow-up themes).
@@ -182,12 +185,69 @@ class NotebookTheme {
     isDark: true,
   );
 
+  /// Dark "chalkboard" ground — chalky grey on warm slate, a coral accent.
+  static const chalkboard = NotebookPalette(
+    bg: Color(0xFF1A1C18),
+    ink: Color(0xFFC3C0B5),
+    sec: Color(0xFF8C8A7B),
+    accent: Color(0xFFD8776A),
+    ruleTint: Color(0x1FC3C0B5), // ink @ ~.12
+    marginRule: Color(0xFFD8776A),
+    trainedFill: Color(0x24C3C0B5), // ink @ ~.14
+    cardFill: Color(0x0FFFFFFF), // white @ ~.06
+    shadow: Color(0x66000000),
+    desk: Color(0xFF121410),
+    vignette: Color(0x66121410), // slate darkening at edges
+    isDark: true,
+  );
+
+  /// Dark "aged lamp" ground — warm sepia ink on deep brown, amber accent,
+  /// like a page under lamplight.
+  static const lamp = NotebookPalette(
+    bg: Color(0xFF19150E),
+    ink: Color(0xFFC3BAA3),
+    sec: Color(0xFF927F5E),
+    accent: Color(0xFFCE7A5A),
+    ruleTint: Color(0x1FC3BAA3), // ink @ ~.12
+    marginRule: Color(0xFFCE7A5A),
+    trainedFill: Color(0x24C3BAA3), // ink @ ~.14
+    cardFill: Color(0x0FFFFFFF), // white @ ~.06
+    shadow: Color(0x66000000),
+    desk: Color(0xFF120F08),
+    vignette: Color(0x66120F08), // sepia darkening at edges
+    isDark: true,
+  );
+
+  /// Dark "carbon" ground — cool grey on charcoal with a brick accent, drawn
+  /// on a 28px engineering graph grid instead of ruled lines.
+  static const carbon = NotebookPalette(
+    bg: Color(0xFF202329),
+    ink: Color(0xFF95999F),
+    sec: Color(0xFF626A74),
+    accent: Color(0xFFC24A3E),
+    ruleTint: Color(0x1F95999F), // ink @ ~.12
+    marginRule: Color(0xFFC24A3E),
+    trainedFill: Color(0x2495999F), // ink @ ~.14
+    cardFill: Color(0x0FFFFFFF), // white @ ~.06
+    shadow: Color(0x66000000),
+    desk: Color(0xFF17191E),
+    vignette: Color(0x66141619), // charcoal darkening at edges
+    isDark: true,
+    graphGrid: true,
+  );
+
   static NotebookPalette paletteFor(ThemeId id) {
     switch (id) {
       case ThemeId.paper:
         return paper;
       case ThemeId.blueprint:
         return blueprint;
+      case ThemeId.chalkboard:
+        return chalkboard;
+      case ThemeId.lamp:
+        return lamp;
+      case ThemeId.carbon:
+        return carbon;
     }
   }
 

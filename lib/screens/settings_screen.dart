@@ -86,7 +86,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         _label(t.themeLabel),
         const SizedBox(height: 6),
-        Row(
+        Wrap(
+          runSpacing: 12,
           children: [
             for (final id in ThemeId.values)
               _ThemeSwatch(
@@ -107,6 +108,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return t.themePaper;
       case ThemeId.blueprint:
         return t.themeBlueprint;
+      case ThemeId.chalkboard:
+        return t.themeChalkboard;
+      case ThemeId.lamp:
+        return t.themeLamp;
+      case ThemeId.carbon:
+        return t.themeCarbon;
     }
   }
 
@@ -229,10 +236,25 @@ class _ThemeSwatch extends StatelessWidget {
                   ),
                   Positioned(
                     left: 7,
-                    right: 18,
+                    right: p.graphGrid ? 7 : 18,
                     top: 21,
                     child: Container(height: 1.5, color: p.ink.withValues(alpha: 0.5)),
                   ),
+                  // Carbon previews its graph grid with a couple of verticals.
+                  if (p.graphGrid) ...[
+                    Positioned(
+                      top: 6,
+                      bottom: 6,
+                      left: 20,
+                      child: Container(width: 1.5, color: p.ink.withValues(alpha: 0.5)),
+                    ),
+                    Positioned(
+                      top: 6,
+                      bottom: 6,
+                      left: 33,
+                      child: Container(width: 1.5, color: p.ink.withValues(alpha: 0.5)),
+                    ),
+                  ],
                   Positioned(
                     right: 6,
                     bottom: 6,

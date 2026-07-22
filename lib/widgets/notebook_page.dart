@@ -6,6 +6,9 @@ import '../theme/notebook_theme.dart';
 /// lines" (list rows, headings) sizes itself to a multiple of this.
 const double kNotebookLine = 36.0;
 
+/// Grid pitch for the Carbon theme's engineering graph paper (both axes).
+const double kGraphGrid = 28.0;
+
 /// X position of the vertical margin rule. Page content starts right of
 /// it; the margin column itself can host controls (see
 /// [NotebookPage.marginChild]) — the mobile counterpart of the web app's
@@ -19,13 +22,24 @@ class RuledPaperPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = palette.bg);
+    final rect = Offset.zero & size;
+    canvas.drawRect(rect, Paint()..color = palette.bg);
 
     final linePaint = Paint()
       ..color = palette.ruleTint
       ..strokeWidth = 1;
-    for (double y = kNotebookLine; y < size.height; y += kNotebookLine) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+    if (palette.graphGrid) {
+      // Carbon: an even engineering-graph grid on both axes instead of rules.
+      for (double y = kGraphGrid; y < size.height; y += kGraphGrid) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+      }
+      for (double x = kGraphGrid; x < size.width; x += kGraphGrid) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), linePaint);
+      }
+    } else {
+      for (double y = kNotebookLine; y < size.height; y += kNotebookLine) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+      }
     }
 
     // The margin rule reads as a brick "double line" — two thin strokes a few
@@ -41,19 +55,17 @@ class RuledPaperPainter extends CustomPainter {
       );
     }
 
-    // Dark grounds get a soft radial vignette so the page edges recede.
-    if (palette.isDark) {
-      final rect = Offset.zero & size;
-      canvas.drawRect(
-        rect,
-        Paint()
-          ..shader = RadialGradient(
-            radius: 0.9,
-            colors: [const Color(0x00000000), palette.vignette],
-            stops: const [0.6, 1.0],
-          ).createShader(rect),
-      );
-    }
+    // A soft radial vignette so the page edges recede — a warm dab on light
+    // paper, a darkening on dark grounds.
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          radius: 0.9,
+          colors: [const Color(0x00000000), palette.vignette],
+          stops: const [0.6, 1.0],
+        ).createShader(rect),
+    );
   }
 
   @override

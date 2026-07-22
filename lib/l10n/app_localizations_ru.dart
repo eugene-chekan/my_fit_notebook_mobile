@@ -366,6 +366,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get themeBlueprint => 'Чертёж';
 
   @override
+  String get themeChalkboard => 'Доска';
+
+  @override
+  String get themeLamp => 'Лампа';
+
+  @override
+  String get themeCarbon => 'Карбон';
+
+  @override
   String get measurements => 'Замеры';
 
   @override

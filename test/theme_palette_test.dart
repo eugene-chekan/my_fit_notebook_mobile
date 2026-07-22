@@ -32,6 +32,27 @@ void main() {
       expect(NotebookTheme.forId(ThemeId.blueprint).brightness, Brightness.dark);
     });
 
+    test('all four dark grounds are dark', () {
+      for (final id in [
+        ThemeId.blueprint,
+        ThemeId.chalkboard,
+        ThemeId.lamp,
+        ThemeId.carbon,
+      ]) {
+        expect(NotebookTheme.paletteFor(id).isDark, isTrue, reason: '$id');
+      }
+    });
+
+    test('only carbon uses the graph grid', () {
+      for (final id in ThemeId.values) {
+        expect(
+          NotebookTheme.paletteFor(id).graphGrid,
+          id == ThemeId.carbon,
+          reason: '$id graphGrid',
+        );
+      }
+    });
+
     test('fromName round-trips every ThemeId name', () {
       for (final id in ThemeId.values) {
         expect(ThemeId.fromName(id.name), id);

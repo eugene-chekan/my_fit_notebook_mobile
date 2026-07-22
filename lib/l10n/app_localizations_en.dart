@@ -351,6 +351,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeBlueprint => 'Blueprint';
 
   @override
+  String get themeChalkboard => 'Chalkboard';
+
+  @override
+  String get themeLamp => 'Aged lamp';
+
+  @override
+  String get themeCarbon => 'Carbon';
+
+  @override
   String get measurements => 'Measurements';
 
   @override
