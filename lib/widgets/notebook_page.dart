@@ -16,7 +16,11 @@ const double kGraphGrid = 28.0;
 const double kMarginRuleX = 52.0;
 
 class RuledPaperPainter extends CustomPainter {
-  const RuledPaperPainter(this.palette, {this.marginOnRight = false});
+  const RuledPaperPainter(
+    this.palette, {
+    this.marginOnRight = false,
+    this.showMargin = true,
+  });
 
   final NotebookPalette palette;
 
@@ -24,6 +28,10 @@ class RuledPaperPainter extends CustomPainter {
   /// instead of at [kMarginRuleX] — used by the drawer, which reads as the
   /// page's left margin expanded into a full panel.
   final bool marginOnRight;
+
+  /// When false the margin rule isn't painted at all (the expanding menu draws
+  /// its own moving rule at the panel's live right edge instead).
+  final bool showMargin;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -50,16 +58,18 @@ class RuledPaperPainter extends CustomPainter {
     // The margin rule reads as a brick "double line" — two thin strokes a few
     // pixels apart, like a ruled notebook's red margin. The drawer paints it at
     // its right edge so the panel reads as the paper's expanded left margin.
-    final marginPaint = Paint()
-      ..color = palette.marginRule
-      ..strokeWidth = 2;
-    final marginCenter = marginOnRight ? size.width - 6 : kMarginRuleX;
-    for (final dx in const [-2.0, 2.0]) {
-      canvas.drawLine(
-        Offset(marginCenter + dx, 0),
-        Offset(marginCenter + dx, size.height),
-        marginPaint,
-      );
+    if (showMargin) {
+      final marginPaint = Paint()
+        ..color = palette.marginRule
+        ..strokeWidth = 2;
+      final marginCenter = marginOnRight ? size.width - 6 : kMarginRuleX;
+      for (final dx in const [-2.0, 2.0]) {
+        canvas.drawLine(
+          Offset(marginCenter + dx, 0),
+          Offset(marginCenter + dx, size.height),
+          marginPaint,
+        );
+      }
     }
 
     // A soft radial vignette so the page edges recede — a warm dab on light
@@ -78,7 +88,8 @@ class RuledPaperPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant RuledPaperPainter oldDelegate) =>
       oldDelegate.palette != palette ||
-      oldDelegate.marginOnRight != marginOnRight;
+      oldDelegate.marginOnRight != marginOnRight ||
+      oldDelegate.showMargin != showMargin;
 }
 
 /// A full-bleed page of ruled notebook paper with a left margin rule — no

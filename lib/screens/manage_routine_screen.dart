@@ -149,14 +149,13 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       value: _provider,
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: NotebookPage(
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
               semanticLabel: AppLocalizations.of(context).menu,
-              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+              onTap: () => openMarginMenu(context),
             ),
             child: Consumer<RoutineDetailProvider>(
               builder: (context, provider, _) {

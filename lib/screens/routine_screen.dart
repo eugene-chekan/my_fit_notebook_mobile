@@ -208,7 +208,6 @@ class _RoutineScreenState extends State<RoutineScreen> {
       value: _provider,
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: Consumer<RoutineDetailProvider>(
             builder: (context, provider, _) {
@@ -223,7 +222,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                         glyph: '≡',
                         size: 26,
                         semanticLabel: t.menu,
-                        onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                        onTap: () => openMarginMenu(context),
                       ),
                       // Leave room at the bottom for the overlapping workout
                       // strip (active) or the pinned Start / Add-exercises CTA

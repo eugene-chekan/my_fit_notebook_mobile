@@ -50,14 +50,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       key: _scaffoldKey,
-      drawer: const NotebookDrawer(),
       body: SafeArea(
         child: NotebookPage(
           marginChild: GlyphButton(
             glyph: '≡',
             size: 26,
             semanticLabel: t.menu,
-            onTap: () => _scaffoldKey.currentState?.openDrawer(),
+            onTap: () => openMarginMenu(context),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

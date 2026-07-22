@@ -181,7 +181,6 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: Stack(
             children: [
@@ -191,7 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                     glyph: '≡',
                     size: 26,
                     semanticLabel: t.menu,
-                    onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                    onTap: () => openMarginMenu(context),
                   ),
                   // Reserve room at the bottom for the pinned Start button.
                   padding: const EdgeInsets.fromLTRB(64, 4, 18, 92),

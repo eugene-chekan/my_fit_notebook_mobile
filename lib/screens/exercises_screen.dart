@@ -118,14 +118,13 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       value: _provider,
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: NotebookPage(
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
               semanticLabel: t.menu,
-              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+              onTap: () => openMarginMenu(context),
             ),
             child: Consumer<ExerciseCatalogProvider>(
               builder: (context, provider, _) {

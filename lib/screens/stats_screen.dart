@@ -59,14 +59,13 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       value: _provider,
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: NotebookPage(
             marginChild: GlyphButton(
               glyph: '≡',
               size: 26,
               semanticLabel: t.menu,
-              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+              onTap: () => openMarginMenu(context),
             ),
             child: Consumer<StatsProvider>(
               builder: (context, stats, _) {

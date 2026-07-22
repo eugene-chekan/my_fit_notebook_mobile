@@ -164,7 +164,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       value: _provider,
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const NotebookDrawer(),
         body: SafeArea(
           child: Stack(
             children: [
@@ -174,7 +173,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     glyph: '≡',
                     size: 26,
                     semanticLabel: t.menu,
-                    onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                    onTap: () => openMarginMenu(context),
                   ),
                   padding: const EdgeInsets.fromLTRB(64, 4, 18, 92),
                   child: Consumer<ScheduleProvider>(
