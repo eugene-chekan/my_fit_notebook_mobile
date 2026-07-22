@@ -98,9 +98,12 @@ class _MarginMenuRoute extends PopupRoute<void> {
                   ),
                 ),
                 // The brick double margin rule, painted at the panel's *live*
-                // right edge so it travels with the expansion.
+                // right edge so it travels with the expansion. IgnorePointer so
+                // this top layer never swallows taps meant for the menu items.
                 Positioned.fill(
-                  child: CustomPaint(painter: _EdgeMarginPainter(palette.marginRule)),
+                  child: IgnorePointer(
+                    child: CustomPaint(painter: _EdgeMarginPainter(palette.marginRule)),
+                  ),
                 ),
               ],
             ),

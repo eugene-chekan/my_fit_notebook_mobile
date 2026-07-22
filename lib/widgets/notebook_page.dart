@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/notebook_theme.dart';
+import 'notebook_drawer.dart';
 
 /// Vertical rhythm of the ruled paper. Content that should sit "on the
 /// lines" (list rows, headings) sizes itself to a multiple of this.
@@ -109,7 +110,7 @@ class NotebookPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
+    final page = LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -133,6 +134,58 @@ class NotebookPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+    // A left-edge horizontal drag pulls the margin open (see [openMarginMenu]),
+    // the swipe counterpart of tapping the ≡ glyph.
+    return Stack(
+      children: [
+        Positioned.fill(child: page),
+        const Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 24,
+          child: _EdgeOpenSwipe(),
+        ),
+      ],
+    );
+  }
+}
+
+/// An invisible left-edge strip that opens the margin menu when swiped right,
+/// mirroring the drawer edge-drag that Flutter's `Scaffold.drawer` gave for free.
+class _EdgeOpenSwipe extends StatefulWidget {
+  const _EdgeOpenSwipe();
+
+  @override
+  State<_EdgeOpenSwipe> createState() => _EdgeOpenSwipeState();
+}
+
+class _EdgeOpenSwipeState extends State<_EdgeOpenSwipe> {
+  double _dragX = 0;
+  bool _opened = false;
+
+  void _open() {
+    if (_opened) return;
+    _opened = true;
+    openMarginMenu(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragStart: (_) {
+        _dragX = 0;
+        _opened = false;
+      },
+      onHorizontalDragUpdate: (details) {
+        _dragX += details.delta.dx;
+        if (_dragX > 36) _open(); // pulled far enough right
+      },
+      onHorizontalDragEnd: (details) {
+        if (details.velocity.pixelsPerSecond.dx > 320) _open(); // right flick
+      },
     );
   }
 }
