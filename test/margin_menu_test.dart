@@ -4,16 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:my_fit_notebook_mobile/l10n/app_localizations.dart';
 import 'package:my_fit_notebook_mobile/theme/notebook_theme.dart';
 import 'package:my_fit_notebook_mobile/widgets/notebook_drawer.dart';
-import 'package:my_fit_notebook_mobile/widgets/notebook_page.dart';
+
+Widget _app(Widget home) => MaterialApp(
+      theme: NotebookTheme.forId(ThemeId.paper),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      builder: (context, child) => MarginMenuHost(child: child!),
+      home: home,
+    );
 
 void main() {
-  testWidgets('margin menu expands open and shows the nav items', (tester) async {
+  testWidgets('openMarginMenu reveals the nav items; a tap closes it',
+      (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        theme: NotebookTheme.forId(ThemeId.paper),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Builder(
+      _app(
+        Builder(
           builder: (context) => Scaffold(
             body: Center(
               child: ElevatedButton(
@@ -28,34 +33,28 @@ void main() {
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-
-    // The panel built and revealed its content without layout errors.
     expect(find.text('Routines'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
 
-    // Tapping a menu item must be hittable and fire its onTap. The masthead
-    // closes the menu (no DB-backed screen pushed), so it isolates the tap.
+    // Menu items must be hittable — the masthead closes the menu (no navigation),
+    // isolating that taps reach the panel's InkWells.
     await tester.tap(find.text('My fit notebook'));
     await tester.pumpAndSettle();
     expect(find.text('Routines'), findsNothing);
   });
 
-  testWidgets('a left-edge swipe opens the menu', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: NotebookTheme.forId(ThemeId.paper),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
-          body: NotebookPage(child: SizedBox(height: 100)),
-        ),
-      ),
-    );
+  testWidgets('a left-edge drag pulls the menu open', (tester) async {
+    await tester.pumpWidget(_app(const Scaffold(body: SizedBox.expand())));
 
-    // Drag rightward starting inside the left-edge strip.
-    await tester.dragFrom(const Offset(6, 300), const Offset(140, 0));
+    // Fling rightward from within the left-edge strip.
+    await tester.flingFrom(const Offset(6, 300), const Offset(400, 0), 1200);
     await tester.pumpAndSettle();
 
     expect(find.text('Routines'), findsOneWidget);
+
+    // Tapping the scrim closes it again.
+    await tester.tapAt(const Offset(790, 300));
+    await tester.pumpAndSettle();
+    expect(find.text('Routines'), findsNothing);
   });
 }

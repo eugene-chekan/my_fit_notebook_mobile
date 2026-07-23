@@ -11,6 +11,7 @@ import 'services/workout_notification_service.dart';
 import 'state/locale_provider.dart';
 import 'state/theme_provider.dart';
 import 'theme/notebook_theme.dart';
+import 'widgets/notebook_drawer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,6 +66,9 @@ class MyFitNotebookApp extends StatelessWidget {
           locale: locale.locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          // Host the interactive margin menu above every screen so it covers
+          // the whole app and can be dragged open/closed from anywhere.
+          builder: (context, child) => MarginMenuHost(child: child!),
           home: const DashboardScreen(),
         ),
       ),

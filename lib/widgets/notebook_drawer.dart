@@ -3,6 +3,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 
+import '../app_navigator.dart';
 import '../l10n/app_localizations.dart';
 import '../screens/exercises_screen.dart';
 import '../screens/profile_screen.dart';
@@ -13,13 +14,10 @@ import '../screens/stats_screen.dart';
 import '../theme/notebook_theme.dart';
 import 'notebook_page.dart';
 
-/// Open the side menu. Instead of sliding a panel in from the screen edge, the
-/// menu *grows out of the page's red margin rule*: it starts at the margin's
-/// width (so its red edge sits where the page's margin line is) and expands
-/// rightward, as if the reader grabbed the margin and pulled it open.
-Future<void> openMarginMenu(BuildContext context) {
-  return Navigator.of(context).push(_MarginMenuRoute());
-}
+/// Open the side menu (used by the ≡ glyph). Finds the app-level
+/// [MarginMenuHost] and flings it open; the drag gestures live in the host so
+/// the panel can also be pulled open/closed by hand.
+void openMarginMenu(BuildContext context) => _MarginMenuScope.of(context)?.open();
 
 /// The width the menu opens to — a notebook-margin-ish panel, capped so it
 /// never swallows the whole screen.
@@ -28,99 +26,192 @@ double _menuWidth(BuildContext context) {
   return math.min(320.0, screenWidth * 0.82);
 }
 
-/// The panel's closed width: just wide enough that its right edge lands on the
-/// page's margin rule at [kMarginRuleX], so the open animation appears to
-/// continue that very line.
+/// The panel's closed-but-visible width: its red edge lands on the page's
+/// margin rule ([kMarginRuleX]), so opening looks like that line being pulled.
 const double _menuStartWidth = kMarginRuleX + 6;
 
-class _MarginMenuRoute extends PopupRoute<void> {
-  @override
-  Color get barrierColor => const Color(0x8C000000); // black ~55%
+/// Hosts the interactive margin menu above the whole app (installed via
+/// `MaterialApp.builder`). An [AnimationController] holds the open fraction
+/// (0 = closed, 1 = open); a left-edge drag — or a drag on the panel — moves it
+/// 1:1 with the finger, and a release flings it to settle, exactly like the
+/// native drawer, but the panel *expands from the margin* instead of sliding.
+class MarginMenuHost extends StatefulWidget {
+  const MarginMenuHost({super.key, required this.child});
+
+  final Widget child;
 
   @override
-  bool get barrierDismissible => true;
+  State<MarginMenuHost> createState() => MarginMenuHostState();
 
-  @override
-  String get barrierLabel => 'Dismiss menu';
+  static MarginMenuHostState? of(BuildContext context) => _MarginMenuScope.of(context);
+}
 
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 300);
+class MarginMenuHostState extends State<MarginMenuHost>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 300),
+  )..addListener(_onTick);
 
-  @override
-  Duration get reverseTransitionDuration => const Duration(milliseconds: 230);
+  double _openWidth = 300;
+  bool _visible = false;
 
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    final palette = context.notebook;
-    final fullWidth = _menuWidth(context);
-    final curved = CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    );
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: AnimatedBuilder(
-        animation: curved,
-        builder: (context, child) {
-          final width = lerpDouble(_menuStartWidth, fullWidth, curved.value)!;
-          return Container(
-            width: width,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: palette.shadow,
-                  blurRadius: 14,
-                  offset: const Offset(3, 0),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                // The menu content is always laid out at the full open width and
-                // revealed left-first, so nothing reflows as the panel widens.
-                Positioned.fill(
-                  child: ClipRect(
-                    child: OverflowBox(
-                      alignment: Alignment.centerLeft,
-                      minWidth: fullWidth,
-                      maxWidth: fullWidth,
-                      child: SizedBox(
-                        width: fullWidth,
-                        child: child,
-                      ),
-                    ),
-                  ),
-                ),
-                // The brick double margin rule, painted at the panel's *live*
-                // right edge so it travels with the expansion. IgnorePointer so
-                // this top layer never swallows taps meant for the menu items.
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(painter: _EdgeMarginPainter(palette.marginRule)),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        child: const NotebookMenuPanel(),
-      ),
-    );
+  void _onTick() {
+    final visible = _controller.value > 0;
+    if (visible != _visible) setState(() => _visible = visible);
   }
 
   @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) => child;
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void open() => _controller.fling(velocity: 2.0);
+  void close() => _controller.fling(velocity: -2.0);
+
+  void _dragUpdate(DragUpdateDetails details) {
+    _controller.value += (details.primaryDelta ?? 0) / _openWidth;
+  }
+
+  void _dragEnd(DragEndDetails details) {
+    final vx = details.velocity.pixelsPerSecond.dx;
+    if (vx.abs() >= 365) {
+      _controller.fling(velocity: vx.sign * 2.0);
+    } else {
+      _controller.fling(velocity: _controller.value >= 0.5 ? 2.0 : -2.0);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.notebook;
+    _openWidth = _menuWidth(context);
+    return _MarginMenuScope(
+      state: this,
+      child: PopScope(
+        // While the menu is open, the back button closes it instead of popping.
+        canPop: !_visible,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) close();
+        },
+        child: Stack(
+          children: [
+            widget.child,
+            // Left-edge strip: a rightward drag here pulls the menu open. Only
+            // reachable when closed (the scrim covers it once open).
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 24,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragUpdate: _dragUpdate,
+                onHorizontalDragEnd: _dragEnd,
+              ),
+            ),
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final v = _controller.value;
+                if (v == 0) return const SizedBox.shrink();
+                final width = lerpDouble(_menuStartWidth, _openWidth, v)!;
+                return Stack(
+                  children: [
+                    // Scrim — dims and dismisses on tap, opacity tracks the drag.
+                    Positioned.fill(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: close,
+                        child: ColoredBox(
+                          color: Colors.black.withValues(alpha: 0.5 * v),
+                        ),
+                      ),
+                    ),
+                    // The panel — draggable (left to close), taps hit the items.
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: width,
+                      child: GestureDetector(
+                        onHorizontalDragUpdate: _dragUpdate,
+                        onHorizontalDragEnd: _dragEnd,
+                        child: _MarginMenuBody(
+                          width: width,
+                          openWidth: _openWidth,
+                          palette: palette,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MarginMenuScope extends InheritedWidget {
+  const _MarginMenuScope({required this.state, required super.child});
+
+  final MarginMenuHostState state;
+
+  static MarginMenuHostState? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_MarginMenuScope>()?.state;
+
+  @override
+  bool updateShouldNotify(_MarginMenuScope oldWidget) => false;
+}
+
+/// The panel at its current [width]: menu content laid out at the full
+/// [openWidth] and revealed left-first (no reflow), with the brick margin rule
+/// riding the live right edge.
+class _MarginMenuBody extends StatelessWidget {
+  const _MarginMenuBody({
+    required this.width,
+    required this.openWidth,
+    required this.palette,
+  });
+
+  final double width;
+  final double openWidth;
+  final NotebookPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(color: palette.shadow, blurRadius: 14, offset: const Offset(3, 0)),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.centerLeft,
+                minWidth: openWidth,
+                maxWidth: openWidth,
+                child: SizedBox(width: openWidth, child: const NotebookMenuPanel()),
+              ),
+            ),
+          ),
+          // Purely decorative — IgnorePointer so it never eats item taps.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(painter: _EdgeMarginPainter(palette.marginRule)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Two brick strokes at the container's right edge — the moving counterpart of
@@ -147,14 +238,16 @@ class _EdgeMarginPainter extends CustomPainter {
 }
 
 /// The menu content: the ruled/graph ground (its own margin rule suppressed —
-/// the route draws the moving one), the masthead, and the nav lines. Each item
-/// pops back to the dashboard (the single root route) then pushes its section.
+/// the host draws the moving one), the masthead, and the nav lines. Each item
+/// closes the menu, pops back to the dashboard (the single root route), then
+/// pushes its section.
 class NotebookMenuPanel extends StatelessWidget {
   const NotebookMenuPanel({super.key});
 
   void _go(BuildContext context, WidgetBuilder? builder) {
-    final navigator = Navigator.of(context);
-    navigator.pop(); // close the menu overlay
+    MarginMenuHost.of(context)?.close();
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return;
     navigator.popUntil((route) => route.isFirst);
     if (builder != null) {
       navigator.push(MaterialPageRoute(builder: builder));
