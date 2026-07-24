@@ -168,13 +168,35 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                     NotebookHeader(title: t.manageRoutineTitle, leading: const BackGlyph()),
                     const SizedBox(height: 8),
                     HeadingLine(t.routineDetails),
-                    _fieldLabel(t.fieldName),
-                    TextField(
-                      controller: _nameController,
-                      maxLength: 200,
-                      cursorColor: context.notebook.ink,
-                      style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
-                      decoration: _underlineDecoration(),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6, bottom: 5),
+                          child: Text(
+                            t.fieldName,
+                            style: TextStyle(
+                              fontFamily: 'Caveat',
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                              color: context.notebook.sec,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _nameController,
+                            maxLength: 200,
+                            cursorColor: context.notebook.ink,
+                            style: TextStyle(
+                              fontFamily: 'Caveat',
+                              fontSize: 20,
+                              color: context.notebook.ink,
+                            ),
+                            decoration: _underlineDecoration(),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     _fieldLabel(t.fieldDescription),
