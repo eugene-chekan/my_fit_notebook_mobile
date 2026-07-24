@@ -149,6 +149,10 @@
   "noSetDetails": "No per-set details for this session.",
 
   "aboutMe": "About me",
+  "profilePhotoSemantic": "Profile photo",
+  "photoActionsTitle": "Profile photo",
+  "choosePhoto": "Choose from gallery",
+  "removePhoto": "Remove photo",
   "fieldName": "Name",
   "fieldBorn": "Born",
   "fieldHeight": "Height",

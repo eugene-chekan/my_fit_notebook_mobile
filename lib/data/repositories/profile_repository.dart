@@ -57,6 +57,13 @@ class ProfileRepository {
     await db.update('profile', {'theme': theme}, where: 'id = 1');
   }
 
+  /// Store (or clear, with null) the profile photo's file name.
+  Future<void> setPhotoPath(String? fileName) async {
+    final db = await _db;
+    await getProfile();
+    await db.update('profile', {'photo_path': fileName}, where: 'id = 1');
+  }
+
   /// Set the global paper style (ruled/grid), applied to every theme.
   Future<void> setPaperStyle(String style) async {
     final db = await _db;

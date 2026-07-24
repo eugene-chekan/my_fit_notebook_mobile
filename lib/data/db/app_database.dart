@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 13,
+      version: 14,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -50,6 +50,7 @@ class AppDatabase {
         if (oldVersion < 11) await _migrateToTheme(db);
         if (oldVersion < 12) await _migrateToPaperStyles(db);
         if (oldVersion < 13) await _migrateToRecurrence(db);
+        if (oldVersion < 14) await _migrateToProfilePhoto(db);
       },
     );
   }
@@ -112,7 +113,8 @@ class AppDatabase {
         units TEXT NOT NULL DEFAULT 'metric',
         language TEXT NOT NULL DEFAULT 'system',
         theme TEXT NOT NULL DEFAULT 'paper',
-        paper_styles TEXT NOT NULL DEFAULT '{}'
+        paper_styles TEXT NOT NULL DEFAULT '{}',
+        photo_path TEXT
       )
     ''');
     await db.execute('''
@@ -356,5 +358,12 @@ class AppDatabase {
       'ALTER TABLE scheduled_workouts ADD COLUMN rule_id INTEGER '
       'REFERENCES schedule_rules(id) ON DELETE CASCADE',
     );
+  }
+
+  /// v13 → v14: an optional profile photo. Stores just the file *name* of an
+  /// image copied into the app documents dir (resolved to an absolute path at
+  /// read time, so it survives the sandbox path changing). Additive, nullable.
+  Future<void> _migrateToProfilePhoto(Database db) async {
+    await db.execute('ALTER TABLE profile ADD COLUMN photo_path TEXT');
   }
 }

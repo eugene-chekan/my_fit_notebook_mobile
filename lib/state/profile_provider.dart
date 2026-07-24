@@ -1,27 +1,60 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 import '../data/models/profile.dart';
 import '../data/repositories/profile_repository.dart';
+import '../services/profile_photo_service.dart';
 
 /// Backs the profile screen: the profile row, per-metric latest values and
 /// histories, and targets. All local, all canonical-metric under the hood.
 class ProfileProvider extends ChangeNotifier {
-  ProfileProvider({ProfileRepository? repository})
-    : _repository = repository ?? ProfileRepository();
+  ProfileProvider({ProfileRepository? repository, ProfilePhotoService? photoService})
+    : _repository = repository ?? ProfileRepository(),
+      _photoService = photoService ?? ProfilePhotoService();
 
   final ProfileRepository _repository;
+  final ProfilePhotoService _photoService;
 
   Profile? profile;
   Map<String, Measurement> latest = {};
   Map<String, double> targets = {};
+  /// The resolved absolute file of the current profile photo, or null when
+  /// unset (or the file has gone missing). The Polaroid falls back to the ink
+  /// placeholder in that case.
+  File? photoFile;
   bool loading = true;
 
   Future<void> load() async {
     profile = await _repository.getProfile();
     latest = await _repository.latestByMetric();
     targets = await _repository.targets();
+    photoFile = await _resolvePhoto(profile?.photoPath);
     loading = false;
     notifyListeners();
+  }
+
+  Future<File?> _resolvePhoto(String? fileName) async {
+    if (fileName == null) return null;
+    final file = await _photoService.fileFor(fileName);
+    return await file.exists() ? file : null;
+  }
+
+  /// Pick a photo from the gallery and persist it. No-op if cancelled.
+  Future<void> pickPhoto() async {
+    final fileName = await _photoService.pickFromGallery(previous: profile?.photoPath);
+    if (fileName == null) return;
+    await _repository.setPhotoPath(fileName);
+    await load();
+  }
+
+  /// Remove the current photo (from disk and the profile row).
+  Future<void> removePhoto() async {
+    final existing = profile?.photoPath;
+    if (existing == null) return;
+    await _photoService.deleteQuietly(existing);
+    await _repository.setPhotoPath(null);
+    await load();
   }
 
   Future<List<Measurement>> history(String metric) => _repository.history(metric);

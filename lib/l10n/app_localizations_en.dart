@@ -378,6 +378,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutMe => 'About me';
 
   @override
+  String get profilePhotoSemantic => 'Profile photo';
+
+  @override
+  String get photoActionsTitle => 'Profile photo';
+
+  @override
+  String get choosePhoto => 'Choose from gallery';
+
+  @override
+  String get removePhoto => 'Remove photo';
+
+  @override
   String get fieldName => 'Name';
 
   @override

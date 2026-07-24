@@ -698,6 +698,30 @@ abstract class AppLocalizations {
   /// **'About me'**
   String get aboutMe;
 
+  /// No description provided for @profilePhotoSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo'**
+  String get profilePhotoSemantic;
+
+  /// No description provided for @photoActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo'**
+  String get photoActionsTitle;
+
+  /// No description provided for @choosePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get choosePhoto;
+
+  /// No description provided for @removePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhoto;
+
   /// No description provided for @fieldName.
   ///
   /// In en, this message translates to:

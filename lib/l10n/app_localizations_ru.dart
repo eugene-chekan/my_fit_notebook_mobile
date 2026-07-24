@@ -391,6 +391,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get aboutMe => 'О себе';
 
   @override
+  String get profilePhotoSemantic => 'Фото профиля';
+
+  @override
+  String get photoActionsTitle => 'Фото профиля';
+
+  @override
+  String get choosePhoto => 'Выбрать из галереи';
+
+  @override
+  String get removePhoto => 'Убрать фото';
+
+  @override
   String get fieldName => 'Имя';
 
   @override

@@ -11,6 +11,7 @@ class Profile {
     this.language = AppLanguage.system,
     this.theme = AppTheme.paper,
     this.paperStyle = PaperStyle.ruled,
+    this.photoPath,
   });
 
   final String name;
@@ -31,6 +32,11 @@ class Profile {
   /// (`{"style":"grid"}`).
   final String paperStyle;
 
+  /// The *file name* (not full path) of the profile photo copied into the app
+  /// documents dir, or null when unset. Resolved to an absolute path at display
+  /// time so it survives the app sandbox path changing between launches.
+  final String? photoPath;
+
   factory Profile.fromMap(Map<String, Object?> map) {
     return Profile(
       name: (map['name'] as String?) ?? '',
@@ -40,6 +46,7 @@ class Profile {
       language: (map['language'] as String?) ?? AppLanguage.system,
       theme: (map['theme'] as String?) ?? AppTheme.paper,
       paperStyle: decodePaperStyle(map['paper_styles'] as String?),
+      photoPath: map['photo_path'] as String?,
     );
   }
 

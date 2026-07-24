@@ -14,6 +14,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/polaroid_photo.dart';
 import '../widgets/swipe_actions.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -76,6 +77,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
       heightCm: heightCm,
     );
     if (mounted) FocusScope.of(context).unfocus();
+  }
+
+  /// Tap the Polaroid: choose a new photo from the gallery, or remove the
+  /// current one.
+  Future<void> _editPhoto() async {
+    final t = AppLocalizations.of(context);
+    final hasPhoto = _provider.photoFile != null;
+    final action = await showPaperDialog<String>(
+      context: context,
+      builder: (dialogContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            t.photoActionsTitle,
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 23,
+              fontWeight: FontWeight.w700,
+              color: dialogContext.notebook.ink,
+            ),
+          ),
+          const SizedBox(height: 14),
+          PenButton(
+            label: t.choosePhoto,
+            onPressed: () => Navigator.pop(dialogContext, 'choose'),
+          ),
+          if (hasPhoto) ...[
+            const SizedBox(height: 8),
+            PenButton(
+              label: t.removePhoto,
+              danger: true,
+              onPressed: () => Navigator.pop(dialogContext, 'remove'),
+            ),
+          ],
+        ],
+      ),
+    );
+    if (action == 'choose') {
+      await _provider.pickPhoto();
+    } else if (action == 'remove') {
+      await _provider.removePhoto();
+    }
   }
 
   Future<void> _pickBirthDate() async {
@@ -214,13 +258,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 8),
                     HeadingLine(t.aboutMe),
                     const SizedBox(height: 6),
-                    // Name / born / height flow inline, wrapping to the next
-                    // line only when they don't fit the page width.
-                    Wrap(
-                      spacing: 20,
-                      runSpacing: 12,
-                      crossAxisAlignment: WrapCrossAlignment.end,
+                    // The taped Polaroid sits to the right; the name / born /
+                    // height fields flow inline on the left, wrapping as needed.
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Expanded(
+                          child: Wrap(
+                            spacing: 20,
+                            runSpacing: 12,
+                            crossAxisAlignment: WrapCrossAlignment.end,
+                            children: [
                         _inlineField(
                           t.fieldName,
                           SizedBox(
@@ -262,6 +310,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: PolaroidPhoto(
+                            photo: provider.photoFile,
+                            caption: profile.name,
+                            semanticLabel: t.profilePhotoSemantic,
+                            onTap: _editPhoto,
                           ),
                         ),
                       ],

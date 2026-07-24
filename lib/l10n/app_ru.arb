@@ -107,6 +107,10 @@
   "noSetDetails": "Нет данных по подходам для этой сессии.",
 
   "aboutMe": "О себе",
+  "profilePhotoSemantic": "Фото профиля",
+  "photoActionsTitle": "Фото профиля",
+  "choosePhoto": "Выбрать из галереи",
+  "removePhoto": "Убрать фото",
   "fieldName": "Имя",
   "fieldBorn": "Дата рождения",
   "fieldHeight": "Рост",
