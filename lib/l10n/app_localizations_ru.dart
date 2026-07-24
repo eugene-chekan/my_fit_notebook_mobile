@@ -360,6 +360,32 @@ class AppLocalizationsRu extends AppLocalizations {
   String get unitsLabel => 'единицы:';
 
   @override
+  String get unitKg => 'кг';
+
+  @override
+  String get unitCm => 'см';
+
+  @override
+  String get unitLb => 'фнт';
+
+  @override
+  String get unitIn => 'дюйм';
+
+  @override
+  String get repUnitReps => 'повт';
+
+  @override
+  String get repUnitSec => 'сек';
+
+  @override
+  String get repUnitMin => 'мин';
+
+  @override
+  String setLabel(int index) {
+    return 'Подход $index';
+  }
+
+  @override
   String get languageLabel => 'язык:';
 
   @override

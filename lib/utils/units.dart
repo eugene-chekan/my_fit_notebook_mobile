@@ -7,6 +7,11 @@ import '../data/models/profile.dart';
 const _kgPerLb = 0.45359237;
 const _cmPerIn = 2.54;
 
+/// Localized unit symbols (kg / cm / lb / in). Built from the active
+/// [AppLocalizations] at the display edge so the pure conversion helpers stay
+/// locale-agnostic. See `unitLabelsFor` in `metric_labels.dart`.
+typedef UnitLabels = ({String kg, String cm, String lb, String inch});
+
 /// Canonical metric → display units.
 double toDisplay(double metricValue, BodyMetric metric, String units) {
   if (units == Units.imperial) {
@@ -23,12 +28,13 @@ double toCanonical(double displayValue, BodyMetric metric, String units) {
   return displayValue;
 }
 
-String unitSuffix(BodyMetric metric, String units) {
-  if (units == Units.imperial) return metric.isWeight ? 'lb' : 'in';
-  return metric.isWeight ? 'kg' : 'cm';
+String unitSuffix(BodyMetric metric, String units, UnitLabels labels) {
+  if (units == Units.imperial) return metric.isWeight ? labels.lb : labels.inch;
+  return metric.isWeight ? labels.kg : labels.cm;
 }
 
-String heightSuffix(String units) => units == Units.imperial ? 'in' : 'cm';
+String heightSuffix(String units, UnitLabels labels) =>
+    units == Units.imperial ? labels.inch : labels.cm;
 
 double heightToDisplay(double cm, String units) =>
     units == Units.imperial ? cm / _cmPerIn : cm;
@@ -44,9 +50,10 @@ String formatNumber(double v) {
 }
 
 /// Formats a canonical value in display units with its suffix: "82.4 kg".
-String formatMeasurement(double metricValue, BodyMetric metric, String units) {
+String formatMeasurement(
+    double metricValue, BodyMetric metric, String units, UnitLabels labels) {
   return '${formatNumber(toDisplay(metricValue, metric, units))} '
-      '${unitSuffix(metric, units)}';
+      '${unitSuffix(metric, units, labels)}';
 }
 
 /// Parses user input ("82.4" or "82,4") as a display-units value; null when

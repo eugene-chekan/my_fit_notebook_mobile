@@ -162,7 +162,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
       final bmiText = s.bmiValue != null ? ' · BMI ${s.bmiValue!.toStringAsFixed(1)}' : '';
       widgets.add(_statRow(
         localizedMetric(context, 'weight'),
-        '${formatMeasurement(weightLatest.value, weightMetric, s.units)}$bmiText',
+        '${formatMeasurement(weightLatest.value, weightMetric, s.units, unitLabelsFor(t))}$bmiText',
       ));
     }
     if (weightSeries.length >= 2) {
@@ -177,7 +177,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
             ? toDisplay(weightTarget, weightMetric, s.units)
             : null,
         goalLabel: weightTarget != null
-            ? t.statsGoal(formatMeasurement(weightTarget, weightMetric, s.units))
+            ? t.statsGoal(formatMeasurement(weightTarget, weightMetric, s.units, unitLabelsFor(t)))
             : null,
         height: 108,
       ));
@@ -218,7 +218,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
                   TextSpan(text: localizedMetric(context, metric.key)),
                   if (latest != null)
                     TextSpan(
-                      text: '  ${formatMeasurement(latest.value, metric, s.units)}',
+                      text: '  ${formatMeasurement(latest.value, metric, s.units, unitLabelsFor(AppLocalizations.of(context)))}',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                 ],

@@ -12,7 +12,7 @@
   "swipeDelete": "delete",
   "gotIt": "Got it",
 
-  "navRoutines": "Routines",
+  "navRoutines": "Workouts",
   "navSchedule": "Schedule",
   "navExercises": "Exercises",
   "navStats": "Stats",
@@ -21,8 +21,8 @@
 
   "thisWeek": "This week",
   "trainingDays": "Training days",
-  "startRoutine": "Start routine",
-  "startRoutineEmpty": "Nothing here yet — open Routines from the menu and write one down.",
+  "startRoutine": "Start workout",
+  "startRoutineEmpty": "Nothing here yet — open Workouts from the menu and write one down.",
   "resumeNamed": "▸ Resume {name}",
   "@resumeNamed": {
     "placeholders": { "name": { "type": "String" } }
@@ -31,11 +31,11 @@
   "upcomingHeading": "Upcoming",
   "missedHeading": "Missed",
   "noUpcoming": "Nothing planned yet.",
-  "pickRoutine": "Pick a routine",
+  "pickRoutine": "Pick a workout",
   "todayLabel": "Today",
   "tomorrowLabel": "Tomorrow",
   "rescheduleSemantic": "Reschedule",
-  "allRoutinesPlanned": "All routines are already planned for this day.",
+  "allRoutinesPlanned": "All workouts are already planned for this day.",
   "scheduledTodayLine": "▸ Today: {name}",
   "@scheduledTodayLine": {
     "placeholders": { "name": { "type": "String" } }
@@ -75,9 +75,9 @@
   },
   "barThisWeek": "this week",
 
-  "newRoutine": "+ new routine…",
+  "newRoutine": "+ new workout…",
   "routineNameHint": "name…",
-  "createRoutineSemantic": "Create routine",
+  "createRoutineSemantic": "Create workout",
   "manageNamed": "Manage {name}",
   "@manageNamed": {
     "placeholders": { "name": { "type": "String" } }
@@ -86,9 +86,9 @@
   "@deleteRoutineTitle": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "deleteRoutineMessage": "This removes the routine, its exercises, and its session log.",
+  "deleteRoutineMessage": "This removes the workout, its exercises, and its session log.",
 
-  "manageRoutineSemantic": "Manage routine",
+  "manageRoutineSemantic": "Manage workout",
   "workoutComplete": "Workout complete",
   "exercisesCompletedLabel": "Exercises completed",
   "setsCompletedLabel": "Sets completed",
@@ -136,6 +136,17 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "unitsLabel": "units:",
+  "unitKg": "kg",
+  "unitCm": "cm",
+  "unitLb": "lb",
+  "unitIn": "in",
+  "repUnitReps": "reps",
+  "repUnitSec": "sec",
+  "repUnitMin": "min",
+  "setLabel": "Set {index}",
+  "@setLabel": {
+    "placeholders": { "index": { "type": "int" } }
+  },
   "languageLabel": "language:",
   "themeLabel": "theme:",
   "themePaper": "Paper",
@@ -180,7 +191,7 @@
   "@removeFromLibrary": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "routinesUsingSuffix": "{count, plural, one{ It stays in the {count} routine already using it.} other{ It stays in the {count} routines already using it.}}",
+  "routinesUsingSuffix": "{count, plural, one{ It stays in the {count} workout already using it.} other{ It stays in the {count} workouts already using it.}}",
   "@routinesUsingSuffix": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -192,26 +203,26 @@
   "defaultSetsReps": "Default sets × reps",
   "unitLabel": "unit:",
 
-  "manageRoutineTitle": "Manage routine",
-  "routineDetails": "Routine details",
-  "routineDescHint": "What is this routine for?",
+  "manageRoutineTitle": "Manage workout",
+  "routineDetails": "Workout details",
+  "routineDescHint": "What is this workout for?",
   "addNamedTitle": "Add “{name}”",
   "@addNamedTitle": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "deleteRoutineConfirmTitle": "Delete this routine?",
+  "deleteRoutineConfirmTitle": "Delete this workout?",
   "removeExerciseTitle": "Remove “{name}”?",
   "@removeExerciseTitle": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "removeExerciseMessage": "Remove this exercise from the routine?",
+  "removeExerciseMessage": "Remove this exercise from the workout?",
   "addExerciseHint": "+ add an exercise…",
   "addExerciseSemantic": "Add exercise",
   "editPrescriptionSemantic": "Edit sets/reps for {name}",
   "@editPrescriptionSemantic": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "deleteRoutineButton": "Delete routine",
+  "deleteRoutineButton": "Delete workout",
   "noExercisesManage": "No exercises yet — add one above.",
 
   "previousMonth": "Previous month",

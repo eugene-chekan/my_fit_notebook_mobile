@@ -39,7 +39,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gotIt => 'Got it';
 
   @override
-  String get navRoutines => 'Routines';
+  String get navRoutines => 'Workouts';
 
   @override
   String get navSchedule => 'Schedule';
@@ -63,11 +63,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingDays => 'Training days';
 
   @override
-  String get startRoutine => 'Start routine';
+  String get startRoutine => 'Start workout';
 
   @override
   String get startRoutineEmpty =>
-      'Nothing here yet — open Routines from the menu and write one down.';
+      'Nothing here yet — open Workouts from the menu and write one down.';
 
   @override
   String resumeNamed(String name) {
@@ -87,7 +87,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noUpcoming => 'Nothing planned yet.';
 
   @override
-  String get pickRoutine => 'Pick a routine';
+  String get pickRoutine => 'Pick a workout';
 
   @override
   String get todayLabel => 'Today';
@@ -100,7 +100,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allRoutinesPlanned =>
-      'All routines are already planned for this day.';
+      'All workouts are already planned for this day.';
 
   @override
   String scheduledTodayLine(String name) {
@@ -192,13 +192,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get barThisWeek => 'this week';
 
   @override
-  String get newRoutine => '+ new routine…';
+  String get newRoutine => '+ new workout…';
 
   @override
   String get routineNameHint => 'name…';
 
   @override
-  String get createRoutineSemantic => 'Create routine';
+  String get createRoutineSemantic => 'Create workout';
 
   @override
   String manageNamed(String name) {
@@ -212,10 +212,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteRoutineMessage =>
-      'This removes the routine, its exercises, and its session log.';
+      'This removes the workout, its exercises, and its session log.';
 
   @override
-  String get manageRoutineSemantic => 'Manage routine';
+  String get manageRoutineSemantic => 'Manage workout';
 
   @override
   String get workoutComplete => 'Workout complete';
@@ -345,6 +345,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unitsLabel => 'units:';
 
   @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitCm => 'cm';
+
+  @override
+  String get unitLb => 'lb';
+
+  @override
+  String get unitIn => 'in';
+
+  @override
+  String get repUnitReps => 'reps';
+
+  @override
+  String get repUnitSec => 'sec';
+
+  @override
+  String get repUnitMin => 'min';
+
+  @override
+  String setLabel(int index) {
+    return 'Set $index';
+  }
+
+  @override
   String get languageLabel => 'language:';
 
   @override
@@ -447,8 +473,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: ' It stays in the $count routines already using it.',
-      one: ' It stays in the $count routine already using it.',
+      other: ' It stays in the $count workouts already using it.',
+      one: ' It stays in the $count workout already using it.',
     );
     return '$_temp0';
   }
@@ -475,13 +501,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unitLabel => 'unit:';
 
   @override
-  String get manageRoutineTitle => 'Manage routine';
+  String get manageRoutineTitle => 'Manage workout';
 
   @override
-  String get routineDetails => 'Routine details';
+  String get routineDetails => 'Workout details';
 
   @override
-  String get routineDescHint => 'What is this routine for?';
+  String get routineDescHint => 'What is this workout for?';
 
   @override
   String addNamedTitle(String name) {
@@ -489,7 +515,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get deleteRoutineConfirmTitle => 'Delete this routine?';
+  String get deleteRoutineConfirmTitle => 'Delete this workout?';
 
   @override
   String removeExerciseTitle(String name) {
@@ -497,7 +523,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get removeExerciseMessage => 'Remove this exercise from the routine?';
+  String get removeExerciseMessage => 'Remove this exercise from the workout?';
 
   @override
   String get addExerciseHint => '+ add an exercise…';
@@ -511,7 +537,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get deleteRoutineButton => 'Delete routine';
+  String get deleteRoutineButton => 'Delete workout';
 
   @override
   String get noExercisesManage => 'No exercises yet — add one above.';

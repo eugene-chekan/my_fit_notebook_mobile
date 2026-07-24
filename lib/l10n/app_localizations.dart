@@ -161,7 +161,7 @@ abstract class AppLocalizations {
   /// No description provided for @navRoutines.
   ///
   /// In en, this message translates to:
-  /// **'Routines'**
+  /// **'Workouts'**
   String get navRoutines;
 
   /// No description provided for @navSchedule.
@@ -209,13 +209,13 @@ abstract class AppLocalizations {
   /// No description provided for @startRoutine.
   ///
   /// In en, this message translates to:
-  /// **'Start routine'**
+  /// **'Start workout'**
   String get startRoutine;
 
   /// No description provided for @startRoutineEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Nothing here yet — open Routines from the menu and write one down.'**
+  /// **'Nothing here yet — open Workouts from the menu and write one down.'**
   String get startRoutineEmpty;
 
   /// No description provided for @resumeNamed.
@@ -251,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @pickRoutine.
   ///
   /// In en, this message translates to:
-  /// **'Pick a routine'**
+  /// **'Pick a workout'**
   String get pickRoutine;
 
   /// No description provided for @todayLabel.
@@ -275,7 +275,7 @@ abstract class AppLocalizations {
   /// No description provided for @allRoutinesPlanned.
   ///
   /// In en, this message translates to:
-  /// **'All routines are already planned for this day.'**
+  /// **'All workouts are already planned for this day.'**
   String get allRoutinesPlanned;
 
   /// No description provided for @scheduledTodayLine.
@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @newRoutine.
   ///
   /// In en, this message translates to:
-  /// **'+ new routine…'**
+  /// **'+ new workout…'**
   String get newRoutine;
 
   /// No description provided for @routineNameHint.
@@ -407,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @createRoutineSemantic.
   ///
   /// In en, this message translates to:
-  /// **'Create routine'**
+  /// **'Create workout'**
   String get createRoutineSemantic;
 
   /// No description provided for @manageNamed.
@@ -425,13 +425,13 @@ abstract class AppLocalizations {
   /// No description provided for @deleteRoutineMessage.
   ///
   /// In en, this message translates to:
-  /// **'This removes the routine, its exercises, and its session log.'**
+  /// **'This removes the workout, its exercises, and its session log.'**
   String get deleteRoutineMessage;
 
   /// No description provided for @manageRoutineSemantic.
   ///
   /// In en, this message translates to:
-  /// **'Manage routine'**
+  /// **'Manage workout'**
   String get manageRoutineSemantic;
 
   /// No description provided for @workoutComplete.
@@ -620,6 +620,54 @@ abstract class AppLocalizations {
   /// **'units:'**
   String get unitsLabel;
 
+  /// No description provided for @unitKg.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
+
+  /// No description provided for @unitCm.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get unitCm;
+
+  /// No description provided for @unitLb.
+  ///
+  /// In en, this message translates to:
+  /// **'lb'**
+  String get unitLb;
+
+  /// No description provided for @unitIn.
+  ///
+  /// In en, this message translates to:
+  /// **'in'**
+  String get unitIn;
+
+  /// No description provided for @repUnitReps.
+  ///
+  /// In en, this message translates to:
+  /// **'reps'**
+  String get repUnitReps;
+
+  /// No description provided for @repUnitSec.
+  ///
+  /// In en, this message translates to:
+  /// **'sec'**
+  String get repUnitSec;
+
+  /// No description provided for @repUnitMin.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get repUnitMin;
+
+  /// No description provided for @setLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Set {index}'**
+  String setLabel(int index);
+
   /// No description provided for @languageLabel.
   ///
   /// In en, this message translates to:
@@ -803,7 +851,7 @@ abstract class AppLocalizations {
   /// No description provided for @routinesUsingSuffix.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{ It stays in the {count} routine already using it.} other{ It stays in the {count} routines already using it.}}'**
+  /// **'{count, plural, one{ It stays in the {count} workout already using it.} other{ It stays in the {count} workouts already using it.}}'**
   String routinesUsingSuffix(int count);
 
   /// No description provided for @noExercisesLibrary.
@@ -851,19 +899,19 @@ abstract class AppLocalizations {
   /// No description provided for @manageRoutineTitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage routine'**
+  /// **'Manage workout'**
   String get manageRoutineTitle;
 
   /// No description provided for @routineDetails.
   ///
   /// In en, this message translates to:
-  /// **'Routine details'**
+  /// **'Workout details'**
   String get routineDetails;
 
   /// No description provided for @routineDescHint.
   ///
   /// In en, this message translates to:
-  /// **'What is this routine for?'**
+  /// **'What is this workout for?'**
   String get routineDescHint;
 
   /// No description provided for @addNamedTitle.
@@ -875,7 +923,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteRoutineConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete this routine?'**
+  /// **'Delete this workout?'**
   String get deleteRoutineConfirmTitle;
 
   /// No description provided for @removeExerciseTitle.
@@ -887,7 +935,7 @@ abstract class AppLocalizations {
   /// No description provided for @removeExerciseMessage.
   ///
   /// In en, this message translates to:
-  /// **'Remove this exercise from the routine?'**
+  /// **'Remove this exercise from the workout?'**
   String get removeExerciseMessage;
 
   /// No description provided for @addExerciseHint.
@@ -911,7 +959,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteRoutineButton.
   ///
   /// In en, this message translates to:
-  /// **'Delete routine'**
+  /// **'Delete workout'**
   String get deleteRoutineButton;
 
   /// No description provided for @noExercisesManage.

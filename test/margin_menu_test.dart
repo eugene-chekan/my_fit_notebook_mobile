@@ -33,14 +33,14 @@ void main() {
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    expect(find.text('Routines'), findsOneWidget);
+    expect(find.text('Workouts'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
 
     // Menu items must be hittable — the masthead closes the menu (no navigation),
     // isolating that taps reach the panel's InkWells.
     await tester.tap(find.text('My fit notebook'));
     await tester.pumpAndSettle();
-    expect(find.text('Routines'), findsNothing);
+    expect(find.text('Workouts'), findsNothing);
   });
 
   testWidgets('a left-edge drag pulls the menu open', (tester) async {
@@ -50,11 +50,11 @@ void main() {
     await tester.flingFrom(const Offset(6, 300), const Offset(400, 0), 1200);
     await tester.pumpAndSettle();
 
-    expect(find.text('Routines'), findsOneWidget);
+    expect(find.text('Workouts'), findsOneWidget);
 
     // Tapping the scrim closes it again.
     await tester.tapAt(const Offset(790, 300));
     await tester.pumpAndSettle();
-    expect(find.text('Routines'), findsNothing);
+    expect(find.text('Workouts'), findsNothing);
   });
 }

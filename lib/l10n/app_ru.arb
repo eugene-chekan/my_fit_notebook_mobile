@@ -94,6 +94,17 @@
   "pickDateHint": "нажми, чтобы выбрать дату…",
   "ageYears": "{count, plural, one{({count} год)} few{({count} года)} many{({count} лет)} other{({count} года)}}",
   "unitsLabel": "единицы:",
+  "unitKg": "кг",
+  "unitCm": "см",
+  "unitLb": "фнт",
+  "unitIn": "дюйм",
+  "repUnitReps": "повт",
+  "repUnitSec": "сек",
+  "repUnitMin": "мин",
+  "setLabel": "Подход {index}",
+  "@setLabel": {
+    "placeholders": { "index": { "type": "int" } }
+  },
   "languageLabel": "язык:",
   "themeLabel": "тема:",
   "themePaper": "Бумага",

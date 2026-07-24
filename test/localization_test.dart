@@ -24,7 +24,7 @@ Future<AppLocalizations> _load(WidgetTester tester, Locale locale) async {
 void main() {
   testWidgets('English strings and plurals resolve', (tester) async {
     final t = await _load(tester, const Locale('en'));
-    expect(t.navRoutines, 'Routines');
+    expect(t.navRoutines, 'Workouts');
     expect(t.navSchedule, 'Schedule');
     expect(t.workoutsCount(1), '1 workout');
     expect(t.workoutsCount(3), '3 workouts');

@@ -129,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(fontFamily: 'Caveat', fontSize: 22, color: context.notebook.ink),
             decoration: InputDecoration(
               isDense: true,
-              suffixText: unitSuffix(metric, _units),
+              suffixText: unitSuffix(metric, _units, unitLabelsFor(t)),
               suffixStyle: TextStyle(
                 fontFamily: 'Caveat',
                 fontSize: 18,
@@ -254,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: context.notebook.ink,
                               ),
                               decoration: _underline().copyWith(
-                                suffixText: heightSuffix(profile.units),
+                                suffixText: heightSuffix(profile.units, unitLabelsFor(t)),
                                 suffixStyle: TextStyle(
                                   fontFamily: 'Caveat',
                                   fontSize: 16,
@@ -377,7 +377,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       TextSpan(
                         text: latest == null
                             ? '   —'
-                            : '   ${formatMeasurement(latest.value, metric, _units)}',
+                            : '   ${formatMeasurement(latest.value, metric, _units, unitLabelsFor(t))}',
                         style: TextStyle(
                           color: latest == null
                               ? context.notebook.sec
@@ -387,7 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       if (target != null)
                         TextSpan(
-                          text: '  → ${formatMeasurement(target, metric, _units)}',
+                          text: '  → ${formatMeasurement(target, metric, _units, unitLabelsFor(t))}',
                           style: TextStyle(color: context.notebook.sec),
                         ),
                     ],
@@ -508,7 +508,7 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                       ),
                       decoration: InputDecoration(
                         isDense: true,
-                        suffixText: unitSuffix(metric, _units),
+                        suffixText: unitSuffix(metric, _units, unitLabelsFor(t)),
                         suffixStyle: TextStyle(
                           fontFamily: 'Caveat',
                           fontSize: 17,
@@ -563,7 +563,7 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                           padding: const EdgeInsets.symmetric(vertical: 2),
                           child: Text(
                             '${formatCompletionDt(entry.measuredOn)}   '
-                            '${formatMeasurement(entry.value, metric, _units)}',
+                            '${formatMeasurement(entry.value, metric, _units, unitLabelsFor(t))}',
                             style: TextStyle(
                               fontFamily: 'Caveat',
                               fontSize: 19,

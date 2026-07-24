@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../state/exercise_catalog_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../utils/metric_labels.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
@@ -290,7 +291,7 @@ class _ExerciseFormState extends State<_ExerciseForm> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final secondHint = _unit == RepUnit.reps ? 'reps' : _unit;
+    final secondHint = repUnitLabel(t, _unit);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -378,17 +379,17 @@ class _ExerciseFormState extends State<_ExerciseForm> {
             color: context.notebook.sec,
           ),
         ),
-        option(RepUnit.reps, 'reps'),
+        option(RepUnit.reps, AppLocalizations.of(context).repUnitReps),
         Text(
           '·',
           style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.sec),
         ),
-        option(RepUnit.seconds, 'sec'),
+        option(RepUnit.seconds, AppLocalizations.of(context).repUnitSec),
         Text(
           '·',
           style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.sec),
         ),
-        option(RepUnit.minutes, 'min'),
+        option(RepUnit.minutes, AppLocalizations.of(context).repUnitMin),
       ],
     );
   }

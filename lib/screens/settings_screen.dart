@@ -202,12 +202,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(width: 8),
         InkWell(
           onTap: metricActive ? null : () => _setUnits(Units.metric),
-          child: Text('kg · cm', style: style(metricActive)),
+          child: Text('${t.unitKg} · ${t.unitCm}', style: style(metricActive)),
         ),
         Text('   /   ', style: style(false)),
         InkWell(
           onTap: metricActive ? () => _setUnits(Units.imperial) : null,
-          child: Text('lb · in', style: style(!metricActive)),
+          child: Text('${t.unitLb} · ${t.unitIn}', style: style(!metricActive)),
         ),
       ],
     );

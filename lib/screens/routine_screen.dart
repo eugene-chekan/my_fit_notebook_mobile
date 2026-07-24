@@ -12,6 +12,7 @@ import '../l10n/app_localizations.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../utils/metric_labels.dart';
 import '../utils/set_progress.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
@@ -135,7 +136,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
     final controller = TextEditingController(
       text: set.actualReps?.toString() ?? '',
     );
-    final unitWord = exercise.unit == RepUnit.reps ? 'reps' : exercise.unit;
+    final unitWord = repUnitLabel(t, exercise.unit);
     final reps = await showPaperDialog<int>(
       context: context,
       builder: (context) => Column(
@@ -683,6 +684,7 @@ class _SetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final suffix = RepUnit.suffix(unit);
     final repsText = set.actualReps == null ? '—' : '${set.actualReps}$suffix';
     return SizedBox(
@@ -703,7 +705,7 @@ class _SetRow extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(
-                'Set ${set.setIndex}',
+                t.setLabel(set.setIndex),
                 style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 18,
