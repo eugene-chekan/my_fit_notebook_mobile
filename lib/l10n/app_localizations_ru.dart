@@ -329,6 +329,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get finish => 'Завершить';
 
   @override
+  String get startTimeLabel => 'начало';
+
+  @override
+  String get endTimeLabel => 'конец';
+
+  @override
+  String get breakdownHeading => 'Разбор';
+
+  @override
+  String get noSetDetails => 'Нет данных по подходам для этой сессии.';
+
+  @override
   String get aboutMe => 'О себе';
 
   @override

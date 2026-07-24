@@ -125,6 +125,10 @@
   "pause": "Pause",
   "resume": "Resume",
   "finish": "Finish",
+  "startTimeLabel": "start",
+  "endTimeLabel": "end",
+  "breakdownHeading": "Breakdown",
+  "noSetDetails": "No per-set details for this session.",
 
   "aboutMe": "About me",
   "fieldName": "Name",

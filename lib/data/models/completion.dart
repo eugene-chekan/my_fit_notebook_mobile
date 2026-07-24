@@ -52,6 +52,35 @@ class Completion {
   };
 }
 
+/// One set snapshotted into `completion_sets` when a session finished — the
+/// exercise it belonged to and the reps actually logged. Denormalized, so it
+/// survives later edits/deletes of the routine's exercises.
+class CompletionSet {
+  const CompletionSet({
+    required this.exerciseName,
+    this.catalogId,
+    required this.setIndex,
+    this.reps,
+    required this.unit,
+  });
+
+  final String exerciseName;
+  final int? catalogId;
+  final int setIndex;
+  final int? reps;
+  final String unit;
+
+  factory CompletionSet.fromMap(Map<String, Object?> map) {
+    return CompletionSet(
+      exerciseName: map['exercise_name'] as String,
+      catalogId: map['catalog_id'] as int?,
+      setIndex: map['set_index'] as int,
+      reps: map['reps'] as int?,
+      unit: (map['unit'] as String?) ?? 'reps',
+    );
+  }
+}
+
 /// Mirrors the `WorkoutStatistics` dataclass in the Flask app's models.py,
 /// plus per-set totals ([setsCompleted]/[repsTotal]) captured at finish time.
 class WorkoutStatistics {

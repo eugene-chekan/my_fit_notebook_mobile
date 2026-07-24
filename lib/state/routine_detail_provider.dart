@@ -258,6 +258,10 @@ class RoutineDetailProvider extends ChangeNotifier {
     await load();
   }
 
+  /// The per-set snapshot for a logged session (for its detail view).
+  Future<List<CompletionSet>> completionSets(int completionId) =>
+      _completionRepository.setsFor(completionId);
+
   Future<bool> updateCompletionDate(int completionId, DateTime newDate) async {
     final existing = completions.firstWhere((c) => c.id == completionId);
     int? durationMinutes;

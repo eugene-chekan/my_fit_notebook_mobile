@@ -316,6 +316,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get finish => 'Finish';
 
   @override
+  String get startTimeLabel => 'start';
+
+  @override
+  String get endTimeLabel => 'end';
+
+  @override
+  String get breakdownHeading => 'Breakdown';
+
+  @override
+  String get noSetDetails => 'No per-set details for this session.';
+
+  @override
   String get aboutMe => 'About me';
 
   @override

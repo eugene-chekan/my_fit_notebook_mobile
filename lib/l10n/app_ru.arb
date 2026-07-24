@@ -86,6 +86,10 @@
   "pause": "Пауза",
   "resume": "Продолжить",
   "finish": "Завершить",
+  "startTimeLabel": "начало",
+  "endTimeLabel": "конец",
+  "breakdownHeading": "Разбор",
+  "noSetDetails": "Нет данных по подходам для этой сессии.",
 
   "aboutMe": "О себе",
   "fieldName": "Имя",

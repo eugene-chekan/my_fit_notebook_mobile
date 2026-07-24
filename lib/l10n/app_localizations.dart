@@ -578,6 +578,30 @@ abstract class AppLocalizations {
   /// **'Finish'**
   String get finish;
 
+  /// No description provided for @startTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'start'**
+  String get startTimeLabel;
+
+  /// No description provided for @endTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'end'**
+  String get endTimeLabel;
+
+  /// No description provided for @breakdownHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakdown'**
+  String get breakdownHeading;
+
+  /// No description provided for @noSetDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'No per-set details for this session.'**
+  String get noSetDetails;
+
   /// No description provided for @aboutMe.
   ///
   /// In en, this message translates to:

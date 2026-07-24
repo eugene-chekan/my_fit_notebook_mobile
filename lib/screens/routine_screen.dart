@@ -130,6 +130,24 @@ class _RoutineScreenState extends State<RoutineScreen> {
     if (confirmed) await _provider.deleteCompletion(completion.id);
   }
 
+  /// Open the full breakdown for a logged session — times, totals, and the
+  /// per-set reps for each exercise.
+  Future<void> _openCompletionDetail(models.Completion completion) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.notebook.bg,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: context.notebook.ink, width: 2),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+      ),
+      builder: (sheetContext) => _CompletionDetailSheet(
+        provider: _provider,
+        completion: completion,
+      ),
+    );
+  }
+
   /// Tap a set's reps to type the actual count performed.
   Future<void> _editSetReps(Exercise exercise, ExerciseSet set) async {
     final t = AppLocalizations.of(context);
@@ -294,6 +312,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                     (c) => _CompletionRow(
                                       completion: c,
                                       onDelete: () => _deleteCompletion(c),
+                                      onTap: () => _openCompletionDetail(c),
                                     ),
                                   ),
                               ],
@@ -792,11 +811,17 @@ class _InkCheckbox extends StatelessWidget {
 }
 
 class _CompletionRow extends StatelessWidget {
-  const _CompletionRow({required this.completion, required this.onDelete});
+  const _CompletionRow({
+    required this.completion,
+    required this.onDelete,
+    required this.onTap,
+  });
 
   final models.Completion completion;
   /// Shows the confirm dialog and deletes if confirmed; awaited by the swipe.
   final Future<void> Function() onDelete;
+  /// Opens the session's full breakdown.
+  final VoidCallback onTap;
 
   /// "3 exercises · 12 sets · 140 reps" from the snapshotted totals (DB v8);
   /// empty for pre-v8 sessions that never captured them, and sets/reps are
@@ -825,7 +850,7 @@ class _CompletionRow extends StatelessWidget {
         await onDelete();
         return false; // deletion (with confirm) handled by the callback
       },
-      child: _content(context, t, summary),
+      child: InkWell(onTap: onTap, child: _content(context, t, summary)),
     );
   }
 
@@ -883,5 +908,145 @@ class _CompletionRow extends StatelessWidget {
           ),
       ],
     );
+  }
+}
+
+/// Full breakdown of a logged session: start/end times, totals, and the reps
+/// logged for each set of each exercise (from the `completion_sets` snapshot).
+class _CompletionDetailSheet extends StatelessWidget {
+  const _CompletionDetailSheet({required this.provider, required this.completion});
+
+  final RoutineDetailProvider provider;
+  final models.Completion completion;
+
+  static String _hm(DateTime d) =>
+      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
+  String _totals(AppLocalizations t) {
+    final exercises = completion.exercisesCompleted;
+    if (exercises == null) return '';
+    final parts = <String>[t.sessionExercises(exercises)];
+    final sets = completion.setsCompleted ?? 0;
+    if (sets > 0) parts.add(t.sessionSets(sets));
+    final reps = completion.repsTotal ?? 0;
+    if (reps > 0) parts.add(t.sessionReps(reps));
+    return parts.join(' · ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final n = context.notebook;
+
+    DateTime? start;
+    try {
+      if (completion.startedAt != null) start = DateTime.parse(completion.startedAt!);
+    } catch (_) {}
+    final elapsed =
+        (completion.durationMinutes ?? 0) * 60 + (completion.pausedSeconds ?? 0);
+    final end = start?.add(Duration(seconds: elapsed));
+    final totals = _totals(t);
+    final paused = completion.pausedSeconds ?? 0;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.72),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                formatCompletionDt(completion.completedOn),
+                style: TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: n.ink,
+                ),
+              ),
+              const SizedBox(height: 6),
+              if (start != null && end != null)
+                _meta(n, '${t.startTimeLabel} ${_hm(start)}  ·  ${t.endTimeLabel} ${_hm(end)}'),
+              if (completion.durationMinutes != null)
+                _meta(
+                  n,
+                  '${t.totalDurationLabel}: ${formatDurationMinutes(completion.durationMinutes!)}'
+                  '${paused > 0 ? '  ·  ${t.timePausedLabel} ${formatDuration(paused)}' : ''}',
+                ),
+              if (totals.isNotEmpty) _meta(n, totals),
+              const SizedBox(height: 10),
+              FutureBuilder<List<models.CompletionSet>>(
+                future: provider.completionSets(completion.id),
+                builder: (context, snapshot) {
+                  final sets = snapshot.data;
+                  if (sets == null) return const SizedBox(height: 24);
+                  if (sets.isEmpty) {
+                    return _meta(n, t.noSetDetails);
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        t.breakdownHeading,
+                        style: TextStyle(
+                          fontFamily: 'Caveat',
+                          fontSize: 19,
+                          fontWeight: FontWeight.w700,
+                          color: n.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      ..._breakdown(context, t, sets),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _meta(NotebookPalette n, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text(
+          text,
+          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: n.sec),
+        ),
+      );
+
+  List<Widget> _breakdown(
+      BuildContext context, AppLocalizations t, List<models.CompletionSet> sets) {
+    final n = context.notebook;
+    final widgets = <Widget>[];
+    String? current;
+    for (final s in sets) {
+      if (s.exerciseName != current) {
+        current = s.exerciseName;
+        if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 6));
+        widgets.add(Text(
+          s.exerciseName,
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: n.ink,
+          ),
+        ));
+      }
+      final reps = s.reps == null ? '—' : '${s.reps} ${repUnitLabel(t, s.unit)}';
+      widgets.add(Padding(
+        padding: const EdgeInsets.only(left: 14, top: 1),
+        child: Text(
+          '${t.setLabel(s.setIndex)}  —  $reps',
+          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: n.sec),
+        ),
+      ));
+    }
+    return widgets;
   }
 }

@@ -69,6 +69,19 @@ class CompletionRepository {
     return rows.map(Completion.fromMap).toList();
   }
 
+  /// The per-set snapshot for one completion, in logged order (exercise by
+  /// exercise, set by set). Empty for bare-checkbox or pre-v6 sessions.
+  Future<List<CompletionSet>> setsFor(int completionId) async {
+    final db = await _db;
+    final rows = await db.query(
+      'completion_sets',
+      where: 'completion_id = ?',
+      whereArgs: [completionId],
+      orderBy: 'id',
+    );
+    return rows.map(CompletionSet.fromMap).toList();
+  }
+
   Future<List<Completion>> listForRoutine(int routineId) async {
     final db = await _db;
     final rows = await db.rawQuery(
