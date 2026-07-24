@@ -36,6 +36,24 @@
   "tomorrowLabel": "Tomorrow",
   "rescheduleSemantic": "Reschedule",
   "allRoutinesPlanned": "All workouts are already planned for this day.",
+  "repeatQuestion": "Repeat?",
+  "repeatJustOnce": "Just once",
+  "repeatWeekly": "Every week",
+  "repeatWeeklyOn": "Weekly · {days}",
+  "@repeatWeeklyOn": {
+    "placeholders": { "days": { "type": "String" } }
+  },
+  "recurringSemantic": "Repeating workout",
+  "deleteSeriesTitle": "Delete repeating workout?",
+  "deleteThisOccurrence": "Just this one",
+  "deleteWholeSeries": "The whole series",
+  "weekdayMon": "Mon",
+  "weekdayTue": "Tue",
+  "weekdayWed": "Wed",
+  "weekdayThu": "Thu",
+  "weekdayFri": "Fri",
+  "weekdaySat": "Sat",
+  "weekdaySun": "Sun",
   "scheduledTodayLine": "▸ Today: {name}",
   "@scheduledTodayLine": {
     "placeholders": { "name": { "type": "String" } }

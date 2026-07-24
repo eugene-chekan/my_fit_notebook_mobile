@@ -103,6 +103,53 @@ class AppLocalizationsEn extends AppLocalizations {
       'All workouts are already planned for this day.';
 
   @override
+  String get repeatQuestion => 'Repeat?';
+
+  @override
+  String get repeatJustOnce => 'Just once';
+
+  @override
+  String get repeatWeekly => 'Every week';
+
+  @override
+  String repeatWeeklyOn(String days) {
+    return 'Weekly · $days';
+  }
+
+  @override
+  String get recurringSemantic => 'Repeating workout';
+
+  @override
+  String get deleteSeriesTitle => 'Delete repeating workout?';
+
+  @override
+  String get deleteThisOccurrence => 'Just this one';
+
+  @override
+  String get deleteWholeSeries => 'The whole series';
+
+  @override
+  String get weekdayMon => 'Mon';
+
+  @override
+  String get weekdayTue => 'Tue';
+
+  @override
+  String get weekdayWed => 'Wed';
+
+  @override
+  String get weekdayThu => 'Thu';
+
+  @override
+  String get weekdayFri => 'Fri';
+
+  @override
+  String get weekdaySat => 'Sat';
+
+  @override
+  String get weekdaySun => 'Sun';
+
+  @override
   String scheduledTodayLine(String name) {
     return '▸ Today: $name';
   }

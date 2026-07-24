@@ -278,6 +278,96 @@ abstract class AppLocalizations {
   /// **'All workouts are already planned for this day.'**
   String get allRoutinesPlanned;
 
+  /// No description provided for @repeatQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat?'**
+  String get repeatQuestion;
+
+  /// No description provided for @repeatJustOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Just once'**
+  String get repeatJustOnce;
+
+  /// No description provided for @repeatWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every week'**
+  String get repeatWeekly;
+
+  /// No description provided for @repeatWeeklyOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly · {days}'**
+  String repeatWeeklyOn(String days);
+
+  /// No description provided for @recurringSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeating workout'**
+  String get recurringSemantic;
+
+  /// No description provided for @deleteSeriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete repeating workout?'**
+  String get deleteSeriesTitle;
+
+  /// No description provided for @deleteThisOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Just this one'**
+  String get deleteThisOccurrence;
+
+  /// No description provided for @deleteWholeSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole series'**
+  String get deleteWholeSeries;
+
+  /// No description provided for @weekdayMon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get weekdayMon;
+
+  /// No description provided for @weekdayTue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get weekdayTue;
+
+  /// No description provided for @weekdayWed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get weekdayWed;
+
+  /// No description provided for @weekdayThu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get weekdayThu;
+
+  /// No description provided for @weekdayFri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get weekdayFri;
+
+  /// No description provided for @weekdaySat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get weekdaySat;
+
+  /// No description provided for @weekdaySun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get weekdaySun;
+
   /// No description provided for @scheduledTodayLine.
   ///
   /// In en, this message translates to:

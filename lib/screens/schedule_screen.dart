@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../data/models/routine.dart';
 import '../data/models/scheduled_workout.dart';
 import '../data/repositories/routine_repository.dart';
+import '../data/repositories/schedule_repository.dart';
 import '../l10n/app_localizations.dart';
 import '../state/schedule_provider.dart';
 import '../theme/notebook_theme.dart';
@@ -76,16 +77,115 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Future<void> _addFlow() async {
-    final date = await _pickDate();
-    if (date == null || !mounted) return;
     final routines = await _routineRepository.listRoutines();
     if (!mounted) return;
     final routine = await _pickRoutine(routines);
     if (routine == null || !mounted) return;
-    // Optional time — dismissing the picker leaves the plan date-only (no
-    // reminder).
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    await _provider.add(routine.id, date, time: _hm(time));
+
+    // Once or weekly? An empty set means a one-off; a non-empty set is a weekly
+    // series on those ISO weekdays. null means the user backed out.
+    final weekdays = await _pickRecurrence();
+    if (weekdays == null || !mounted) return;
+
+    if (weekdays.isEmpty) {
+      final date = await _pickDate();
+      if (date == null || !mounted) return;
+      // Optional time — dismissing the picker leaves the plan date-only (no
+      // reminder).
+      final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+      if (!mounted) return;
+      await _provider.add(routine.id, date, time: _hm(time));
+    } else {
+      // A weekly series starts today and rolls forward; the optional time
+      // enables a reminder on every occurrence.
+      final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+      if (!mounted) return;
+      await _provider.addSeries(routine.id, weekdays, time: _hm(time));
+    }
+  }
+
+  /// Short weekday labels in ISO order (Mon…Sun), for the recurrence toggles
+  /// and the "Weekly · Mon Wed Fri" summary.
+  static const _isoWeekdays = [1, 2, 3, 4, 5, 6, 7];
+
+  String _weekdayLabel(AppLocalizations t, int iso) {
+    switch (iso) {
+      case 1:
+        return t.weekdayMon;
+      case 2:
+        return t.weekdayTue;
+      case 3:
+        return t.weekdayWed;
+      case 4:
+        return t.weekdayThu;
+      case 5:
+        return t.weekdayFri;
+      case 6:
+        return t.weekdaySat;
+      default:
+        return t.weekdaySun;
+    }
+  }
+
+  /// A little paper dialog: tap weekdays for a weekly repeat, or "Just once".
+  /// Returns the chosen ISO weekdays (empty = one-off), or null if dismissed.
+  Future<Set<int>?> _pickRecurrence() {
+    final t = AppLocalizations.of(context);
+    final selected = <int>{};
+    return showPaperDialog<Set<int>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (statefulContext, setSheetState) {
+          final n = dialogContext.notebook;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                t.repeatQuestion,
+                style: TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: n.ink,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final d in _isoWeekdays)
+                    _WeekdayChip(
+                      label: _weekdayLabel(t, d),
+                      selected: selected.contains(d),
+                      onTap: () => setSheetState(() {
+                        if (!selected.remove(d)) selected.add(d);
+                      }),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  PenButton(
+                    label: t.repeatJustOnce,
+                    onPressed: () => Navigator.pop(dialogContext, <int>{}),
+                  ),
+                  PenButton(
+                    label: t.repeatWeekly,
+                    onPressed: selected.isEmpty
+                        ? null
+                        : () => Navigator.pop(dialogContext, {...selected}),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// TimeOfDay → "HH:mm", or null when no time was picked.
@@ -235,6 +335,22 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       secondaryBackground: const SwipeDeleteBackground(),
       confirmDismiss: (_) async {
         HapticFeedback.lightImpact();
+        if (plan.isRecurring) {
+          final choice = await _askSeriesDelete();
+          if (choice == _DeleteChoice.one) {
+            await _provider.remove(plan.id);
+          } else if (choice == _DeleteChoice.series) {
+            // End the series from the tapped occurrence (or today, whichever is
+            // earlier) forward, so this row and every later one clear out while
+            // completed/missed history stays put.
+            final today = ScheduleRepository.isoDate(DateTime.now());
+            final from = plan.scheduledDate.compareTo(today) < 0
+                ? plan.scheduledDate
+                : today;
+            await _provider.removeSeriesFuture(plan.ruleId!, from);
+          }
+          return false;
+        }
         await _provider.remove(plan.id);
         return false; // provider reload rebuilds the list authoritatively
       },
@@ -271,6 +387,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
               ),
             ),
+            if (plan.isRecurring)
+              Padding(
+                padding: const EdgeInsets.only(right: 8, bottom: 4),
+                child: Tooltip(
+                  message: t.recurringSemantic,
+                  child: Icon(Icons.repeat, size: 16, color: context.notebook.sec),
+                ),
+              ),
             GlyphButton(
               glyph: '↻',
               size: 20,
@@ -278,6 +402,84 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               onTap: () => _reschedule(plan),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Asks whether to delete a single recurring occurrence or the whole series.
+  /// Returns null if the user backs out.
+  Future<_DeleteChoice?> _askSeriesDelete() {
+    final t = AppLocalizations.of(context);
+    return showPaperDialog<_DeleteChoice>(
+      context: context,
+      builder: (dialogContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            t.deleteSeriesTitle,
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 23,
+              fontWeight: FontWeight.w700,
+              color: dialogContext.notebook.ink,
+            ),
+          ),
+          const SizedBox(height: 14),
+          PenButton(
+            label: t.deleteThisOccurrence,
+            onPressed: () => Navigator.pop(dialogContext, _DeleteChoice.one),
+          ),
+          const SizedBox(height: 8),
+          PenButton(
+            label: t.deleteWholeSeries,
+            danger: true,
+            onPressed: () => Navigator.pop(dialogContext, _DeleteChoice.series),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Which part of a repeating series a swipe-delete should remove.
+enum _DeleteChoice { one, series }
+
+/// A small tappable weekday toggle chip for the recurrence picker: ink outline,
+/// filling with the accent when selected.
+class _WeekdayChip extends StatelessWidget {
+  const _WeekdayChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = context.notebook;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? n.accent : Colors.transparent,
+          border: Border.all(color: selected ? n.accent : n.ink, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: selected ? n.bg : n.ink,
+          ),
         ),
       ),
     );

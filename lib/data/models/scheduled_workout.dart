@@ -10,6 +10,7 @@ class ScheduledWorkout {
     this.scheduledTime,
     this.status = ScheduleStatus.planned,
     this.completionId,
+    this.ruleId,
   });
 
   final int id;
@@ -26,6 +27,12 @@ class ScheduledWorkout {
   /// The completion that fulfilled this plan, once done.
   final int? completionId;
 
+  /// The recurrence rule this occurrence was generated from, or null for a
+  /// one-off plan. Drives the ↻ marker and the this-vs-series delete choice.
+  final int? ruleId;
+
+  bool get isRecurring => ruleId != null;
+
   factory ScheduledWorkout.fromMap(Map<String, Object?> map) => ScheduledWorkout(
     id: map['id'] as int,
     routineId: map['routine_id'] as int,
@@ -34,6 +41,7 @@ class ScheduledWorkout {
     scheduledTime: map['scheduled_time'] as String?,
     status: (map['status'] as String?) ?? ScheduleStatus.planned,
     completionId: map['completion_id'] as int?,
+    ruleId: map['rule_id'] as int?,
   );
 }
 

@@ -22,6 +22,9 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   Future<void> load() async {
+    // Roll the recurring rules forward first so freshly-exposed occurrences
+    // show up in the lists (and get reminders) as the horizon advances.
+    await _repository.topUpOccurrences();
     final today = _todayIso();
     upcoming = await _repository.listUpcoming(today);
     missed = await _repository.listMissed(today);
@@ -44,11 +47,28 @@ class ScheduleProvider extends ChangeNotifier {
     return ok;
   }
 
+  /// Adds a weekly repeating rule (fires on [weekdays], 1=Mon…7=Sun) and
+  /// materialises its occurrences. [time] (HH:mm) is optional and enables
+  /// reminders on every occurrence.
+  Future<void> addSeries(int routineId, Set<int> weekdays, {String? time}) async {
+    await _repository.addRule(routineId, weekdays, time: time);
+    await load();
+    await ReminderService.instance.resync();
+  }
+
   Future<void> remove(int id) async {
     upcoming = upcoming.where((s) => s.id != id).toList();
     missed = missed.where((s) => s.id != id).toList();
     notifyListeners();
     await _repository.deleteSchedule(id);
+    await load();
+    await ReminderService.instance.resync();
+  }
+
+  /// Ends a whole repeating series from [fromDate] on (keeping its past),
+  /// used when a recurring occurrence is dismissed with "delete the series".
+  Future<void> removeSeriesFuture(int ruleId, String fromDate) async {
+    await _repository.deleteSeriesFuture(ruleId, fromDate);
     await load();
     await ReminderService.instance.resync();
   }

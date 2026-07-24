@@ -103,6 +103,53 @@ class AppLocalizationsRu extends AppLocalizations {
       'Все тренировки уже запланированы на этот день.';
 
   @override
+  String get repeatQuestion => 'Повторять?';
+
+  @override
+  String get repeatJustOnce => 'Один раз';
+
+  @override
+  String get repeatWeekly => 'Каждую неделю';
+
+  @override
+  String repeatWeeklyOn(String days) {
+    return 'Еженедельно · $days';
+  }
+
+  @override
+  String get recurringSemantic => 'Повторяющаяся тренировка';
+
+  @override
+  String get deleteSeriesTitle => 'Удалить повторяющуюся тренировку?';
+
+  @override
+  String get deleteThisOccurrence => 'Только эту';
+
+  @override
+  String get deleteWholeSeries => 'Всю серию';
+
+  @override
+  String get weekdayMon => 'Пн';
+
+  @override
+  String get weekdayTue => 'Вт';
+
+  @override
+  String get weekdayWed => 'Ср';
+
+  @override
+  String get weekdayThu => 'Чт';
+
+  @override
+  String get weekdayFri => 'Пт';
+
+  @override
+  String get weekdaySat => 'Сб';
+
+  @override
+  String get weekdaySun => 'Вс';
+
+  @override
   String scheduledTodayLine(String name) {
     return '▸ Сегодня: $name';
   }

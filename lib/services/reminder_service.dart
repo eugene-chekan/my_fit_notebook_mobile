@@ -85,6 +85,9 @@ class ReminderService {
     if (!_initialized) await init();
     try {
       await _plugin.cancelAll();
+      // Advance recurring rules so their upcoming occurrences exist as concrete
+      // rows before we read the remindable set (also runs on launch resync).
+      await _schedules.topUpOccurrences();
       final now = DateTime.now();
       final todayIso = ScheduleRepository.isoDate(now);
       final plans = await _schedules.listRemindable(todayIso);

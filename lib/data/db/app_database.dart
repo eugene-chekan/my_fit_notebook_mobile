@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 12,
+      version: 13,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -34,6 +34,7 @@ class AppDatabase {
         await _createProfileTables(db);
         await _createCatalogTable(db);
         await _createSetLoggingTables(db);
+        await _createScheduleRulesTable(db);
         await _createScheduleTable(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
@@ -48,6 +49,7 @@ class AppDatabase {
         if (oldVersion < 10) await _migrateToScheduleTime(db);
         if (oldVersion < 11) await _migrateToTheme(db);
         if (oldVersion < 12) await _migrateToPaperStyles(db);
+        if (oldVersion < 13) await _migrateToRecurrence(db);
       },
     );
   }
@@ -284,6 +286,7 @@ class AppDatabase {
         scheduled_time TEXT,
         status TEXT NOT NULL DEFAULT 'planned',
         completion_id INTEGER REFERENCES completions(id) ON DELETE SET NULL,
+        rule_id INTEGER REFERENCES schedule_rules(id) ON DELETE CASCADE,
         created_at TEXT NOT NULL,
         UNIQUE(routine_id, scheduled_date)
       )
@@ -291,6 +294,28 @@ class AppDatabase {
     await db.execute(
       'CREATE INDEX idx_scheduled_date ON scheduled_workouts(scheduled_date)',
     );
+  }
+
+  /// A repeating-workout rule. This app's only recurrence kind is "weekly on
+  /// one or more weekdays" — [weekdays] is a CSV of ISO weekday ints (1=Mon).
+  /// [generated_through] is the watermark up to which occurrences have already
+  /// been materialised into `scheduled_workouts`; the rolling top-up only ever
+  /// adds dates strictly after it, so a manually deleted occurrence in the past
+  /// range is never resurrected.
+  Future<void> _createScheduleRulesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE schedule_rules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        routine_id INTEGER NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+        freq TEXT NOT NULL DEFAULT 'weekly',
+        weekdays TEXT NOT NULL,
+        scheduled_time TEXT,
+        start_date TEXT NOT NULL,
+        generated_through TEXT,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL
+      )
+    ''');
   }
 
   /// v8 → v9: stand up the scheduled-workouts table. Additive — nothing to
@@ -318,6 +343,18 @@ class AppDatabase {
   Future<void> _migrateToPaperStyles(Database db) async {
     await db.execute(
       "ALTER TABLE profile ADD COLUMN paper_styles TEXT NOT NULL DEFAULT '{}'",
+    );
+  }
+
+  /// v12 → v13: repeating scheduled workouts. Stands up the `schedule_rules`
+  /// table and links each generated occurrence back to its rule via a nullable
+  /// `rule_id` on `scheduled_workouts` (one-off plans leave it null). Additive
+  /// and non-destructive — existing plans keep working untouched.
+  Future<void> _migrateToRecurrence(Database db) async {
+    await _createScheduleRulesTable(db);
+    await db.execute(
+      'ALTER TABLE scheduled_workouts ADD COLUMN rule_id INTEGER '
+      'REFERENCES schedule_rules(id) ON DELETE CASCADE',
     );
   }
 }
