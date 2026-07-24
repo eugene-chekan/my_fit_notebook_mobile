@@ -213,57 +213,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     NotebookHeader(title: t.navProfile, leading: const BackGlyph()),
                     const SizedBox(height: 8),
                     HeadingLine(t.aboutMe),
-                    _fieldLabel(t.fieldName),
-                    TextField(
-                      controller: _nameController,
-                      maxLength: 200,
-                      cursorColor: context.notebook.ink,
-                      style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
-                      decoration: _underline(),
-                    ),
-                    const SizedBox(height: 10),
-                    _fieldLabel(t.fieldBorn),
-                    InkWell(
-                      onTap: _pickBirthDate,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: context.notebook.ink),
+                    const SizedBox(height: 6),
+                    // Name / born / height flow inline, wrapping to the next
+                    // line only when they don't fit the page width.
+                    Wrap(
+                      spacing: 20,
+                      runSpacing: 12,
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      children: [
+                        _inlineField(
+                          t.fieldName,
+                          SizedBox(
+                            width: 150,
+                            child: TextField(
+                              controller: _nameController,
+                              maxLength: 200,
+                              cursorColor: context.notebook.ink,
+                              style: TextStyle(
+                                fontFamily: 'Caveat',
+                                fontSize: 20,
+                                color: context.notebook.ink,
+                              ),
+                              decoration: _underline(),
+                            ),
                           ),
                         ),
-                        child: Text(
-                          _birthDate == null
-                              ? t.pickDateHint
-                              : '${formatCompletionDt(_birthDate!)}'
-                                  '${age != null ? '  ${t.ageYears(age)}' : ''}',
-                          style: TextStyle(
-                            fontFamily: 'Caveat',
-                            fontSize: 20,
-                            color: _birthDate == null
-                                ? context.notebook.sec
-                                : context.notebook.ink,
+                        _inlineField(t.fieldBorn, _bornField(t, age)),
+                        _inlineField(
+                          t.fieldHeight,
+                          SizedBox(
+                            width: 84,
+                            child: TextField(
+                              controller: _heightController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(decimal: true),
+                              cursorColor: context.notebook.ink,
+                              style: TextStyle(
+                                fontFamily: 'Caveat',
+                                fontSize: 20,
+                                color: context.notebook.ink,
+                              ),
+                              decoration: _underline().copyWith(
+                                suffixText: heightSuffix(profile.units),
+                                suffixStyle: TextStyle(
+                                  fontFamily: 'Caveat',
+                                  fontSize: 16,
+                                  color: context.notebook.sec,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    _fieldLabel(t.fieldHeight),
-                    TextField(
-                      controller: _heightController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      cursorColor: context.notebook.ink,
-                      style: const TextStyle(fontFamily: 'Caveat', fontSize: 20),
-                      decoration: _underline().copyWith(
-                        suffixText: heightSuffix(profile.units),
-                        suffixStyle: TextStyle(
-                          fontFamily: 'Caveat',
-                          fontSize: 18,
-                          color: context.notebook.sec,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: PenButton(label: t.saveDetails, onPressed: _saveDetails),
@@ -284,16 +287,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _fieldLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: 'Caveat',
-          fontSize: 17,
-          fontStyle: FontStyle.italic,
-          color: context.notebook.sec,
+  /// A compact "label: field" unit for the inline About-me [Wrap], bottom-
+  /// aligned so the field underlines share a baseline across the row.
+  Widget _inlineField(String label, Widget child) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 6, bottom: 5),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 16,
+              fontStyle: FontStyle.italic,
+              color: context.notebook.sec,
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+
+  /// The tappable birth-date value (date + derived age), underlined to match
+  /// the text fields beside it.
+  Widget _bornField(AppLocalizations t, int? age) {
+    return InkWell(
+      onTap: _pickBirthDate,
+      child: Container(
+        padding: const EdgeInsets.only(bottom: 6),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.notebook.ink)),
+        ),
+        child: Text(
+          _birthDate == null
+              ? t.pickDateHint
+              : '${formatCompletionDt(_birthDate!)}'
+                  '${age != null ? '  ${t.ageYears(age)}' : ''}',
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 20,
+            color: _birthDate == null ? context.notebook.sec : context.notebook.ink,
+          ),
         ),
       ),
     );
