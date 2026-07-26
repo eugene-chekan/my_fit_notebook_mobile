@@ -20,7 +20,7 @@ class PolaroidPhoto extends StatelessWidget {
     this.caption,
     required this.onTap,
     required this.semanticLabel,
-    this.width = 148,
+    this.width = 108,
   });
 
   /// The photo file, or null to show the ink placeholder bust.
@@ -60,15 +60,15 @@ class PolaroidPhoto extends StatelessWidget {
               alignment: Alignment.topCenter,
               children: [
                 Container(
-                  margin: const EdgeInsets.only(top: 9),
-                  padding: const EdgeInsets.all(9),
+                  margin: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
                     color: _paper,
                     boxShadow: [
                       BoxShadow(
                         color: shadow,
-                        blurRadius: 11,
-                        offset: const Offset(2, 6),
+                        blurRadius: 9,
+                        offset: const Offset(2, 5),
                       ),
                     ],
                   ),
@@ -95,11 +95,11 @@ class PolaroidPhoto extends StatelessWidget {
                       ),
                       // The chin — wide bottom border, with the handwritten name.
                       SizedBox(
-                        height: 30,
+                        height: 24,
                         child: Center(
                           child: hasCaption
                               ? Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 3),
                                   child: Text(
                                     caption!.trim(),
                                     maxLines: 1,
@@ -107,7 +107,7 @@ class PolaroidPhoto extends StatelessWidget {
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       fontFamily: 'Caveat',
-                                      fontSize: 19,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       color: _penInk,
                                     ),
@@ -125,8 +125,8 @@ class PolaroidPhoto extends StatelessWidget {
                   child: Transform.rotate(
                     angle: 0.15,
                     child: Container(
-                      width: 56,
-                      height: 19,
+                      width: 46,
+                      height: 16,
                       decoration: BoxDecoration(
                         color: _tape,
                         border: Border.symmetric(

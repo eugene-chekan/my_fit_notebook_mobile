@@ -25,6 +25,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  /// Width of the taped Polaroid in the top-right corner. The name row
+  /// reserves this (plus a gap) as a right-hand gutter so the two never meet.
+  static const _photoWidth = 108.0;
+
   late final ProfileProvider _provider;
   final _nameController = TextEditingController();
   final _heightController = TextEditingController();
@@ -254,38 +258,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    NotebookHeader(title: t.navProfile, leading: const BackGlyph()),
-                    const SizedBox(height: 8),
-                    HeadingLine(t.aboutMe),
-                    const SizedBox(height: 6),
-                    // The taped Polaroid sits to the right; the name / born /
-                    // height fields flow inline on the left, wrapping as needed.
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    // The Polaroid is taped into the top-right corner, over the
+                    // header's rule — a photo stuck on the page. It is shorter
+                    // than the header + heading + name block it overlays, so it
+                    // can never reach the born/height fields below; only the
+                    // short name row yields a right-hand gutter to it.
+                    Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        Expanded(
-                          child: Wrap(
-                            spacing: 20,
-                            runSpacing: 12,
-                            crossAxisAlignment: WrapCrossAlignment.end,
-                            children: [
-                        _inlineField(
-                          t.fieldName,
-                          SizedBox(
-                            width: 150,
-                            child: TextField(
-                              controller: _nameController,
-                              maxLength: 200,
-                              cursorColor: context.notebook.ink,
-                              style: TextStyle(
-                                fontFamily: 'Caveat',
-                                fontSize: 20,
-                                color: context.notebook.ink,
-                              ),
-                              decoration: _underline(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            NotebookHeader(
+                              title: t.navProfile,
+                              leading: const BackGlyph(),
                             ),
+                            const SizedBox(height: 8),
+                            HeadingLine(t.aboutMe),
+                            const SizedBox(height: 6),
+                            Padding(
+                              padding: const EdgeInsets.only(right: _photoWidth + 10),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  _fieldLabel(t.fieldName),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _nameController,
+                                      maxLength: 200,
+                                      cursorColor: context.notebook.ink,
+                                      style: TextStyle(
+                                        fontFamily: 'Caveat',
+                                        fontSize: 20,
+                                        color: context.notebook.ink,
+                                      ),
+                                      decoration: _underline(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: PolaroidPhoto(
+                            width: _photoWidth,
+                            photo: provider.photoFile,
+                            caption: profile.name,
+                            semanticLabel: t.profilePhotoSemantic,
+                            onTap: _editPhoto,
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Born and height get the full page width, so a long date
+                    // plus its derived age is never cut off.
+                    Wrap(
+                      spacing: 20,
+                      runSpacing: 12,
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      children: [
                         _inlineField(t.fieldBorn, _bornField(t, age)),
                         _inlineField(
                           t.fieldHeight,
@@ -312,19 +347,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                         ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: PolaroidPhoto(
-                            photo: provider.photoFile,
-                            caption: profile.name,
-                            semanticLabel: t.profilePhotoSemantic,
-                            onTap: _editPhoto,
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 14),
@@ -348,27 +370,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// The italic field caption shared by every inline About-me field.
+  Widget _fieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6, bottom: 5),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Caveat',
+          fontSize: 16,
+          fontStyle: FontStyle.italic,
+          color: context.notebook.sec,
+        ),
+      ),
+    );
+  }
+
   /// A compact "label: field" unit for the inline About-me [Wrap], bottom-
   /// aligned so the field underlines share a baseline across the row.
   Widget _inlineField(String label, Widget child) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(right: 6, bottom: 5),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Caveat',
-              fontSize: 16,
-              fontStyle: FontStyle.italic,
-              color: context.notebook.sec,
-            ),
-          ),
-        ),
-        child,
-      ],
+      children: [_fieldLabel(label), child],
     );
   }
 
