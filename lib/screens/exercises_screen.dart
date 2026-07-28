@@ -166,12 +166,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       entry.defaultRepsMax,
       entry.defaultUnit,
     );
-    return Dismissible(
-      key: ValueKey('catalog-${entry.id}'),
-      direction: DismissDirection.endToStart,
-      background: const SwipeDeleteBackground(),
-      secondaryBackground: const SwipeDeleteBackground(),
-      confirmDismiss: (_) async {
+    return SwipeableRow(
+      itemKey: ValueKey('catalog-${entry.id}'),
+      onCopy: () => _provider.duplicate(entry.id),
+      onDelete: () async {
         await _delete(entry);
         return false; // deletion handled explicitly; keep list authoritative
       },

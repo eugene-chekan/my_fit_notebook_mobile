@@ -458,18 +458,14 @@ class _ReorderableExerciseList extends StatelessWidget {
         final ex = exercises[index];
         // Swipe right duplicates (row snaps back), swipe left deletes after
         // the paper confirm. Long-press still drags to reorder.
-        return Dismissible(
-          key: ValueKey(ex.id),
-          background: const SwipeCopyBackground(),
-          secondaryBackground: const SwipeDeleteBackground(),
-          confirmDismiss: (direction) async {
-            if (direction == DismissDirection.startToEnd) {
-              onDuplicate(ex);
-              return false;
-            }
-            return onConfirmDelete(ex);
+        return SwipeableRow(
+          itemKey: ValueKey(ex.id),
+          onCopy: () async => onDuplicate(ex),
+          onDelete: () async {
+            final confirmed = await onConfirmDelete(ex);
+            if (confirmed) onDelete(ex);
+            return confirmed;
           },
-          onDismissed: (_) => onDelete(ex),
           child: SizedBox(
             height: kNotebookLine,
             child: Row(

@@ -50,6 +50,11 @@ class ExerciseCatalogProvider extends ChangeNotifier {
 
   Future<int> usageCount(int id) => _repository.usageCount(id);
 
+  Future<void> duplicate(int id) async {
+    await _repository.duplicate(id);
+    await load();
+  }
+
   Future<void> delete(int id) async {
     entries = entries.where((e) => e.id != id).toList();
     notifyListeners();

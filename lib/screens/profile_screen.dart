@@ -635,12 +635,9 @@ class _MeasurementHistorySheetState extends State<_MeasurementHistorySheet> {
                     itemCount: entries.length,
                     itemBuilder: (context, index) {
                       final entry = entries[index];
-                      return Dismissible(
-                        key: ValueKey('measurement-${entry.id}'),
-                        direction: DismissDirection.endToStart,
-                        background: const SwipeDeleteBackground(),
-                        secondaryBackground: const SwipeDeleteBackground(),
-                        confirmDismiss: (_) async {
+                      return SwipeableRow(
+                        itemKey: ValueKey('measurement-${entry.id}'),
+                        onDelete: () async {
                           await widget.provider.deleteMeasurement(entry.id);
                           return false; // provider reload rebuilds the list
                         },

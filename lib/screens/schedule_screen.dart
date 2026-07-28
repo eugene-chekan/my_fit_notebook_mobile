@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
@@ -243,13 +242,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _planRow(AppLocalizations t, ScheduledWorkout plan, {required bool missed}) {
     final color = missed ? context.notebook.sec : context.notebook.ink;
-    return Dismissible(
-      key: ValueKey('plan-${plan.id}'),
-      direction: DismissDirection.endToStart,
-      background: const SwipeDeleteBackground(),
-      secondaryBackground: const SwipeDeleteBackground(),
-      confirmDismiss: (_) async {
-        HapticFeedback.lightImpact();
+    return SwipeableRow(
+      itemKey: ValueKey('plan-${plan.id}'),
+      onDelete: () async {
         if (plan.isRecurring) {
           final choice = await _askSeriesDelete();
           if (choice == _DeleteChoice.one) {

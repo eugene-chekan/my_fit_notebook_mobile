@@ -315,12 +315,9 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
           if (_plans.isNotEmpty) ...[
             const SizedBox(height: 8),
             for (final plan in _plans)
-              Dismissible(
-                key: ValueKey('day-plan-${plan.id}'),
-                direction: DismissDirection.endToStart,
-                background: const SwipeDeleteBackground(),
-                secondaryBackground: const SwipeDeleteBackground(),
-                confirmDismiss: (_) async {
+              SwipeableRow(
+                itemKey: ValueKey('day-plan-${plan.id}'),
+                onDelete: () async {
                   await _remove(plan.id);
                   return false; // _reload() rebuilds the sheet's list
                 },

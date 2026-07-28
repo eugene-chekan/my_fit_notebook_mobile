@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
@@ -120,25 +119,19 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   /// Swipe right to duplicate, swipe left to delete (after confirmation).
   Widget _routineRow(Routine routine) {
     final t = AppLocalizations.of(context);
-    return Dismissible(
-      key: ValueKey('routine-${routine.id}'),
-      background: const SwipeCopyBackground(),
-      secondaryBackground: const SwipeDeleteBackground(),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          HapticFeedback.lightImpact();
-          await _provider.duplicateRoutine(routine.id);
-          return false;
-        }
-        return showPaperConfirm(
+    return SwipeableRow(
+      itemKey: ValueKey('routine-${routine.id}'),
+      onCopy: () => _provider.duplicateRoutine(routine.id),
+      onDelete: () async {
+        final confirmed = await showPaperConfirm(
           context,
           title: t.deleteRoutineTitle(routine.name),
           message: t.deleteRoutineMessage,
         );
-      },
-      onDismissed: (_) {
-        HapticFeedback.lightImpact();
-        _provider.deleteRoutine(routine.id);
+        // The provider drops the row before it awaits the delete, so the
+        // dismissal can safely play out.
+        if (confirmed) await _provider.deleteRoutine(routine.id);
+        return confirmed;
       },
       child: SizedBox(
         height: kNotebookLine,

@@ -841,12 +841,9 @@ class _CompletionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final summary = _summary(t);
-    return Dismissible(
-      key: ValueKey('completion-${completion.id}'),
-      direction: DismissDirection.endToStart,
-      background: const SwipeDeleteBackground(),
-      secondaryBackground: const SwipeDeleteBackground(),
-      confirmDismiss: (_) async {
+    return SwipeableRow(
+      itemKey: ValueKey('completion-${completion.id}'),
+      onDelete: () async {
         await onDelete();
         return false; // deletion (with confirm) handled by the callback
       },

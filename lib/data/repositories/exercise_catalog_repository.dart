@@ -97,6 +97,37 @@ class ExerciseCatalogRepository {
     }
   }
 
+  /// Copies a library exercise, keeping its description and prescription
+  /// defaults. Names follow the routine convention ("Squat (copy)"), but the
+  /// catalog's names are unique, so repeated copies count up — "(copy 2)",
+  /// "(copy 3)" — rather than failing silently on the constraint.
+  Future<void> duplicate(int id) async {
+    final db = await _db;
+    final rows = await db.query(
+      'exercise_catalog',
+      columns: _catalogColumns.split(', '),
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (rows.isEmpty) return;
+    final src = CatalogEntry.fromMap(rows.first);
+    final taken = (await allNames()).map((n) => n.toLowerCase()).toSet();
+
+    var name = '${src.name} (copy)';
+    for (var n = 2; taken.contains(name.toLowerCase()); n++) {
+      name = '${src.name} (copy $n)';
+    }
+
+    await create(
+      name: name,
+      description: src.description,
+      defaultSets: src.defaultSets,
+      defaultReps: src.defaultReps,
+      defaultRepsMax: src.defaultRepsMax,
+      defaultUnit: src.defaultUnit,
+    );
+  }
+
   /// Updates metadata and cascades a rename to linked routine exercises so
   /// library edits propagate to every routine using the exercise. Returns
   /// false on a name collision with a different entry.
