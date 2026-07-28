@@ -22,7 +22,7 @@ class AppDatabase {
   }
 
   /// Current schema version. Bump alongside a new entry in [_onUpgrade].
-  static const schemaVersion = 15;
+  static const schemaVersion = 16;
 
   Future<Database> _open() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -68,20 +68,27 @@ class AppDatabase {
     if (oldVersion < 13) await _migrateToRecurrence(db);
     if (oldVersion < 14) await _migrateToProfilePhoto(db);
     if (oldVersion < 15) await _createProgramTables(db);
+    if (oldVersion < 16) await _migrateToSetWeight(db);
   }
 
   /// Opens a throwaway database through [factory] (an in-memory one under
   /// sqflite_common_ffi) and hands the singleton to it, so repositories can be
-  /// exercised on the test VM against the real schema. Opening at [version]
-  /// below [schemaVersion] runs the migration chain, which is how upgrades get
-  /// tested. Never called by app code.
+  /// exercised on the test VM against the real schema. Never called by app code.
+  ///
+  /// Pass a [path] to use a file instead, which is what a migration test needs:
+  /// an in-memory database is discarded on close, so reopening one can only ever
+  /// run [_onCreate] again. To exercise [_onUpgrade] a test must lay down the
+  /// old schema itself and then open through here — [_onCreate] always builds
+  /// today's tables whatever version it is handed, so it cannot stand in for a
+  /// historical one.
   @visibleForTesting
   Future<Database> openForTesting(
     DatabaseFactory factory, {
     int version = schemaVersion,
+    String? path,
   }) async {
     final db = await factory.openDatabase(
-      inMemoryDatabasePath,
+      path ?? inMemoryDatabasePath,
       options: OpenDatabaseOptions(
         version: version,
         onConfigure: _onConfigure,
@@ -255,6 +262,7 @@ class AppDatabase {
         exercise_id INTEGER NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
         set_index INTEGER NOT NULL,
         actual_reps INTEGER,
+        weight_kg REAL,
         is_done INTEGER NOT NULL DEFAULT 0
       )
     ''');
@@ -269,6 +277,7 @@ class AppDatabase {
         catalog_id INTEGER,
         set_index INTEGER NOT NULL,
         reps INTEGER,
+        weight_kg REAL,
         unit TEXT NOT NULL DEFAULT 'reps'
       )
     ''');
@@ -431,6 +440,15 @@ class AppDatabase {
     await db.execute(
       'CREATE INDEX idx_program_routines_program ON program_routines(program_id)',
     );
+  }
+
+  /// v15 → v16: an optional load per set, in kilograms. Canonical metric like
+  /// every other measurement in the app — pounds are a display choice, made at
+  /// the point the number is shown. Nullable, so a bodyweight set simply has
+  /// no weight rather than a zero.
+  Future<void> _migrateToSetWeight(Database db) async {
+    await db.execute('ALTER TABLE exercise_sets ADD COLUMN weight_kg REAL');
+    await db.execute('ALTER TABLE completion_sets ADD COLUMN weight_kg REAL');
   }
 
   /// v13 → v14: an optional profile photo. Stores just the file *name* of an

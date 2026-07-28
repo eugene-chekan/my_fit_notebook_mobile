@@ -126,6 +126,9 @@
   "@setActual": {
     "placeholders": { "index": { "type": "int" }, "unit": { "type": "String" } }
   },
+  "weightLabel": "weight",
+  "weightOptional": "optional",
+  "tipSemantic": "Show the tip",
   "startWorkout": "Start workout",
   "workoutRunning": "Workout in progress",
   "workoutReminderChannel": "Workout reminders",

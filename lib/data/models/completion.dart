@@ -61,6 +61,7 @@ class CompletionSet {
     this.catalogId,
     required this.setIndex,
     this.reps,
+    this.weightKg,
     required this.unit,
   });
 
@@ -68,6 +69,9 @@ class CompletionSet {
   final int? catalogId;
   final int setIndex;
   final int? reps;
+
+  /// The load carried, in kilograms, or null for a bodyweight set.
+  final double? weightKg;
   final String unit;
 
   factory CompletionSet.fromMap(Map<String, Object?> map) {
@@ -76,6 +80,7 @@ class CompletionSet {
       catalogId: map['catalog_id'] as int?,
       setIndex: map['set_index'] as int,
       reps: map['reps'] as int?,
+      weightKg: (map['weight_kg'] as num?)?.toDouble(),
       unit: (map['unit'] as String?) ?? 'reps',
     );
   }

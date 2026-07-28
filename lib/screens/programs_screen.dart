@@ -11,6 +11,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/swipe_actions.dart';
+import '../widgets/tip_note.dart';
 import 'program_detail_screen.dart';
 
 /// The programs library: named groups of workouts (a training split on one
@@ -80,7 +81,11 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                NotebookHeader(title: t.navPrograms, leading: const BackGlyph()),
+                NotebookHeader(
+                  title: t.navPrograms,
+                  leading: const BackGlyph(),
+                  trailing: TipNoteButton(text: t.programsHint),
+                ),
                 Consumer<ProgramsProvider>(
                   builder: (context, provider, _) {
                     if (provider.loading) return const SizedBox.shrink();
@@ -91,8 +96,6 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                         if (provider.programs.isEmpty) MutedLine(t.noPrograms),
                         for (final program in provider.programs) _programRow(program),
                         _newProgramRow(),
-                        const SizedBox(height: 8),
-                        MutedLine(t.programsHint),
                       ],
                     );
                   },

@@ -6,11 +6,13 @@ import '../data/models/completion.dart';
 import '../data/models/exercise.dart';
 import '../data/models/exercise_catalog.dart';
 import '../data/models/exercise_set.dart';
+import '../data/models/profile.dart';
 import '../data/models/rep_unit.dart';
 import '../data/models/routine.dart';
 import '../data/repositories/completion_repository.dart';
 import '../data/repositories/exercise_catalog_repository.dart';
 import '../data/repositories/exercise_repository.dart';
+import '../data/repositories/profile_repository.dart';
 import '../data/repositories/routine_repository.dart';
 import '../data/services/workout_service.dart';
 import '../services/reminder_service.dart';
@@ -28,7 +30,9 @@ class RoutineDetailProvider extends ChangeNotifier {
     CompletionRepository? completionRepository,
     ExerciseCatalogRepository? catalogRepository,
     WorkoutService? workoutService,
-  }) : _routineRepository = routineRepository ?? RoutineRepository(),
+    ProfileRepository? profileRepository,
+  }) : _profileRepository = profileRepository ?? ProfileRepository(),
+       _routineRepository = routineRepository ?? RoutineRepository(),
        _exerciseRepository = exerciseRepository ?? ExerciseRepository(),
        _completionRepository = completionRepository ?? CompletionRepository(),
        _catalogRepository = catalogRepository ?? ExerciseCatalogRepository(),
@@ -42,6 +46,7 @@ class RoutineDetailProvider extends ChangeNotifier {
   final CompletionRepository _completionRepository;
   final ExerciseCatalogRepository _catalogRepository;
   final WorkoutService _workoutService;
+  final ProfileRepository _profileRepository;
 
   Routine? routine;
   List<Exercise> exercises = [];
@@ -55,6 +60,9 @@ class RoutineDetailProvider extends ChangeNotifier {
   /// it survives the frequent [load] reloads that follow each set toggle.
   final Set<int> expandedExercises = {};
   bool loading = true;
+  /// The profile's unit preference, so logged loads read in kg or lb without
+  /// each row reaching for the profile itself.
+  String units = Units.metric;
   Timer? _ticker;
 
   /// Reload when a notification button (pause/resume/finish) changes the
@@ -93,6 +101,7 @@ class RoutineDetailProvider extends ChangeNotifier {
     completions = await _completionRepository.listForRoutine(routineId);
     catalogEntries = await _catalogRepository.listAll();
     setsByExercise = await _exerciseRepository.listSetsForRoutine(routineId);
+    units = (await _profileRepository.getProfile()).units;
     loading = false;
     _syncTicker();
     // Keep the ongoing-workout notification in lockstep with the DB: this fires
@@ -179,8 +188,8 @@ class RoutineDetailProvider extends ChangeNotifier {
     await load();
   }
 
-  Future<void> setSetReps(int setId, int? reps) async {
-    await _exerciseRepository.setSetReps(setId, reps);
+  Future<void> setSetLog(int setId, int? reps, {double? weightKg}) async {
+    await _exerciseRepository.setSetLog(setId, reps, weightKg: weightKg);
     await load();
   }
 

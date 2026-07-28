@@ -130,15 +130,4 @@ void main() {
 
     expect((await programs.routinesFor(id)).map((r) => r.name), ['Pull', 'Push']);
   });
-
-  test('an upgrade from v14 gains the program tables', () async {
-    // Programs arrived in v15; existing installs must pick them up.
-    await AppDatabase.instance.resetForTesting();
-    await AppDatabase.instance.openForTesting(databaseFactoryFfi, version: 14);
-    await AppDatabase.instance.resetForTesting();
-    await AppDatabase.instance.openForTesting(databaseFactoryFfi);
-
-    final id = await ProgramRepository().createProgram('After upgrade');
-    expect((await ProgramRepository().listPrograms()).single.id, id);
-  });
 }

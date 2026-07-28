@@ -321,6 +321,15 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get weightLabel => 'вес';
+
+  @override
+  String get weightOptional => 'необязательно';
+
+  @override
+  String get tipSemantic => 'Показать подсказку';
+
+  @override
   String get startWorkout => 'Начать тренировку';
 
   @override

@@ -16,6 +16,7 @@ import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
 import '../widgets/polaroid_photo.dart';
 import '../widgets/swipe_actions.dart';
+import '../widgets/tip_note.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -355,11 +356,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: PenButton(label: t.saveDetails, onPressed: _saveDetails),
                     ),
                     const SizedBox(height: 16),
-                    HeadingLine(t.measurements),
+                    Row(
+                      children: [
+                        Expanded(child: HeadingLine(t.measurements)),
+                        TipNoteButton(text: t.measurementsHint),
+                      ],
+                    ),
                     for (final metric in kBodyMetrics)
                       _metricRow(metric, provider),
-                    const SizedBox(height: 8),
-                    MutedLine(t.measurementsHint),
                   ],
                 );
               },

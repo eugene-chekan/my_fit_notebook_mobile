@@ -620,6 +620,24 @@ abstract class AppLocalizations {
   /// **'Set {index} · actual {unit}'**
   String setActual(int index, String unit);
 
+  /// No description provided for @weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'weight'**
+  String get weightLabel;
+
+  /// No description provided for @weightOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get weightOptional;
+
+  /// No description provided for @tipSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the tip'**
+  String get tipSemantic;
+
   /// No description provided for @startWorkout.
   ///
   /// In en, this message translates to:

@@ -7,6 +7,7 @@ class ExerciseSet {
     required this.exerciseId,
     required this.setIndex,
     this.actualReps,
+    this.weightKg,
     this.isDone = false,
   });
 
@@ -15,6 +16,10 @@ class ExerciseSet {
   /// 1-based position within the exercise.
   final int setIndex;
   final int? actualReps;
+
+  /// The load carried for this set, in kilograms, or null for a bodyweight
+  /// set. Canonical metric; pounds are a display choice made at render time.
+  final double? weightKg;
   final bool isDone;
 
   factory ExerciseSet.fromMap(Map<String, Object?> map) {
@@ -23,6 +28,7 @@ class ExerciseSet {
       exerciseId: map['exercise_id'] as int,
       setIndex: map['set_index'] as int,
       actualReps: map['actual_reps'] as int?,
+      weightKg: (map['weight_kg'] as num?)?.toDouble(),
       isDone: (map['is_done'] as int) != 0,
     );
   }
@@ -32,6 +38,7 @@ class ExerciseSet {
     'exercise_id': exerciseId,
     'set_index': setIndex,
     'actual_reps': actualReps,
+    'weight_kg': weightKg,
     'is_done': isDone ? 1 : 0,
   };
 }

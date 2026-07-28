@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../data/models/completion.dart' as models;
 import '../data/models/exercise.dart';
 import '../data/models/exercise_set.dart';
+import '../data/models/profile.dart';
 import '../data/models/rep_unit.dart';
 import '../l10n/app_localizations.dart';
 import '../state/routine_detail_provider.dart';
@@ -14,6 +15,7 @@ import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
 import '../utils/metric_labels.dart';
 import '../utils/set_progress.dart';
+import '../utils/units.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
@@ -22,6 +24,11 @@ import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
 import '../widgets/swipe_actions.dart';
 import 'manage_routine_screen.dart';
+
+/// The body metric that loads are logged against, for the kg/lb conversion and
+/// its suffix — the same one the profile uses, so a lifted load and a
+/// bodyweight entry always read in the same unit.
+final _weightMetric = kBodyMetrics.firstWhere((m) => m.isWeight);
 
 class RoutineScreen extends StatefulWidget {
   const RoutineScreen({super.key, required this.routineId});
@@ -148,16 +155,34 @@ class _RoutineScreenState extends State<RoutineScreen> {
     );
   }
 
-  /// Tap a set's reps to type the actual count performed.
+  /// Log what was actually done for a set: the reps, and optionally the load.
+  /// Weight is entered in the profile's units and stored canonically in kg.
   Future<void> _editSetReps(Exercise exercise, ExerciseSet set) async {
     final t = AppLocalizations.of(context);
-    final controller = TextEditingController(
-      text: set.actualReps?.toString() ?? '',
+    final units = _provider.units;
+    final repsCtrl = TextEditingController(text: set.actualReps?.toString() ?? '');
+    final weightCtrl = TextEditingController(
+      text: set.weightKg == null
+          ? ''
+          : formatNumber(toDisplay(set.weightKg!, _weightMetric, units)),
     );
     final unitWord = repUnitLabel(t, exercise.unit);
-    final reps = await showPaperDialog<int>(
+    final weightSuffix = unitSuffix(_weightMetric, units, unitLabelsFor(t));
+
+    ({int? reps, double? weightKg})? result;
+    void submit(BuildContext dialogContext) {
+      final display = parseDisplayNumber(weightCtrl.text);
+      Navigator.pop(dialogContext, (
+        reps: int.tryParse(repsCtrl.text.trim()),
+        weightKg: display == null || display <= 0
+            ? null
+            : toCanonical(display, _weightMetric, units),
+      ));
+    }
+
+    result = await showPaperDialog<({int? reps, double? weightKg})>(
       context: context,
-      builder: (context) => Column(
+      builder: (dialogContext) => Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -167,32 +192,34 @@ class _RoutineScreenState extends State<RoutineScreen> {
               fontFamily: 'Caveat',
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: context.notebook.ink,
+              color: dialogContext.notebook.ink,
             ),
           ),
           const SizedBox(height: 8),
-          TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            cursorColor: context.notebook.ink,
-            style: TextStyle(fontFamily: 'Caveat', fontSize: 22, color: context.notebook.ink),
-            decoration: InputDecoration(
-              isDense: true,
-              suffixText: unitWord,
-              suffixStyle: TextStyle(
-                fontFamily: 'Caveat',
-                fontSize: 18,
-                color: context.notebook.sec,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: _logField(
+                  dialogContext,
+                  controller: repsCtrl,
+                  suffix: unitWord,
+                  autofocus: true,
+                  onSubmitted: () => submit(dialogContext),
+                ),
               ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: context.notebook.ink),
+              const SizedBox(width: 18),
+              Expanded(
+                child: _logField(
+                  dialogContext,
+                  controller: weightCtrl,
+                  suffix: weightSuffix,
+                  decimal: true,
+                  label: '${t.weightLabel} · ${t.weightOptional}',
+                  onSubmitted: () => submit(dialogContext),
+                ),
               ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: context.notebook.ink, width: 2),
-              ),
-            ),
-            onSubmitted: (v) => Navigator.pop(context, int.tryParse(v.trim())),
+            ],
           ),
           const SizedBox(height: 14),
           Row(
@@ -201,24 +228,87 @@ class _RoutineScreenState extends State<RoutineScreen> {
               PenButton(
                 label: t.cancel,
                 small: true,
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
               ),
               const SizedBox(width: 8),
               PenButton(
                 label: t.save,
                 small: true,
-                onPressed: () => Navigator.pop(context, int.tryParse(controller.text.trim())),
+                onPressed: () => submit(dialogContext),
               ),
             ],
           ),
         ],
       ),
     );
-    // Cancel (or a non-number) returns null and leaves the reps untouched; a
-    // valid number updates them, and 0 clears them back to unlogged.
-    if (reps != null) {
-      await _provider.setSetReps(set.id, reps <= 0 ? null : reps);
+    // Cancel returns null and leaves the set untouched; saving writes both
+    // fields, so clearing either one is how you undo it.
+    if (result != null) {
+      await _provider.setSetLog(
+        set.id,
+        (result.reps ?? 0) <= 0 ? null : result.reps,
+        weightKg: result.weightKg,
+      );
     }
+  }
+
+  /// One underlined number field in the set-log dialog, with an optional
+  /// italic caption above it.
+  Widget _logField(
+    BuildContext context, {
+    required TextEditingController controller,
+    required String suffix,
+    required VoidCallback onSubmitted,
+    bool autofocus = false,
+    bool decimal = false,
+    String? label,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (label != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Caveat',
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+                color: context.notebook.sec,
+              ),
+            ),
+          ),
+        TextField(
+          controller: controller,
+          autofocus: autofocus,
+          keyboardType: TextInputType.numberWithOptions(decimal: decimal),
+          cursorColor: context.notebook.ink,
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 22,
+            color: context.notebook.ink,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            suffixText: suffix,
+            suffixStyle: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 18,
+              color: context.notebook.sec,
+            ),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: context.notebook.ink),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: context.notebook.ink, width: 2),
+            ),
+          ),
+          onSubmitted: (_) => onSubmitted(),
+        ),
+      ],
+    );
   }
 
   @override
@@ -295,6 +385,7 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                               provider.toggleSet(setId, ex.id);
                                             },
                                             onEditReps: (set) => _editSetReps(ex, set),
+                                            units: provider.units,
                                           )
                                         : _ExerciseRow(
                                             exercise: ex,
@@ -590,6 +681,7 @@ class _PrescribedExerciseRow extends StatelessWidget {
     required this.onToggleAll,
     required this.onToggleSet,
     required this.onEditReps,
+    required this.units,
   });
 
   final Exercise exercise;
@@ -600,6 +692,8 @@ class _PrescribedExerciseRow extends StatelessWidget {
   final ValueChanged<bool> onToggleAll;
   final ValueChanged<int> onToggleSet; // set id
   final ValueChanged<ExerciseSet> onEditReps;
+  /// The profile's kg/lb preference, passed down to the set rows.
+  final String units;
 
   @override
   Widget build(BuildContext context) {
@@ -677,6 +771,7 @@ class _PrescribedExerciseRow extends StatelessWidget {
             (s) => _SetRow(
               set: s,
               unit: exercise.unit,
+              units: units,
               onToggle: () => onToggleSet(s.id),
               onEditReps: () => onEditReps(s),
             ),
@@ -692,12 +787,15 @@ class _SetRow extends StatelessWidget {
   const _SetRow({
     required this.set,
     required this.unit,
+    required this.units,
     required this.onToggle,
     required this.onEditReps,
   });
 
   final ExerciseSet set;
   final String unit;
+  /// The profile's kg/lb preference, for rendering the logged load.
+  final String units;
   final VoidCallback onToggle;
   final VoidCallback onEditReps;
 
@@ -706,6 +804,11 @@ class _SetRow extends StatelessWidget {
     final t = AppLocalizations.of(context);
     final suffix = RepUnit.suffix(unit);
     final repsText = set.actualReps == null ? '—' : '${set.actualReps}$suffix';
+    // "12reps × 60kg" — the load only shows once it has been logged, so a
+    // bodyweight set stays as uncluttered as it was before weights existed.
+    final loadText = set.weightKg == null
+        ? ''
+        : '  ×  ${formatMeasurement(set.weightKg!, _weightMetric, units, unitLabelsFor(t))}';
     return SizedBox(
       height: kNotebookLine,
       child: Padding(
@@ -752,6 +855,15 @@ class _SetRow extends StatelessWidget {
                           decorationColor: context.notebook.sec,
                         ),
                       ),
+                      if (loadText.isNotEmpty)
+                        TextSpan(
+                          text: loadText,
+                          style: TextStyle(
+                            fontFamily: 'Caveat',
+                            fontSize: 18,
+                            color: context.notebook.sec,
+                          ),
+                        ),
                       TextSpan(
                         text: '  ✐',
                         style: TextStyle(fontSize: 15, color: context.notebook.sec),
@@ -1036,10 +1148,13 @@ class _CompletionDetailSheet extends StatelessWidget {
         ));
       }
       final reps = s.reps == null ? '—' : '${s.reps} ${repUnitLabel(t, s.unit)}';
+      final load = s.weightKg == null
+          ? ''
+          : '  ×  ${formatMeasurement(s.weightKg!, _weightMetric, provider.units, unitLabelsFor(t))}';
       widgets.add(Padding(
         padding: const EdgeInsets.only(left: 14, top: 1),
         child: Text(
-          '${t.setLabel(s.setIndex)}  —  $reps',
+          '${t.setLabel(s.setIndex)}  —  $reps$load',
           style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: n.sec),
         ),
       ));

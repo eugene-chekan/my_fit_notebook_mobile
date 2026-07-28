@@ -19,6 +19,7 @@ import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
 import '../widgets/pick_target_sheet.dart';
 import '../widgets/swipe_actions.dart';
+import '../widgets/tip_note.dart';
 
 /// The exercise library: create / edit / delete catalog exercises with a
 /// name, description, and default sets/reps. Reached from the sidebar.
@@ -135,15 +136,17 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    NotebookHeader(title: t.navExercises, leading: const BackGlyph()),
+                    NotebookHeader(
+                      title: t.navExercises,
+                      leading: const BackGlyph(),
+                      trailing: TipNoteButton(text: t.exercisesEditHint),
+                    ),
                     const SizedBox(height: 6),
                     if (provider.entries.isEmpty)
                       MutedLine(t.noExercisesLibrary)
                     else
                       for (final entry in provider.entries) _entryRow(entry),
                     _newRow(),
-                    const SizedBox(height: 8),
-                    MutedLine(t.exercisesEditHint),
                   ],
                 );
               },

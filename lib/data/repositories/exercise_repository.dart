@@ -234,7 +234,7 @@ class ExerciseRepository {
   Future<Map<int, List<ExerciseSet>>> listSetsForRoutine(int routineId) async {
     final db = await _db;
     final rows = await db.rawQuery(
-      'SELECT s.id, s.exercise_id, s.set_index, s.actual_reps, s.is_done '
+      'SELECT s.id, s.exercise_id, s.set_index, s.actual_reps, s.weight_kg, s.is_done '
       'FROM exercise_sets s JOIN exercises e ON s.exercise_id = e.id '
       'WHERE e.routine_id = ? ORDER BY s.exercise_id ASC, s.set_index ASC',
       [routineId],
@@ -270,11 +270,15 @@ class ExerciseRepository {
     await _recomputeExerciseDone(db, exerciseId);
   }
 
-  Future<void> setSetReps(int setId, int? reps) async {
+  /// Records what was actually lifted for a set: the reps, and optionally the
+  /// load in kilograms. Both are nullable — null reps means unlogged, and null
+  /// weight means bodyweight — so each is written on every call rather than
+  /// merged, letting the caller clear either one.
+  Future<void> setSetLog(int setId, int? reps, {double? weightKg}) async {
     final db = await _db;
     await db.update(
       'exercise_sets',
-      {'actual_reps': reps},
+      {'actual_reps': reps, 'weight_kg': weightKg},
       where: 'id = ?',
       whereArgs: [setId],
     );
@@ -287,8 +291,8 @@ class ExerciseRepository {
     final db = await _db;
     await db.rawInsert(
       'INSERT INTO completion_sets '
-      '(completion_id, exercise_name, catalog_id, set_index, reps, unit) '
-      'SELECT ?, e.name, e.catalog_id, s.set_index, s.actual_reps, e.unit '
+      '(completion_id, exercise_name, catalog_id, set_index, reps, weight_kg, unit) '
+      'SELECT ?, e.name, e.catalog_id, s.set_index, s.actual_reps, s.weight_kg, e.unit '
       'FROM exercise_sets s JOIN exercises e ON s.exercise_id = e.id '
       'WHERE e.routine_id = ? AND s.is_done = 1 '
       'ORDER BY e.sort_order, s.set_index',

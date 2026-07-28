@@ -315,6 +315,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get weightLabel => 'weight';
+
+  @override
+  String get weightOptional => 'optional';
+
+  @override
+  String get tipSemantic => 'Show the tip';
+
+  @override
   String get startWorkout => 'Start workout';
 
   @override
