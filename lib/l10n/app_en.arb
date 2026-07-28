@@ -278,6 +278,7 @@
     "placeholders": { "name": { "type": "String" } }
   },
   "removeFromProgramMessage": "Take this workout out of the program? It stays in your library.",
+  "alreadyAddedTag": "already added",
   "addToProgramTitle": "Add to a program",
   "addToWorkoutTitle": "Add to a workout",
   "addedToProgram": "Filed “{name}”.",

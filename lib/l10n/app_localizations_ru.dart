@@ -707,6 +707,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Убрать эту тренировку из программы? Она останется в библиотеке.';
 
   @override
+  String get alreadyAddedTag => 'уже добавлена';
+
+  @override
   String get addToProgramTitle => 'Добавить в программу';
 
   @override

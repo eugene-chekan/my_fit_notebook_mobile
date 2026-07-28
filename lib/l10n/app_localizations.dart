@@ -1214,6 +1214,12 @@ abstract class AppLocalizations {
   /// **'Take this workout out of the program? It stays in your library.'**
   String get removeFromProgramMessage;
 
+  /// No description provided for @alreadyAddedTag.
+  ///
+  /// In en, this message translates to:
+  /// **'already added'**
+  String get alreadyAddedTag;
+
   /// No description provided for @addToProgramTitle.
   ///
   /// In en, this message translates to:

@@ -686,6 +686,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Take this workout out of the program? It stays in your library.';
 
   @override
+  String get alreadyAddedTag => 'already added';
+
+  @override
   String get addToProgramTitle => 'Add to a program';
 
   @override

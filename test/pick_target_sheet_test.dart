@@ -62,6 +62,12 @@ void main() {
     expect(harness.result, 7);
   });
 
+  testWidgets('a target it already belongs to says so in words', (tester) async {
+    // A bare tick is ambiguous — it reads just as easily as "selected".
+    await _open(tester, options: options);
+    expect(find.text('already added'), findsOneWidget);
+  });
+
   testWidgets('a target the item already belongs to is still tappable',
       (tester) async {
     // It answers "already in …" rather than sitting there as a dead row.

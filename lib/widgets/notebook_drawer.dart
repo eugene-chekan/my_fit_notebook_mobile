@@ -13,6 +13,7 @@ import '../screens/schedule_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/stats_screen.dart';
 import '../theme/notebook_theme.dart';
+import 'ink_glyphs.dart';
 import 'notebook_page.dart';
 
 /// Open the side menu (used by the ≡ glyph). Finds the app-level
@@ -294,19 +295,59 @@ class NotebookMenuPanel extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // The pages you keep notes on.
                   _line(context, t.navRoutines, (_) => const RoutinesScreen()),
                   _line(context, t.navPrograms, (_) => const ProgramsScreen()),
                   _line(context, t.navSchedule, (_) => const ScheduleScreen()),
                   _line(context, t.navExercises, (_) => const ExercisesScreen()),
-                  _line(context, t.navStats, (_) => const StatsScreen()),
-                  _line(context, t.navProfile, (_) => const ProfileScreen()),
-                  _line(context, t.navSettings, (_) => const SettingsScreen()),
+                  const Spacer(),
+                  // …and, along the bottom edge, the three about-you pages as
+                  // pen glyphs: visited rarely, so they earn an icon rather
+                  // than a line of the notebook each.
+                  _utilityRow(context, t, palette),
                 ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  /// Profile · Stats · Settings, drawn in pen and spread across one row above
+  /// a hairline that separates them from the notebook's own pages.
+  Widget _utilityRow(
+    BuildContext context,
+    AppLocalizations t,
+    NotebookPalette palette,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(height: 1.5, color: palette.ink.withValues(alpha: 0.35)),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            InkGlyphButton(
+              glyph: InkGlyph.profile,
+              label: t.navProfile,
+              onTap: () => _go(context, (_) => const ProfileScreen()),
+            ),
+            InkGlyphButton(
+              glyph: InkGlyph.stats,
+              label: t.navStats,
+              onTap: () => _go(context, (_) => const StatsScreen()),
+            ),
+            InkGlyphButton(
+              glyph: InkGlyph.settings,
+              label: t.navSettings,
+              onTap: () => _go(context, (_) => const SettingsScreen()),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

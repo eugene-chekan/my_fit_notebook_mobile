@@ -200,6 +200,7 @@
   "emptyProgram": "Здесь пока пусто — удерживай тренировку, чтобы добавить её.",
   "removeFromProgramTitle": "Убрать «{name}»?",
   "removeFromProgramMessage": "Убрать эту тренировку из программы? Она останется в библиотеке.",
+  "alreadyAddedTag": "уже добавлена",
   "addToProgramTitle": "Добавить в программу",
   "addToWorkoutTitle": "Добавить в тренировку",
   "addedToProgram": "Добавлено в «{name}».",

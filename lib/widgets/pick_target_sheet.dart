@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/notebook_theme.dart';
 import 'notebook_page.dart';
 
@@ -99,12 +100,28 @@ Future<int?> showPickTarget(
                                     ),
                                   ),
                                 ),
-                                if (option.alreadyHas)
+                                // Say it in words: a lone tick could equally
+                                // mean "selected", which is the opposite of
+                                // what it stands for here.
+                                if (option.alreadyHas) ...[
                                   Padding(
                                     padding: const EdgeInsets.only(left: 6, bottom: 7),
-                                    child: Icon(Icons.check, size: 16, color: n.sec),
+                                    child: Icon(Icons.check, size: 15, color: n.sec),
                                   ),
-                                if (option.detail != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 4, bottom: 5),
+                                    child: Text(
+                                      AppLocalizations.of(context).alreadyAddedTag,
+                                      style: TextStyle(
+                                        fontFamily: 'Caveat',
+                                        fontSize: 16,
+                                        fontStyle: FontStyle.italic,
+                                        color: n.sec,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                if (option.detail != null && !option.alreadyHas)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8, bottom: 5),
                                     child: Text(
