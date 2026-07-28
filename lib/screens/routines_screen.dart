@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../data/models/routine.dart';
 import '../l10n/app_localizations.dart';
+import '../state/programs_provider.dart';
 import '../state/routines_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../widgets/glyph_button.dart';
@@ -10,6 +11,8 @@ import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
+import '../widgets/pen_button.dart';
+import '../widgets/pick_target_sheet.dart';
 import '../widgets/swipe_actions.dart';
 import 'manage_routine_screen.dart';
 import 'routine_screen.dart';
@@ -25,6 +28,7 @@ class RoutinesScreen extends StatefulWidget {
 
 class _RoutinesScreenState extends State<RoutinesScreen> {
   late final RoutinesProvider _provider;
+  final _programs = ProgramsProvider();
   final _nameController = TextEditingController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _adding = false;
@@ -38,6 +42,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _programs.dispose();
     _provider.dispose();
     super.dispose();
   }
@@ -54,6 +59,121 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
       MaterialPageRoute(builder: (_) => ManageRoutineScreen(routineId: routine.id)),
     );
     _provider.load();
+  }
+
+  /// Long-press a workout to file it into a program, creating one on the spot
+  /// if none fits. Programs it already belongs to are ticked.
+  Future<void> _addToProgram(Routine routine) async {
+    final t = AppLocalizations.of(context);
+    await _programs.load();
+    final member = await _programs.programIdsFor(routine.id);
+    if (!mounted) return;
+
+    final choice = await showPickTarget(
+      context,
+      title: t.addToProgramTitle,
+      createLabel: t.newProgram,
+      options: [
+        for (final program in _programs.programs)
+          PickOption(
+            id: program.id,
+            label: program.name,
+            detail: t.programWorkoutsCount(program.workoutCount),
+            alreadyHas: member.contains(program.id),
+          ),
+      ],
+    );
+    if (choice == null || !mounted) return;
+
+    var programId = choice;
+    if (choice == newTargetId) {
+      final name = await _promptProgramName();
+      if (name == null || !mounted) return;
+      programId = await _programs.addProgram(name);
+      if (programId < 0) return;
+    }
+
+    final program = _programs.programs.where((p) => p.id == programId).firstOrNull;
+    final added = await _programs.addRoutine(programId, routine.id);
+    if (!mounted || program == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          added ? t.addedToProgram(program.name) : t.alreadyInProgram(program.name),
+          style: const TextStyle(fontFamily: 'Caveat', fontSize: 19),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<String?> _promptProgramName() {
+    final t = AppLocalizations.of(context);
+    final controller = TextEditingController();
+    return showPaperDialog<String>(
+      context: context,
+      builder: (dialogContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            t.newProgram,
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 23,
+              fontWeight: FontWeight.w700,
+              color: dialogContext.notebook.ink,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            maxLength: 200,
+            cursorColor: dialogContext.notebook.ink,
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 21,
+              color: dialogContext.notebook.ink,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              counterText: '',
+              hintText: t.programNameHint,
+              hintStyle: TextStyle(
+                fontFamily: 'Caveat',
+                fontSize: 20,
+                color: dialogContext.notebook.sec,
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: dialogContext.notebook.ink),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: dialogContext.notebook.ink, width: 2),
+              ),
+            ),
+            onSubmitted: (v) => Navigator.pop(dialogContext, v),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              PenButton(
+                label: t.cancel,
+                small: true,
+                onPressed: () => Navigator.pop(dialogContext),
+              ),
+              const SizedBox(width: 8),
+              PenButton(
+                label: t.save,
+                small: true,
+                onPressed: () => Navigator.pop(dialogContext, controller.text),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _submitNewRoutine() async {
@@ -141,6 +261,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             Expanded(
               child: InkWell(
                 onTap: () => _openRoutine(routine),
+                onLongPress: () => _addToProgram(routine),
                 child: Container(
                   alignment: Alignment.bottomLeft,
                   padding: const EdgeInsets.only(bottom: 3),

@@ -13,6 +13,7 @@
   "gotIt": "Got it",
 
   "navRoutines": "Workouts",
+  "navPrograms": "Programs",
   "navSchedule": "Schedule",
   "navExercises": "Exercises",
   "navStats": "Stats",
@@ -229,7 +230,7 @@
   },
   "noExercisesLibrary": "No exercises yet — add one below.",
   "newExerciseLine": "+ new exercise…",
-  "exercisesEditHint": "swipe left to delete · tap to edit",
+  "exercisesEditHint": "tap to edit · swipe to copy or delete · long-press to add to a workout",
   "fieldDescription": "Description",
   "descHint": "form cues, notes…",
   "defaultSetsReps": "Default sets × reps",
@@ -256,6 +257,42 @@
   },
   "deleteRoutineButton": "Delete workout",
   "noExercisesManage": "No exercises yet — add one above.",
+
+  "newProgram": "+ new program…",
+  "programNameHint": "program name…",
+  "createProgramSemantic": "Create program",
+  "noPrograms": "No programs yet — group your workouts below.",
+  "programsHint": "swipe right to copy · left to delete · long-press a workout to file it here",
+  "deleteProgramTitle": "Delete “{name}”?",
+  "@deleteProgramTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteProgramMessage": "This removes the program only. Its workouts stay in your library.",
+  "programWorkoutsCount": "{count, plural, =0{no workouts} one{{count} workout} other{{count} workouts}}",
+  "@programWorkoutsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "emptyProgram": "Nothing filed here yet — long-press a workout to add it.",
+  "removeFromProgramTitle": "Remove “{name}”?",
+  "@removeFromProgramTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "removeFromProgramMessage": "Take this workout out of the program? It stays in your library.",
+  "addToProgramTitle": "Add to a program",
+  "addToWorkoutTitle": "Add to a workout",
+  "addedToProgram": "Filed “{name}”.",
+  "@addedToProgram": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "alreadyInProgram": "Already in “{name}”.",
+  "@alreadyInProgram": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "addedToWorkout": "Added to “{name}”.",
+  "@addedToWorkout": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "noWorkoutsToAdd": "No workouts yet — create one first.",
 
   "previousMonth": "Previous month",
   "nextMonth": "Next month"

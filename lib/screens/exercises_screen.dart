@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../data/models/exercise_catalog.dart';
 import '../data/models/rep_unit.dart';
+import '../data/repositories/exercise_repository.dart';
+import '../data/repositories/routine_repository.dart';
 import '../l10n/app_localizations.dart';
 import '../state/exercise_catalog_provider.dart';
 import '../theme/notebook_theme.dart';
@@ -15,6 +17,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/pick_target_sheet.dart';
 import '../widgets/swipe_actions.dart';
 
 /// The exercise library: create / edit / delete catalog exercises with a
@@ -28,6 +31,8 @@ class ExercisesScreen extends StatefulWidget {
 
 class _ExercisesScreenState extends State<ExercisesScreen> {
   late final ExerciseCatalogProvider _provider;
+  final _routineRepository = RoutineRepository();
+  final _exerciseRepository = ExerciseRepository();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -159,6 +164,45 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     );
   }
 
+  /// Long-press a library exercise to drop it into any workout, carrying its
+  /// default sets/reps across so the prescription arrives filled in.
+  Future<void> _addToRoutine(CatalogEntry entry) async {
+    final t = AppLocalizations.of(context);
+    final routines = await _routineRepository.listRoutines();
+    if (!mounted) return;
+
+    final choice = await showPickTarget(
+      context,
+      title: t.addToWorkoutTitle,
+      emptyMessage: t.noWorkoutsToAdd,
+      options: [
+        for (final routine in routines)
+          PickOption(id: routine.id, label: routine.name),
+      ],
+    );
+    if (choice == null || !mounted) return;
+
+    await _exerciseRepository.addExercise(
+      choice,
+      entry.name,
+      sets: entry.defaultSets,
+      repsMin: entry.defaultReps,
+      repsMax: entry.defaultRepsMax,
+      unit: entry.defaultUnit,
+    );
+    if (!mounted) return;
+    final routine = routines.firstWhere((r) => r.id == choice);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          t.addedToWorkout(routine.name),
+          style: const TextStyle(fontFamily: 'Caveat', fontSize: 19),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   Widget _entryRow(CatalogEntry entry) {
     final suffix = formatPrescription(
       entry.defaultSets,
@@ -177,6 +221,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         height: kNotebookLine,
         child: InkWell(
           onTap: () => _edit(entry),
+          onLongPress: () => _addToRoutine(entry),
           child: Container(
             alignment: Alignment.bottomLeft,
             padding: const EdgeInsets.only(bottom: 3),

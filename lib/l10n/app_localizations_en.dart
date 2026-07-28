@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navRoutines => 'Workouts';
 
   @override
+  String get navPrograms => 'Programs';
+
+  @override
   String get navSchedule => 'Schedule';
 
   @override
@@ -575,7 +578,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newExerciseLine => '+ new exercise…';
 
   @override
-  String get exercisesEditHint => 'swipe left to delete · tap to edit';
+  String get exercisesEditHint =>
+      'tap to edit · swipe to copy or delete · long-press to add to a workout';
 
   @override
   String get fieldDescription => 'Description';
@@ -630,6 +634,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noExercisesManage => 'No exercises yet — add one above.';
+
+  @override
+  String get newProgram => '+ new program…';
+
+  @override
+  String get programNameHint => 'program name…';
+
+  @override
+  String get createProgramSemantic => 'Create program';
+
+  @override
+  String get noPrograms => 'No programs yet — group your workouts below.';
+
+  @override
+  String get programsHint =>
+      'swipe right to copy · left to delete · long-press a workout to file it here';
+
+  @override
+  String deleteProgramTitle(String name) {
+    return 'Delete “$name”?';
+  }
+
+  @override
+  String get deleteProgramMessage =>
+      'This removes the program only. Its workouts stay in your library.';
+
+  @override
+  String programWorkoutsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count workouts',
+      one: '$count workout',
+      zero: 'no workouts',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyProgram =>
+      'Nothing filed here yet — long-press a workout to add it.';
+
+  @override
+  String removeFromProgramTitle(String name) {
+    return 'Remove “$name”?';
+  }
+
+  @override
+  String get removeFromProgramMessage =>
+      'Take this workout out of the program? It stays in your library.';
+
+  @override
+  String get addToProgramTitle => 'Add to a program';
+
+  @override
+  String get addToWorkoutTitle => 'Add to a workout';
+
+  @override
+  String addedToProgram(String name) {
+    return 'Filed “$name”.';
+  }
+
+  @override
+  String alreadyInProgram(String name) {
+    return 'Already in “$name”.';
+  }
+
+  @override
+  String addedToWorkout(String name) {
+    return 'Added to “$name”.';
+  }
+
+  @override
+  String get noWorkoutsToAdd => 'No workouts yet — create one first.';
 
   @override
   String get previousMonth => 'Previous month';

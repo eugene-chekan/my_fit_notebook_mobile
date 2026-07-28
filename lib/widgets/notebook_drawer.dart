@@ -7,6 +7,7 @@ import '../app_navigator.dart';
 import '../l10n/app_localizations.dart';
 import '../screens/exercises_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/programs_screen.dart';
 import '../screens/routines_screen.dart';
 import '../screens/schedule_screen.dart';
 import '../screens/settings_screen.dart';
@@ -294,6 +295,7 @@ class NotebookMenuPanel extends StatelessWidget {
                     ),
                   ),
                   _line(context, t.navRoutines, (_) => const RoutinesScreen()),
+                  _line(context, t.navPrograms, (_) => const ProgramsScreen()),
                   _line(context, t.navSchedule, (_) => const ScheduleScreen()),
                   _line(context, t.navExercises, (_) => const ExercisesScreen()),
                   _line(context, t.navStats, (_) => const StatsScreen()),

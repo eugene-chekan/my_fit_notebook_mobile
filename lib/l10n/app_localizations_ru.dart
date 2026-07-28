@@ -42,6 +42,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get navRoutines => 'Тренировки';
 
   @override
+  String get navPrograms => 'Программы';
+
+  @override
   String get navSchedule => 'Расписание';
 
   @override
@@ -595,7 +598,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get exercisesEditHint =>
-      'смахни влево, чтобы удалить · нажми, чтобы изменить';
+      'нажми — изменить · смахни — копия или удалить · удерживай — добавить в тренировку';
 
   @override
   String get fieldDescription => 'Описание';
@@ -650,6 +653,82 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noExercisesManage => 'Упражнений пока нет — добавь выше.';
+
+  @override
+  String get newProgram => '+ новая программа…';
+
+  @override
+  String get programNameHint => 'название программы…';
+
+  @override
+  String get createProgramSemantic => 'Создать программу';
+
+  @override
+  String get noPrograms => 'Программ пока нет — объедини тренировки ниже.';
+
+  @override
+  String get programsHint =>
+      'вправо — копия · влево — удалить · удерживай тренировку, чтобы добавить сюда';
+
+  @override
+  String deleteProgramTitle(String name) {
+    return 'Удалить «$name»?';
+  }
+
+  @override
+  String get deleteProgramMessage =>
+      'Удалится только программа. Тренировки останутся в библиотеке.';
+
+  @override
+  String programWorkoutsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count тренировки',
+      many: '$count тренировок',
+      few: '$count тренировки',
+      one: '$count тренировка',
+      zero: 'нет тренировок',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyProgram =>
+      'Здесь пока пусто — удерживай тренировку, чтобы добавить её.';
+
+  @override
+  String removeFromProgramTitle(String name) {
+    return 'Убрать «$name»?';
+  }
+
+  @override
+  String get removeFromProgramMessage =>
+      'Убрать эту тренировку из программы? Она останется в библиотеке.';
+
+  @override
+  String get addToProgramTitle => 'Добавить в программу';
+
+  @override
+  String get addToWorkoutTitle => 'Добавить в тренировку';
+
+  @override
+  String addedToProgram(String name) {
+    return 'Добавлено в «$name».';
+  }
+
+  @override
+  String alreadyInProgram(String name) {
+    return 'Уже в «$name».';
+  }
+
+  @override
+  String addedToWorkout(String name) {
+    return 'Добавлено в «$name».';
+  }
+
+  @override
+  String get noWorkoutsToAdd => 'Тренировок пока нет — создай хотя бы одну.';
 
   @override
   String get previousMonth => 'Предыдущий месяц';

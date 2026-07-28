@@ -29,6 +29,11 @@ void main() {
     expect(t.workoutsCount(1), '1 workout');
     expect(t.workoutsCount(3), '3 workouts');
     expect(t.ageYears(1), '(1 year)');
+    expect(t.navPrograms, 'Programs');
+    // A program with nothing in it reads as words, not "0 workouts".
+    expect(t.programWorkoutsCount(0), 'no workouts');
+    expect(t.programWorkoutsCount(1), '1 workout');
+    expect(t.programWorkoutsCount(4), '4 workouts');
   });
 
   testWidgets('Russian strings resolve with one/few/many plural forms', (tester) async {
@@ -40,5 +45,10 @@ void main() {
     expect(t.workoutsCount(2), '2 тренировки');
     expect(t.workoutsCount(5), '5 тренировок');
     expect(t.ageYears(5), '(5 лет)');
+    expect(t.navPrograms, 'Программы');
+    expect(t.programWorkoutsCount(0), 'нет тренировок');
+    expect(t.programWorkoutsCount(1), '1 тренировка');
+    expect(t.programWorkoutsCount(2), '2 тренировки');
+    expect(t.programWorkoutsCount(5), '5 тренировок');
   });
 }

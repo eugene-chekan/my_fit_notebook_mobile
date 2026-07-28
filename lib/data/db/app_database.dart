@@ -25,7 +25,7 @@ class AppDatabase {
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 14,
+      version: 15,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -36,6 +36,7 @@ class AppDatabase {
         await _createSetLoggingTables(db);
         await _createScheduleRulesTable(db);
         await _createScheduleTable(db);
+        await _createProgramTables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createProfileTables(db);
@@ -51,6 +52,7 @@ class AppDatabase {
         if (oldVersion < 12) await _migrateToPaperStyles(db);
         if (oldVersion < 13) await _migrateToRecurrence(db);
         if (oldVersion < 14) await _migrateToProfilePhoto(db);
+        if (oldVersion < 15) await _createProgramTables(db);
       },
     );
   }
@@ -357,6 +359,34 @@ class AppDatabase {
     await db.execute(
       'ALTER TABLE scheduled_workouts ADD COLUMN rule_id INTEGER '
       'REFERENCES schedule_rules(id) ON DELETE CASCADE',
+    );
+  }
+
+  /// Programs: named groups of routines, the shelf a training split lives on
+  /// ("Push / Pull / Legs"). The membership table is a plain many-to-many, so a
+  /// routine can sit in several programs at once and dropping either side
+  /// cleans up its links.
+  Future<void> _createProgramTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE programs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE program_routines (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        program_id INTEGER NOT NULL REFERENCES programs(id) ON DELETE CASCADE,
+        routine_id INTEGER NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(program_id, routine_id)
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_program_routines_program ON program_routines(program_id)',
     );
   }
 

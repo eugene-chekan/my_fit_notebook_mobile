@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Workouts'**
   String get navRoutines;
 
+  /// No description provided for @navPrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs'**
+  String get navPrograms;
+
   /// No description provided for @navSchedule.
   ///
   /// In en, this message translates to:
@@ -1043,7 +1049,7 @@ abstract class AppLocalizations {
   /// No description provided for @exercisesEditHint.
   ///
   /// In en, this message translates to:
-  /// **'swipe left to delete · tap to edit'**
+  /// **'tap to edit · swipe to copy or delete · long-press to add to a workout'**
   String get exercisesEditHint;
 
   /// No description provided for @fieldDescription.
@@ -1141,6 +1147,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No exercises yet — add one above.'**
   String get noExercisesManage;
+
+  /// No description provided for @newProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'+ new program…'**
+  String get newProgram;
+
+  /// No description provided for @programNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'program name…'**
+  String get programNameHint;
+
+  /// No description provided for @createProgramSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Create program'**
+  String get createProgramSemantic;
+
+  /// No description provided for @noPrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'No programs yet — group your workouts below.'**
+  String get noPrograms;
+
+  /// No description provided for @programsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'swipe right to copy · left to delete · long-press a workout to file it here'**
+  String get programsHint;
+
+  /// No description provided for @deleteProgramTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”?'**
+  String deleteProgramTitle(String name);
+
+  /// No description provided for @deleteProgramMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the program only. Its workouts stay in your library.'**
+  String get deleteProgramMessage;
+
+  /// No description provided for @programWorkoutsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no workouts} one{{count} workout} other{{count} workouts}}'**
+  String programWorkoutsCount(int count);
+
+  /// No description provided for @emptyProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing filed here yet — long-press a workout to add it.'**
+  String get emptyProgram;
+
+  /// No description provided for @removeFromProgramTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove “{name}”?'**
+  String removeFromProgramTitle(String name);
+
+  /// No description provided for @removeFromProgramMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Take this workout out of the program? It stays in your library.'**
+  String get removeFromProgramMessage;
+
+  /// No description provided for @addToProgramTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to a program'**
+  String get addToProgramTitle;
+
+  /// No description provided for @addToWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to a workout'**
+  String get addToWorkoutTitle;
+
+  /// No description provided for @addedToProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Filed “{name}”.'**
+  String addedToProgram(String name);
+
+  /// No description provided for @alreadyInProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in “{name}”.'**
+  String alreadyInProgram(String name);
+
+  /// No description provided for @addedToWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to “{name}”.'**
+  String addedToWorkout(String name);
+
+  /// No description provided for @noWorkoutsToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'No workouts yet — create one first.'**
+  String get noWorkoutsToAdd;
 
   /// No description provided for @previousMonth.
   ///
