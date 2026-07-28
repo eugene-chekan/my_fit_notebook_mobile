@@ -71,6 +71,73 @@ void main() {
     });
   });
 
+  group('startOfWeek', () {
+    test('a Monday is its own week start', () {
+      expect(startOfWeek(DateTime(2026, 7, 20)), DateTime(2026, 7, 20));
+    });
+
+    test('a Sunday rolls back to the Monday before it', () {
+      expect(startOfWeek(DateTime(2026, 7, 26)), DateTime(2026, 7, 20));
+    });
+
+    test('rolls back across a month boundary', () {
+      // 2026-08-02 is a Sunday; its week starts Mon 2026-07-27.
+      expect(startOfWeek(DateTime(2026, 8, 2)), DateTime(2026, 7, 27));
+    });
+
+    test('ignores time of day', () {
+      expect(startOfWeek(DateTime(2026, 7, 22, 23, 30)), DateTime(2026, 7, 20));
+    });
+  });
+
+  group('weekOccurrences', () {
+    test('books the chosen weekdays inside the anchor week only', () {
+      final dates = weekOccurrences(
+        anchor: DateTime(2026, 7, 22), // Wednesday
+        weekdays: {1, 3, 6}, // Mon, Wed, Sat
+      );
+      expect(dates, [
+        DateTime(2026, 7, 20),
+        DateTime(2026, 7, 22),
+        DateTime(2026, 7, 25),
+      ]);
+    });
+
+    test('drops days that have already passed', () {
+      final dates = weekOccurrences(
+        anchor: DateTime(2026, 7, 22), // Wednesday
+        weekdays: {1, 3, 6}, // Monday has gone by
+        notBefore: DateTime(2026, 7, 22),
+      );
+      expect(dates, [DateTime(2026, 7, 22), DateTime(2026, 7, 25)]);
+    });
+
+    test('keeps the whole week when the anchor is a future one', () {
+      final dates = weekOccurrences(
+        anchor: DateTime(2026, 8, 5), // Wednesday, a fortnight out
+        weekdays: {1, 7},
+        notBefore: DateTime(2026, 7, 22),
+      );
+      expect(dates, [DateTime(2026, 8, 3), DateTime(2026, 8, 9)]);
+    });
+
+    test('an anchor week entirely in the past yields nothing', () {
+      final dates = weekOccurrences(
+        anchor: DateTime(2026, 7, 8),
+        weekdays: {1, 2, 3, 4, 5, 6, 7},
+        notBefore: DateTime(2026, 7, 22),
+      );
+      expect(dates, isEmpty);
+    });
+
+    test('no weekdays selected yields nothing', () {
+      expect(
+        weekOccurrences(anchor: DateTime(2026, 7, 22), weekdays: {}),
+        isEmpty,
+      );
+    });
+  });
+
   group('parse / encode weekdays', () {
     test('round-trips a set to CSV and back', () {
       expect(encodeWeekdays({5, 1, 3}), '1,3,5');

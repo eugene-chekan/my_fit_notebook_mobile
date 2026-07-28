@@ -287,14 +287,50 @@ abstract class AppLocalizations {
   /// No description provided for @repeatJustOnce.
   ///
   /// In en, this message translates to:
-  /// **'Just once'**
+  /// **'once'**
   String get repeatJustOnce;
 
   /// No description provided for @repeatWeekly.
   ///
   /// In en, this message translates to:
-  /// **'Every week'**
+  /// **'weekly'**
   String get repeatWeekly;
+
+  /// No description provided for @repeatOnceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'this week only'**
+  String get repeatOnceHint;
+
+  /// No description provided for @repeatWeeklyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'every week from now on'**
+  String get repeatWeeklyHint;
+
+  /// No description provided for @pickDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'days:'**
+  String get pickDaysLabel;
+
+  /// No description provided for @timeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'time:'**
+  String get timeLabel;
+
+  /// No description provided for @noTimeSet.
+  ///
+  /// In en, this message translates to:
+  /// **'no reminder'**
+  String get noTimeSet;
+
+  /// No description provided for @clearTimeSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the time'**
+  String get clearTimeSemantic;
 
   /// No description provided for @repeatWeeklyOn.
   ///

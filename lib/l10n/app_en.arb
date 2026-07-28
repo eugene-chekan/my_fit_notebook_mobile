@@ -37,8 +37,14 @@
   "rescheduleSemantic": "Reschedule",
   "allRoutinesPlanned": "All workouts are already planned for this day.",
   "repeatQuestion": "Repeat?",
-  "repeatJustOnce": "Just once",
-  "repeatWeekly": "Every week",
+  "repeatJustOnce": "once",
+  "repeatWeekly": "weekly",
+  "repeatOnceHint": "this week only",
+  "repeatWeeklyHint": "every week from now on",
+  "pickDaysLabel": "days:",
+  "timeLabel": "time:",
+  "noTimeSet": "no reminder",
+  "clearTimeSemantic": "Clear the time",
   "repeatWeeklyOn": "Weekly · {days}",
   "@repeatWeeklyOn": {
     "placeholders": { "days": { "type": "String" } }

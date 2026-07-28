@@ -20,9 +20,39 @@ List<DateTime> weeklyOccurrences({
   final end = DateTime(to.year, to.month, to.day);
   while (!day.isAfter(end)) {
     if (weekdays.contains(day.weekday)) result.add(day);
-    day = day.add(const Duration(days: 1));
+    // Step by calendar day, not by 24 hours: across a DST boundary adding a
+    // fixed Duration lands on 23:00 the same day (or 01:00 the next), which
+    // would repeat or skip a date and shift every weekday after it.
+    day = DateTime(day.year, day.month, day.day + 1);
   }
   return result;
+}
+
+/// Midnight on the Monday of the week containing [date] (ISO weeks, matching
+/// the 1 = Mon … 7 = Sun weekday numbering used throughout).
+DateTime startOfWeek(DateTime date) =>
+    DateTime(date.year, date.month, date.day - (date.weekday - 1));
+
+/// The dates in [anchor]'s own week that fall on [weekdays].
+///
+/// This is the "once" half of the scheduling model: the chosen weekdays are
+/// booked in a single week rather than repeating. Dates before [notBefore]
+/// (typically today) are dropped — a day that has already passed can't be
+/// planned.
+List<DateTime> weekOccurrences({
+  required DateTime anchor,
+  required Set<int> weekdays,
+  DateTime? notBefore,
+}) {
+  final start = startOfWeek(anchor);
+  final dates = weeklyOccurrences(
+    weekdays: weekdays,
+    from: start,
+    to: DateTime(start.year, start.month, start.day + 6),
+  );
+  if (notBefore == null) return dates;
+  final floor = DateTime(notBefore.year, notBefore.month, notBefore.day);
+  return dates.where((d) => !d.isBefore(floor)).toList();
 }
 
 /// Parse a stored weekday CSV ("1,3,5") into a set of ISO weekday ints,

@@ -11,8 +11,10 @@ import '../state/calendar_provider.dart';
 import '../state/routines_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../utils/recurrence.dart';
 import 'glyph_button.dart';
 import 'notebook_page.dart';
+import 'schedule_options_dialog.dart';
 import 'swipe_actions.dart';
 
 /// The month grid with ← month → navigation. A trained day shows a filled ink
@@ -251,9 +253,32 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
   }
 
   Future<void> _add(int routineId) async {
-    // Optional time — dismissing the picker leaves the plan date-only.
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    await _repository.addSchedule(routineId, widget.iso, time: _hm(time));
+    final anchor = DateTime.parse(widget.iso);
+    // Once-or-weekly, the days and the time are settled in one dialog and
+    // committed by its Save; backing out schedules nothing.
+    final options = await showScheduleOptions(context, anchor: anchor);
+    if (options == null || !mounted) return;
+
+    if (options.weekly) {
+      await _repository.addRule(
+        routineId,
+        options.weekdays,
+        time: options.time,
+        startFrom: anchor,
+      );
+    } else {
+      for (final date in weekOccurrences(
+        anchor: anchor,
+        weekdays: options.weekdays,
+        notBefore: DateTime.now(),
+      )) {
+        await _repository.addSchedule(
+          routineId,
+          ScheduleRepository.isoDate(date),
+          time: options.time,
+        );
+      }
+    }
     await ReminderService.instance.resync();
     widget.onChanged();
     await _reload();
@@ -265,11 +290,6 @@ class _DayScheduleSheetState extends State<_DayScheduleSheet> {
     widget.onChanged();
     await _reload();
   }
-
-  /// TimeOfDay → "HH:mm", or null when no time was picked.
-  static String? _hm(TimeOfDay? t) => t == null
-      ? null
-      : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {

@@ -47,11 +47,35 @@ class ScheduleProvider extends ChangeNotifier {
     return ok;
   }
 
+  /// Books [dates] as one-off plans in a single pass. Dates already taken by
+  /// this routine are skipped (the UNIQUE constraint); returns how many landed.
+  Future<int> addMany(int routineId, List<DateTime> dates, {String? time}) async {
+    var added = 0;
+    for (final date in dates) {
+      final ok = await _repository.addSchedule(
+        routineId,
+        ScheduleRepository.isoDate(date),
+        time: time,
+      );
+      if (ok) added++;
+    }
+    if (added > 0) {
+      await load();
+      await ReminderService.instance.resync();
+    }
+    return added;
+  }
+
   /// Adds a weekly repeating rule (fires on [weekdays], 1=Mon…7=Sun) and
   /// materialises its occurrences. [time] (HH:mm) is optional and enables
-  /// reminders on every occurrence.
-  Future<void> addSeries(int routineId, Set<int> weekdays, {String? time}) async {
-    await _repository.addRule(routineId, weekdays, time: time);
+  /// reminders on every occurrence. [startFrom] anchors the first week.
+  Future<void> addSeries(
+    int routineId,
+    Set<int> weekdays, {
+    String? time,
+    DateTime? startFrom,
+  }) async {
+    await _repository.addRule(routineId, weekdays, time: time, startFrom: startFrom);
     await load();
     await ReminderService.instance.resync();
   }

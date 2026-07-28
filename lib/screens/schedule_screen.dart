@@ -10,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../state/schedule_provider.dart';
 import '../theme/notebook_theme.dart';
 import '../utils/formatters.dart';
+import '../utils/recurrence.dart';
 import '../utils/schedule_dates.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
@@ -17,6 +18,7 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
+import '../widgets/schedule_options_dialog.dart';
 import '../widgets/swipe_actions.dart';
 import 'routine_screen.dart';
 
@@ -82,116 +84,29 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final routine = await _pickRoutine(routines);
     if (routine == null || !mounted) return;
 
-    // Once or weekly? An empty set means a one-off; a non-empty set is a weekly
-    // series on those ISO weekdays. null means the user backed out.
-    final weekdays = await _pickRecurrence();
-    if (weekdays == null || !mounted) return;
+    // One dialog settles once-vs-weekly, the days and the time; backing out of
+    // it schedules nothing. From here the anchor week is the current one.
+    final options = await showScheduleOptions(context, anchor: DateTime.now());
+    if (options == null || !mounted) return;
 
-    if (weekdays.isEmpty) {
-      final date = await _pickDate();
-      if (date == null || !mounted) return;
-      // Optional time — dismissing the picker leaves the plan date-only (no
-      // reminder).
-      final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-      if (!mounted) return;
-      await _provider.add(routine.id, date, time: _hm(time));
+    if (options.weekly) {
+      await _provider.addSeries(
+        routine.id,
+        options.weekdays,
+        time: options.time,
+      );
     } else {
-      // A weekly series starts today and rolls forward; the optional time
-      // enables a reminder on every occurrence.
-      final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-      if (!mounted) return;
-      await _provider.addSeries(routine.id, weekdays, time: _hm(time));
+      await _provider.addMany(
+        routine.id,
+        weekOccurrences(
+          anchor: DateTime.now(),
+          weekdays: options.weekdays,
+          notBefore: DateTime.now(),
+        ),
+        time: options.time,
+      );
     }
   }
-
-  /// Short weekday labels in ISO order (Mon…Sun), for the recurrence toggles
-  /// and the "Weekly · Mon Wed Fri" summary.
-  static const _isoWeekdays = [1, 2, 3, 4, 5, 6, 7];
-
-  String _weekdayLabel(AppLocalizations t, int iso) {
-    switch (iso) {
-      case 1:
-        return t.weekdayMon;
-      case 2:
-        return t.weekdayTue;
-      case 3:
-        return t.weekdayWed;
-      case 4:
-        return t.weekdayThu;
-      case 5:
-        return t.weekdayFri;
-      case 6:
-        return t.weekdaySat;
-      default:
-        return t.weekdaySun;
-    }
-  }
-
-  /// A little paper dialog: tap weekdays for a weekly repeat, or "Just once".
-  /// Returns the chosen ISO weekdays (empty = one-off), or null if dismissed.
-  Future<Set<int>?> _pickRecurrence() {
-    final t = AppLocalizations.of(context);
-    final selected = <int>{};
-    return showPaperDialog<Set<int>>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (statefulContext, setSheetState) {
-          final n = dialogContext.notebook;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                t.repeatQuestion,
-                style: TextStyle(
-                  fontFamily: 'Caveat',
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: n.ink,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final d in _isoWeekdays)
-                    _WeekdayChip(
-                      label: _weekdayLabel(t, d),
-                      selected: selected.contains(d),
-                      onTap: () => setSheetState(() {
-                        if (!selected.remove(d)) selected.add(d);
-                      }),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  PenButton(
-                    label: t.repeatJustOnce,
-                    onPressed: () => Navigator.pop(dialogContext, <int>{}),
-                  ),
-                  PenButton(
-                    label: t.repeatWeekly,
-                    onPressed: selected.isEmpty
-                        ? null
-                        : () => Navigator.pop(dialogContext, {...selected}),
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  /// TimeOfDay → "HH:mm", or null when no time was picked.
-  static String? _hm(TimeOfDay? t) => t == null
-      ? null
-      : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   Future<Routine?> _pickRoutine(List<Routine> routines) {
     final t = AppLocalizations.of(context);
@@ -445,43 +360,3 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
 /// Which part of a repeating series a swipe-delete should remove.
 enum _DeleteChoice { one, series }
-
-/// A small tappable weekday toggle chip for the recurrence picker: ink outline,
-/// filling with the accent when selected.
-class _WeekdayChip extends StatelessWidget {
-  const _WeekdayChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = context.notebook;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? n.accent : Colors.transparent,
-          border: Border.all(color: selected ? n.accent : n.ink, width: 1.5),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'Caveat',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: selected ? n.bg : n.ink,
-          ),
-        ),
-      ),
-    );
-  }
-}

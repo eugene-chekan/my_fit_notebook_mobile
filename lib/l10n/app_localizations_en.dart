@@ -106,10 +106,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get repeatQuestion => 'Repeat?';
 
   @override
-  String get repeatJustOnce => 'Just once';
+  String get repeatJustOnce => 'once';
 
   @override
-  String get repeatWeekly => 'Every week';
+  String get repeatWeekly => 'weekly';
+
+  @override
+  String get repeatOnceHint => 'this week only';
+
+  @override
+  String get repeatWeeklyHint => 'every week from now on';
+
+  @override
+  String get pickDaysLabel => 'days:';
+
+  @override
+  String get timeLabel => 'time:';
+
+  @override
+  String get noTimeSet => 'no reminder';
+
+  @override
+  String get clearTimeSemantic => 'Clear the time';
 
   @override
   String repeatWeeklyOn(String days) {

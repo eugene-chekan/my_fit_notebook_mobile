@@ -106,10 +106,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String get repeatQuestion => 'Повторять?';
 
   @override
-  String get repeatJustOnce => 'Один раз';
+  String get repeatJustOnce => 'один раз';
 
   @override
-  String get repeatWeekly => 'Каждую неделю';
+  String get repeatWeekly => 'еженедельно';
+
+  @override
+  String get repeatOnceHint => 'только на этой неделе';
+
+  @override
+  String get repeatWeeklyHint => 'каждую неделю и дальше';
+
+  @override
+  String get pickDaysLabel => 'дни:';
+
+  @override
+  String get timeLabel => 'время:';
+
+  @override
+  String get noTimeSet => 'без напоминания';
+
+  @override
+  String get clearTimeSemantic => 'Убрать время';
 
   @override
   String repeatWeeklyOn(String days) {
