@@ -11,15 +11,20 @@ import '../theme/notebook_theme.dart';
 /// measurements — so the direction, the reveal and the haptic are identical
 /// everywhere and a change to any of them lands in a single file.
 class SwipeableRow extends StatelessWidget {
+  /// [itemKey] becomes this widget's own key as well as the [Dismissible]'s.
+  /// A reorderable list requires a key on the child it is handed, and passing
+  /// it only to the Dismissible inside leaves the outer widget unkeyed — which
+  /// fails at runtime, not compile time. Deriving both from one argument means
+  /// a call site cannot get it half-right.
   const SwipeableRow({
-    super.key,
     required this.itemKey,
     required this.onDelete,
     this.onCopy,
     required this.child,
-  });
+  }) : super(key: itemKey);
 
-  /// Identity of the row for [Dismissible]; unique within its list.
+  /// Identity of the row, for both this widget and its [Dismissible]; unique
+  /// within its list.
   final Key itemKey;
 
   /// Performs the delete, including any confirmation prompt. Return true to let

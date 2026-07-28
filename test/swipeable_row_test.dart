@@ -86,6 +86,19 @@ void main() {
     expect(find.text('row'), findsOneWidget);
   });
 
+  test('itemKey is the widget\'s own key, not just the Dismissible\'s', () {
+    // A reorderable list keys off the child it is handed; keying only the
+    // Dismissible inside leaves the outer widget unkeyed, which fails at
+    // runtime (a grey error box where the list should be), not at compile time.
+    const key = ValueKey('row');
+    final row = SwipeableRow(
+      itemKey: key,
+      onDelete: () async => false,
+      child: const SizedBox(),
+    );
+    expect(row.key, key);
+  });
+
   testWidgets('the copy reveal only exists when copying is allowed',
       (tester) async {
     await tester.pumpWidget(_row(onDelete: () async => false));

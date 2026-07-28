@@ -96,14 +96,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     final program = _programs.programs.where((p) => p.id == programId).firstOrNull;
     final added = await _programs.addRoutine(programId, routine.id);
     if (!mounted || program == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          added ? t.addedToProgram(program.name) : t.alreadyInProgram(program.name),
-          style: const TextStyle(fontFamily: 'Caveat', fontSize: 19),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
+    showPaperSnack(
+      context,
+      added ? t.addedToProgram(program.name) : t.alreadyInProgram(program.name),
     );
   }
 

@@ -105,17 +105,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     if (confirmed) await _provider.delete(entry.id);
   }
 
-  void _snack(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: context.notebook.ink,
-        content: Text(
-          text,
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: context.notebook.bg),
-        ),
-      ),
-    );
-  }
+  void _snack(String text) => showPaperSnack(context, text);
 
   @override
   Widget build(BuildContext context) {
@@ -192,15 +182,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     );
     if (!mounted) return;
     final routine = routines.firstWhere((r) => r.id == choice);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          t.addedToWorkout(routine.name),
-          style: const TextStyle(fontFamily: 'Caveat', fontSize: 19),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    showPaperSnack(context, t.addedToWorkout(routine.name));
   }
 
   Widget _entryRow(CatalogEntry entry) {

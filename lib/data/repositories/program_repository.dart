@@ -91,7 +91,7 @@ class ProgramRepository {
   Future<List<Routine>> routinesFor(int programId) async {
     final db = await _db;
     final rows = await db.rawQuery('''
-      SELECT r.id, r.name, r.sort_order, r.description,
+      SELECT r.id, r.name, r.sort_order, r.created_at, r.description,
              r.started_at, r.paused_at, r.paused_seconds
       FROM program_routines pr
       JOIN routines r ON r.id = pr.routine_id

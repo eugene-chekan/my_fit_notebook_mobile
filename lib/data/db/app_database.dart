@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -20,41 +21,83 @@ class AppDatabase {
     return db;
   }
 
+  /// Current schema version. Bump alongside a new entry in [_onUpgrade].
+  static const schemaVersion = 15;
+
   Future<Database> _open() async {
     final dir = await getApplicationDocumentsDirectory();
     final path = p.join(dir.path, 'fitness.db');
     return openDatabase(
       path,
-      version: 15,
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
-      onCreate: (db, version) async {
-        await _createWorkoutTables(db);
-        await _createProfileTables(db);
-        await _createCatalogTable(db);
-        await _createSetLoggingTables(db);
-        await _createScheduleRulesTable(db);
-        await _createScheduleTable(db);
-        await _createProgramTables(db);
-      },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) await _createProfileTables(db);
-        if (oldVersion < 3) await _migrateToCatalog(db);
-        if (oldVersion < 4) await _migrateToPrescriptions(db);
-        if (oldVersion < 5) await _migrateToRepUnits(db);
-        if (oldVersion < 6) await _migrateToSetLogging(db);
-        if (oldVersion < 7) await _migrateToLanguage(db);
-        if (oldVersion < 8) await _migrateToCompletionStats(db);
-        if (oldVersion < 9) await _migrateToSchedule(db);
-        if (oldVersion < 10) await _migrateToScheduleTime(db);
-        if (oldVersion < 11) await _migrateToTheme(db);
-        if (oldVersion < 12) await _migrateToPaperStyles(db);
-        if (oldVersion < 13) await _migrateToRecurrence(db);
-        if (oldVersion < 14) await _migrateToProfilePhoto(db);
-        if (oldVersion < 15) await _createProgramTables(db);
-      },
+      version: schemaVersion,
+      onConfigure: _onConfigure,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  /// The schema lifecycle, named rather than inlined so [openForTesting] can
+  /// build the very same database off-device — a test that ran different
+  /// creation code would prove nothing about the app.
+  Future<void> _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
+  }
+
+  Future<void> _onCreate(Database db, int version) async {
+    await _createWorkoutTables(db);
+    await _createProfileTables(db);
+    await _createCatalogTable(db);
+    await _createSetLoggingTables(db);
+    await _createScheduleRulesTable(db);
+    await _createScheduleTable(db);
+    await _createProgramTables(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) await _createProfileTables(db);
+    if (oldVersion < 3) await _migrateToCatalog(db);
+    if (oldVersion < 4) await _migrateToPrescriptions(db);
+    if (oldVersion < 5) await _migrateToRepUnits(db);
+    if (oldVersion < 6) await _migrateToSetLogging(db);
+    if (oldVersion < 7) await _migrateToLanguage(db);
+    if (oldVersion < 8) await _migrateToCompletionStats(db);
+    if (oldVersion < 9) await _migrateToSchedule(db);
+    if (oldVersion < 10) await _migrateToScheduleTime(db);
+    if (oldVersion < 11) await _migrateToTheme(db);
+    if (oldVersion < 12) await _migrateToPaperStyles(db);
+    if (oldVersion < 13) await _migrateToRecurrence(db);
+    if (oldVersion < 14) await _migrateToProfilePhoto(db);
+    if (oldVersion < 15) await _createProgramTables(db);
+  }
+
+  /// Opens a throwaway database through [factory] (an in-memory one under
+  /// sqflite_common_ffi) and hands the singleton to it, so repositories can be
+  /// exercised on the test VM against the real schema. Opening at [version]
+  /// below [schemaVersion] runs the migration chain, which is how upgrades get
+  /// tested. Never called by app code.
+  @visibleForTesting
+  Future<Database> openForTesting(
+    DatabaseFactory factory, {
+    int version = schemaVersion,
+  }) async {
+    final db = await factory.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(
+        version: version,
+        onConfigure: _onConfigure,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+      ),
+    );
+    _db = db;
+    return db;
+  }
+
+  /// Drops the cached handle so the next test opens a clean database.
+  @visibleForTesting
+  Future<void> resetForTesting() async {
+    await _db?.close();
+    _db = null;
   }
 
   Future<void> _createWorkoutTables(Database db) async {

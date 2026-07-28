@@ -88,3 +88,25 @@ Future<bool> showPaperConfirm(
   );
   return result ?? false;
 }
+
+/// A short confirmation in the app's own hand — ink ground, paper-coloured
+/// Caveat — rather than the stock grey toast, which reads as a system error
+/// against these pages.
+void showPaperSnack(BuildContext context, String text) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        backgroundColor: context.notebook.ink,
+        duration: const Duration(seconds: 3),
+        content: Text(
+          text,
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 19,
+            color: context.notebook.bg,
+          ),
+        ),
+      ),
+    );
+}
