@@ -67,6 +67,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 14),
               _paperLine(),
               const SizedBox(height: 14),
+              _textSizeLine(),
+              const SizedBox(height: 14),
               _languageLine(),
               const SizedBox(height: 14),
               _unitsLine(),
@@ -150,6 +152,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ],
     );
+  }
+
+  // --- Text size -------------------------------------------------------
+
+  /// Each choice is drawn at its own scale, so the row shows what it does
+  /// rather than describing it. Picking one re-scales the whole app — type and
+  /// ruled grid together — through the root [ThemeProvider].
+  Widget _textSizeLine() {
+    final t = AppLocalizations.of(context);
+    final current = context.watch<ThemeProvider>().fontScale;
+    TextStyle style(FontScale scale) => TextStyle(
+      fontFamily: 'Caveat',
+      fontSize: 20 * scale.factor,
+      fontWeight: scale == current ? FontWeight.w700 : FontWeight.w500,
+      color: scale == current ? context.notebook.ink : context.notebook.sec,
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: _label(t.textSizeLabel),
+        ),
+        const SizedBox(width: 8),
+        for (final scale in FontScale.values) ...[
+          if (scale != FontScale.values.first)
+            Text('   /   ', style: style(FontScale.normal).copyWith(
+              fontWeight: FontWeight.w500,
+              color: context.notebook.sec,
+            )),
+          InkWell(
+            onTap: scale == current
+                ? null
+                : () => context.read<ThemeProvider>().setFontScale(scale),
+            child: Text(_fontScaleName(t, scale), style: style(scale)),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _fontScaleName(AppLocalizations t, FontScale scale) {
+    switch (scale) {
+      case FontScale.small:
+        return t.textSizeSmall;
+      case FontScale.normal:
+        return t.textSizeNormal;
+      case FontScale.large:
+        return t.textSizeLarge;
+    }
   }
 
   // --- Language --------------------------------------------------------

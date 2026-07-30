@@ -12,6 +12,7 @@ import '../screens/routines_screen.dart';
 import '../screens/schedule_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/stats_screen.dart';
+import '../screens/training_log_screen.dart';
 import '../theme/notebook_theme.dart';
 import 'ink_glyphs.dart';
 import 'notebook_page.dart';
@@ -263,7 +264,12 @@ class NotebookMenuPanel extends StatelessWidget {
     return Material(
       color: palette.bg,
       child: CustomPaint(
-        painter: RuledPaperPainter(palette, marginOnRight: true, showMargin: false),
+        painter: RuledPaperPainter(
+          palette,
+          line: notebookLine(context),
+          marginOnRight: true,
+          showMargin: false,
+        ),
         child: SizedBox.expand(
           child: SafeArea(
             child: Padding(
@@ -274,7 +280,7 @@ class NotebookMenuPanel extends StatelessWidget {
                   InkWell(
                     onTap: () => _go(context, null),
                     child: Container(
-                      height: 2 * kNotebookLine,
+                      height: 2 * notebookLine(context),
                       alignment: Alignment.bottomLeft,
                       decoration: BoxDecoration(
                         border: Border(
@@ -300,6 +306,11 @@ class NotebookMenuPanel extends StatelessWidget {
                   _line(context, t.navPrograms, (_) => const ProgramsScreen()),
                   _line(context, t.navSchedule, (_) => const ScheduleScreen()),
                   _line(context, t.navExercises, (_) => const ExercisesScreen()),
+                  _line(
+                    context,
+                    t.navTrainingLog,
+                    (_) => const TrainingLogScreen(),
+                  ),
                   const Spacer(),
                   // …and, along the bottom edge, the three about-you pages as
                   // pen glyphs: visited rarely, so they earn an icon rather
@@ -353,7 +364,7 @@ class NotebookMenuPanel extends StatelessWidget {
 
   Widget _line(BuildContext context, String label, WidgetBuilder builder) {
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: InkWell(
         onTap: () => _go(context, builder),
         child: Container(

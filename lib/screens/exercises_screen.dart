@@ -203,7 +203,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         return false; // deletion handled explicitly; keep list authoritative
       },
       child: SizedBox(
-        height: kNotebookLine,
+        height: notebookLine(context),
         child: InkWell(
           onTap: () => _edit(entry),
           onLongPress: () => _addToRoutine(entry),
@@ -236,7 +236,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
 
   Widget _newRow() {
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: InkWell(
         onTap: _create,
         child: Container(

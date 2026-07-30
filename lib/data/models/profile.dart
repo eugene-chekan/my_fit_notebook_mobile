@@ -12,6 +12,7 @@ class Profile {
     this.theme = AppTheme.paper,
     this.paperStyle = PaperStyle.ruled,
     this.photoPath,
+    this.fontScale = AppFontScale.normal,
   });
 
   final String name;
@@ -37,6 +38,10 @@ class Profile {
   /// time so it survives the app sandbox path changing between launches.
   final String? photoPath;
 
+  /// Text-size preference — see [AppFontScale]. The factor each name maps to
+  /// is a UI decision (`FontScale` in the theme layer), not stored here.
+  final String fontScale;
+
   factory Profile.fromMap(Map<String, Object?> map) {
     return Profile(
       name: (map['name'] as String?) ?? '',
@@ -47,6 +52,7 @@ class Profile {
       theme: (map['theme'] as String?) ?? AppTheme.paper,
       paperStyle: decodePaperStyle(map['paper_styles'] as String?),
       photoPath: map['photo_path'] as String?,
+      fontScale: (map['font_scale'] as String?) ?? AppFontScale.normal,
     );
   }
 
@@ -85,6 +91,14 @@ abstract final class AppLanguage {
 abstract final class AppTheme {
   static const paper = 'paper';
   static const blueprint = 'blueprint';
+}
+
+/// Persisted text-size ids, mirroring the `FontScale` enum. Plain strings so
+/// the data layer stays free of UI imports.
+abstract final class AppFontScale {
+  static const small = 'small';
+  static const normal = 'normal';
+  static const large = 'large';
 }
 
 /// Persisted paper-style values for the per-theme ruled/grid override.

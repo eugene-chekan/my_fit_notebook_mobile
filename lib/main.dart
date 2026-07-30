@@ -66,9 +66,19 @@ class MyFitNotebookApp extends StatelessWidget {
           locale: locale.locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          // Host the interactive margin menu above every screen so it covers
-          // the whole app and can be dragged open/closed from anywhere.
-          builder: (context, child) => MarginMenuHost(child: child!),
+          // Apply the text-size preference above everything — it reaches the
+          // strings *and* the ruled grid (see `notebookLine`), which have to
+          // grow together. The margin menu is hosted here too, above every
+          // screen, so it covers the whole app and can be dragged open or
+          // closed from anywhere.
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: theme.fontScale.applyTo(
+                MediaQuery.textScalerOf(context),
+              ),
+            ),
+            child: MarginMenuHost(child: child!),
+          ),
           home: const DashboardScreen(),
         ),
       ),

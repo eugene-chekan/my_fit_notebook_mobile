@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Exercises'**
   String get navExercises;
 
+  /// No description provided for @navTrainingLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Training log'**
+  String get navTrainingLog;
+
   /// No description provided for @navStats.
   ///
   /// In en, this message translates to:
@@ -692,11 +698,41 @@ abstract class AppLocalizations {
   /// **'Logged sessions'**
   String get loggedSessions;
 
+  /// No description provided for @recentSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent sessions'**
+  String get recentSessions;
+
   /// No description provided for @noSessions.
   ///
   /// In en, this message translates to:
   /// **'No sessions logged yet.'**
   String get noSessions;
+
+  /// No description provided for @noTrainingLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged yet — finish a workout and it lands here.'**
+  String get noTrainingLog;
+
+  /// No description provided for @seeAllSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'see all {count} sessions'**
+  String seeAllSessions(int count);
+
+  /// No description provided for @sessionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} session} other{{count} sessions}}'**
+  String sessionsCount(int count);
+
+  /// No description provided for @lastTrainedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'last {date}'**
+  String lastTrainedOn(String date);
 
   /// No description provided for @sessionExercises.
   ///
@@ -937,6 +973,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'grid'**
   String get paperGrid;
+
+  /// No description provided for @textSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'text size:'**
+  String get textSizeLabel;
+
+  /// No description provided for @textSizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'small'**
+  String get textSizeSmall;
+
+  /// No description provided for @textSizeNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'normal'**
+  String get textSizeNormal;
+
+  /// No description provided for @textSizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'large'**
+  String get textSizeLarge;
 
   /// No description provided for @measurements.
   ///

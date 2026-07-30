@@ -114,7 +114,7 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
         return false; // the reload above is what rebuilds the list
       },
       child: SizedBox(
-        height: kNotebookLine,
+        height: notebookLine(context),
         child: InkWell(
           onTap: () => _openRoutine(routine),
           child: Container(

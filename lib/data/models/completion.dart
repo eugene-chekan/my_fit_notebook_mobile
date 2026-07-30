@@ -52,6 +52,35 @@ class Completion {
   };
 }
 
+/// A workout that has logged sessions, summarized for the Training log's
+/// index. Built by a GROUP BY over `completions`, so a workout with no
+/// sessions never produces one.
+class LoggedRoutine {
+  const LoggedRoutine({
+    required this.routineId,
+    required this.name,
+    required this.sessionCount,
+    required this.lastCompletedOn,
+  });
+
+  final int routineId;
+  final String name;
+  final int sessionCount;
+
+  /// The newest session's `completed_on` — either `yyyy-MM-dd` or
+  /// `yyyy-MM-ddTHH:mm`, matching how completions are stored.
+  final String lastCompletedOn;
+
+  factory LoggedRoutine.fromMap(Map<String, Object?> map) {
+    return LoggedRoutine(
+      routineId: map['id'] as int,
+      name: map['name'] as String,
+      sessionCount: map['session_count'] as int,
+      lastCompletedOn: map['last_completed_on'] as String,
+    );
+  }
+}
+
 /// One set snapshotted into `completion_sets` when a session finished — the
 /// exercise it belonged to and the reps actually logged. Denormalized, so it
 /// survives later edits/deletes of the routine's exercises.

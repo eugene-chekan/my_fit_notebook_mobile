@@ -49,7 +49,7 @@ class MonthCalendar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-          height: kNotebookLine,
+          height: notebookLine(context),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

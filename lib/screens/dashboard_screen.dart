@@ -199,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                     children: [
                       NotebookHeader(title: t.appName),
                       Container(
-                        height: kNotebookLine,
+                        height: notebookLine(context),
                         alignment: Alignment.bottomRight,
                         padding: const EdgeInsets.only(bottom: 3),
                         child: Text(
@@ -283,7 +283,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
         final routine = inProgress;
         final t = AppLocalizations.of(context);
         return SizedBox(
-          height: kNotebookLine,
+          height: notebookLine(context),
           child: InkWell(
             onTap: () => _openRoutine(routine.id),
             child: Container(
@@ -322,7 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
             ? t.scheduledTodayLine(name)
             : t.scheduledOnLine(formatCompletionDt(next.scheduledDate), name);
         return SizedBox(
-          height: kNotebookLine,
+          height: notebookLine(context),
           child: InkWell(
             onTap: () => _openRoutine(next.routineId),
             child: Container(
@@ -347,7 +347,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
 
   Widget _statLine(String text, {bool muted = false, bool accent = false}) {
     return Container(
-      height: kNotebookLine,
+      height: notebookLine(context),
       alignment: Alignment.bottomLeft,
       padding: const EdgeInsets.only(bottom: 3),
       // Scale the line down to fit rather than clip it: a long streak phrase

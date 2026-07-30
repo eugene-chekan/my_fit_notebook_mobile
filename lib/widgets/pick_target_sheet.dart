@@ -82,7 +82,7 @@ Future<int?> showPickTarget(
                         InkWell(
                           onTap: () => Navigator.pop(sheetContext, option.id),
                           child: SizedBox(
-                            height: kNotebookLine,
+                            height: notebookLine(context),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -145,7 +145,7 @@ Future<int?> showPickTarget(
                 InkWell(
                   onTap: () => Navigator.pop(sheetContext, newTargetId),
                   child: SizedBox(
-                    height: kNotebookLine,
+                    height: notebookLine(context),
                     child: Container(
                       alignment: Alignment.bottomLeft,
                       padding: const EdgeInsets.only(bottom: 4),

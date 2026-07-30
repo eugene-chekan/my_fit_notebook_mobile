@@ -297,7 +297,7 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
 
   Widget _addExerciseRow() {
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -467,7 +467,7 @@ class _ReorderableExerciseList extends StatelessWidget {
             return confirmed;
           },
           child: SizedBox(
-            height: kNotebookLine,
+            height: notebookLine(context),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [

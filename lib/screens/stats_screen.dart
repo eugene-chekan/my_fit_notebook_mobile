@@ -232,7 +232,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     final data = s.series[metric.key] ?? const [];
     final latest = s.latest[metric.key];
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -279,7 +279,7 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
   /// A ruled-line stat: an italic muted label followed by the value in ink.
   Widget _statRow(String label, String value, {bool accent = false}) {
     return Container(
-      height: kNotebookLine,
+      height: notebookLine(context),
       alignment: Alignment.bottomLeft,
       padding: const EdgeInsets.only(bottom: 3),
       child: Text.rich(

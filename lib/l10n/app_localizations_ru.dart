@@ -51,6 +51,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get navExercises => 'Упражнения';
 
   @override
+  String get navTrainingLog => 'Дневник тренировок';
+
+  @override
   String get navStats => 'Статистика';
 
   @override
@@ -360,7 +363,37 @@ class AppLocalizationsRu extends AppLocalizations {
   String get loggedSessions => 'Журнал сессий';
 
   @override
+  String get recentSessions => 'Последние сессии';
+
+  @override
   String get noSessions => 'Сессий пока нет.';
+
+  @override
+  String get noTrainingLog =>
+      'Записей пока нет — заверши тренировку, и она появится здесь.';
+
+  @override
+  String seeAllSessions(int count) {
+    return 'все сессии ($count)';
+  }
+
+  @override
+  String sessionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count сессии',
+      many: '$count сессий',
+      few: '$count сессии',
+      one: '$count сессия',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lastTrainedOn(String date) {
+    return 'последняя $date';
+  }
 
   @override
   String sessionExercises(int count) {
@@ -523,6 +556,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get paperGrid => 'в клетку';
+
+  @override
+  String get textSizeLabel => 'размер текста:';
+
+  @override
+  String get textSizeSmall => 'мелкий';
+
+  @override
+  String get textSizeNormal => 'обычный';
+
+  @override
+  String get textSizeLarge => 'крупный';
 
   @override
   String get measurements => 'Замеры';

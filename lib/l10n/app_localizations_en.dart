@@ -51,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navExercises => 'Exercises';
 
   @override
+  String get navTrainingLog => 'Training log';
+
+  @override
   String get navStats => 'Stats';
 
   @override
@@ -353,7 +356,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loggedSessions => 'Logged sessions';
 
   @override
+  String get recentSessions => 'Recent sessions';
+
+  @override
   String get noSessions => 'No sessions logged yet.';
+
+  @override
+  String get noTrainingLog =>
+      'Nothing logged yet — finish a workout and it lands here.';
+
+  @override
+  String seeAllSessions(int count) {
+    return 'see all $count sessions';
+  }
+
+  @override
+  String sessionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sessions',
+      one: '$count session',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lastTrainedOn(String date) {
+    return 'last $date';
+  }
 
   @override
   String sessionExercises(int count) {
@@ -508,6 +539,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paperGrid => 'grid';
+
+  @override
+  String get textSizeLabel => 'text size:';
+
+  @override
+  String get textSizeSmall => 'small';
+
+  @override
+  String get textSizeNormal => 'normal';
+
+  @override
+  String get textSizeLarge => 'large';
 
   @override
   String get measurements => 'Measurements';

@@ -22,7 +22,7 @@ class AppDatabase {
   }
 
   /// Current schema version. Bump alongside a new entry in [_onUpgrade].
-  static const schemaVersion = 16;
+  static const schemaVersion = 17;
 
   Future<Database> _open() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -69,6 +69,7 @@ class AppDatabase {
     if (oldVersion < 14) await _migrateToProfilePhoto(db);
     if (oldVersion < 15) await _createProgramTables(db);
     if (oldVersion < 16) await _migrateToSetWeight(db);
+    if (oldVersion < 17) await _migrateToFontScale(db);
   }
 
   /// Opens a throwaway database through [factory] (an in-memory one under
@@ -166,7 +167,8 @@ class AppDatabase {
         language TEXT NOT NULL DEFAULT 'system',
         theme TEXT NOT NULL DEFAULT 'paper',
         paper_styles TEXT NOT NULL DEFAULT '{}',
-        photo_path TEXT
+        photo_path TEXT,
+        font_scale TEXT NOT NULL DEFAULT 'normal'
       )
     ''');
     await db.execute('''
@@ -456,5 +458,15 @@ class AppDatabase {
   /// read time, so it survives the sandbox path changing). Additive, nullable.
   Future<void> _migrateToProfilePhoto(Database db) async {
     await db.execute('ALTER TABLE profile ADD COLUMN photo_path TEXT');
+  }
+
+  /// v16 → v17: a text-size preference on the profile. Stored as the name of
+  /// an `AppFontScale` value rather than a number so the scale factors stay a
+  /// UI decision and can be re-tuned without touching stored data. Additive,
+  /// defaulting to the size every existing install is already reading at.
+  Future<void> _migrateToFontScale(Database db) async {
+    await db.execute(
+      "ALTER TABLE profile ADD COLUMN font_scale TEXT NOT NULL DEFAULT 'normal'",
+    );
   }
 }

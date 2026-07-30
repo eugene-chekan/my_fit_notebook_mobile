@@ -16,6 +16,7 @@
   "navPrograms": "Programs",
   "navSchedule": "Schedule",
   "navExercises": "Exercises",
+  "navTrainingLog": "Training log",
   "navStats": "Stats",
   "navProfile": "Profile",
   "navSettings": "Settings",
@@ -141,7 +142,21 @@
   "addExercises": "Add exercises",
   "noExercisesWorkout": "No exercises yet — add one via ✐ above.",
   "loggedSessions": "Logged sessions",
+  "recentSessions": "Recent sessions",
   "noSessions": "No sessions logged yet.",
+  "noTrainingLog": "Nothing logged yet — finish a workout and it lands here.",
+  "seeAllSessions": "see all {count} sessions",
+  "@seeAllSessions": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sessionsCount": "{count, plural, one{{count} session} other{{count} sessions}}",
+  "@sessionsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "lastTrainedOn": "last {date}",
+  "@lastTrainedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
   "sessionExercises": "{count, plural, one{{count} exercise} other{{count} exercises}}",
   "@sessionExercises": {
     "placeholders": { "count": { "type": "int" } }
@@ -198,6 +213,10 @@
   "paperLabel": "paper:",
   "paperRuled": "ruled",
   "paperGrid": "grid",
+  "textSizeLabel": "text size:",
+  "textSizeSmall": "small",
+  "textSizeNormal": "normal",
+  "textSizeLarge": "large",
   "measurements": "Measurements",
   "measurementsHint": "tap a line for history & goal, + to log",
   "saveDetails": "Save details",

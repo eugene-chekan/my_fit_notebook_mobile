@@ -18,7 +18,7 @@ class NotebookHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 2 * kNotebookLine,
+      height: 2 * notebookLine(context),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: context.notebook.ink, width: 2)),
       ),

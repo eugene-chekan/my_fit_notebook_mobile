@@ -57,6 +57,12 @@ class ProfileRepository {
     await db.update('profile', {'theme': theme}, where: 'id = 1');
   }
 
+  Future<void> setFontScale(String fontScale) async {
+    final db = await _db;
+    await getProfile();
+    await db.update('profile', {'font_scale': fontScale}, where: 'id = 1');
+  }
+
   /// Store (or clear, with null) the profile photo's file name.
   Future<void> setPhotoPath(String? fileName) async {
     final db = await _db;

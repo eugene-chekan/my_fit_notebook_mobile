@@ -444,7 +444,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final target = provider.targets[metric.key];
     final label = localizedMetric(context, metric.key);
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

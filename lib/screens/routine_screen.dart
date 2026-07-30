@@ -22,13 +22,19 @@ import '../widgets/notebook_header.dart';
 import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
-import '../widgets/swipe_actions.dart';
+import '../widgets/session_log.dart';
 import 'manage_routine_screen.dart';
+import 'training_log_screen.dart';
 
 /// The body metric that loads are logged against, for the kg/lb conversion and
 /// its suffix — the same one the profile uses, so a lifted load and a
 /// bodyweight entry always read in the same unit.
 final _weightMetric = kBodyMetrics.firstWhere((m) => m.isWeight);
+
+/// How many logged sessions the workout page keeps. Enough to see whether the
+/// last session went well without the history burying the exercises; the whole
+/// log lives in [TrainingLogScreen].
+const _recentSessions = 3;
 
 class RoutineScreen extends StatefulWidget {
   const RoutineScreen({super.key, required this.routineId});
@@ -139,20 +145,52 @@ class _RoutineScreenState extends State<RoutineScreen> {
 
   /// Open the full breakdown for a logged session — times, totals, and the
   /// per-set reps for each exercise.
-  Future<void> _openCompletionDetail(models.Completion completion) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.notebook.bg,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: context.notebook.ink, width: 2),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-      ),
-      builder: (sheetContext) => _CompletionDetailSheet(
-        provider: _provider,
-        completion: completion,
+  Future<void> _openCompletionDetail(models.Completion completion) {
+    return showCompletionDetail(
+      context,
+      completion: completion,
+      sets: _provider.completionSets(completion.id),
+      units: _provider.units,
+    );
+  }
+
+  /// The link through to the rest of the history, drawn like a margin note
+  /// rather than a button so it doesn't compete with the workout controls.
+  Widget _seeAllLine(AppLocalizations t, int total) {
+    return InkWell(
+      onTap: _openFullLog,
+      child: SizedBox(
+        height: notebookLine(context),
+        child: Container(
+          alignment: Alignment.bottomLeft,
+          padding: const EdgeInsets.only(left: 2, bottom: 3),
+          child: Text(
+            '${t.seeAllSessions(total)} →',
+            style: TextStyle(
+              fontFamily: 'Caveat',
+              fontSize: 18,
+              fontStyle: FontStyle.italic,
+              color: context.notebook.sec,
+            ),
+          ),
+        ),
       ),
     );
+  }
+
+  /// The whole history for this workout, on its own page.
+  Future<void> _openFullLog() async {
+    final routine = _provider.routine;
+    if (routine == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WorkoutLogScreen(
+          routineId: routine.id,
+          routineName: routine.name,
+        ),
+      ),
+    );
+    await _provider.load();
   }
 
   /// Log what was actually done for a set: the reps, and optionally the load.
@@ -395,17 +433,27 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                             },
                                           ),
                                   ),
-                                HeadingLine(t.loggedSessions),
+                                HeadingLine(t.recentSessions),
                                 if (provider.completions.isEmpty)
                                   MutedLine(t.noSessions)
-                                else
-                                  ...provider.completions.map(
-                                    (c) => _CompletionRow(
-                                      completion: c,
-                                      onDelete: () => _deleteCompletion(c),
-                                      onTap: () => _openCompletionDetail(c),
-                                    ),
-                                  ),
+                                else ...[
+                                  ...provider.completions
+                                      .take(_recentSessions)
+                                      .map(
+                                        (c) => CompletionRow(
+                                          key: ValueKey('recent-${c.id}'),
+                                          completion: c,
+                                          onDelete: () => _deleteCompletion(c),
+                                          onTap: () => _openCompletionDetail(c),
+                                        ),
+                                      ),
+                                  // The page is for training, so it keeps only
+                                  // the last few sessions; the rest is a page
+                                  // away in the training log.
+                                  if (provider.completions.length >
+                                      _recentSessions)
+                                    _seeAllLine(t, provider.completions.length),
+                                ],
                               ],
                             ),
                     ),
@@ -620,7 +668,7 @@ class _ExerciseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: InkWell(
         onTap: onToggle,
         child: Row(
@@ -709,7 +757,7 @@ class _PrescribedExerciseRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-          height: kNotebookLine,
+          height: notebookLine(context),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -810,7 +858,7 @@ class _SetRow extends StatelessWidget {
         ? ''
         : '  ×  ${formatMeasurement(set.weightKg!, _weightMetric, units, unitLabelsFor(t))}';
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: Padding(
         padding: const EdgeInsets.only(left: 30),
         child: Row(
@@ -919,246 +967,5 @@ class _InkCheckbox extends StatelessWidget {
             )
           : null,
     );
-  }
-}
-
-class _CompletionRow extends StatelessWidget {
-  const _CompletionRow({
-    required this.completion,
-    required this.onDelete,
-    required this.onTap,
-  });
-
-  final models.Completion completion;
-  /// Shows the confirm dialog and deletes if confirmed; awaited by the swipe.
-  final Future<void> Function() onDelete;
-  /// Opens the session's full breakdown.
-  final VoidCallback onTap;
-
-  /// "3 exercises · 12 sets · 140 reps" from the snapshotted totals (DB v8);
-  /// empty for pre-v8 sessions that never captured them, and sets/reps are
-  /// dropped when zero (a bare-checkbox workout logs exercises only).
-  String _summary(AppLocalizations t) {
-    final exercises = completion.exercisesCompleted;
-    if (exercises == null) return '';
-    final parts = <String>[t.sessionExercises(exercises)];
-    final sets = completion.setsCompleted ?? 0;
-    if (sets > 0) parts.add(t.sessionSets(sets));
-    final reps = completion.repsTotal ?? 0;
-    if (reps > 0) parts.add(t.sessionReps(reps));
-    return parts.join(' · ');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final summary = _summary(t);
-    return SwipeableRow(
-      itemKey: ValueKey('completion-${completion.id}'),
-      onDelete: () async {
-        await onDelete();
-        return false; // deletion (with confirm) handled by the callback
-      },
-      child: InkWell(onTap: onTap, child: _content(context, t, summary)),
-    );
-  }
-
-  Widget _content(BuildContext context, AppLocalizations t, String summary) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          height: kNotebookLine,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text.rich(
-                    TextSpan(
-                      style: TextStyle(
-                        fontFamily: 'Caveat',
-                        fontSize: 18,
-                        color: context.notebook.ink,
-                      ),
-                      children: [
-                        TextSpan(text: formatCompletionDt(completion.completedOn)),
-                        if (completion.durationMinutes != null && completion.durationMinutes! >= 0)
-                          TextSpan(
-                            text: '  (${formatDurationMinutes(completion.durationMinutes!)})',
-                            style: TextStyle(color: context.notebook.sec),
-                          ),
-                      ],
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (summary.isNotEmpty)
-          SizedBox(
-            height: kNotebookLine,
-            child: Container(
-              alignment: Alignment.bottomLeft,
-              padding: const EdgeInsets.only(left: 2, bottom: 3),
-              child: Text(
-                summary,
-                style: TextStyle(
-                  fontFamily: 'Caveat',
-                  fontSize: 16,
-                  color: context.notebook.sec,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-/// Full breakdown of a logged session: start/end times, totals, and the reps
-/// logged for each set of each exercise (from the `completion_sets` snapshot).
-class _CompletionDetailSheet extends StatelessWidget {
-  const _CompletionDetailSheet({required this.provider, required this.completion});
-
-  final RoutineDetailProvider provider;
-  final models.Completion completion;
-
-  static String _hm(DateTime d) =>
-      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-
-  String _totals(AppLocalizations t) {
-    final exercises = completion.exercisesCompleted;
-    if (exercises == null) return '';
-    final parts = <String>[t.sessionExercises(exercises)];
-    final sets = completion.setsCompleted ?? 0;
-    if (sets > 0) parts.add(t.sessionSets(sets));
-    final reps = completion.repsTotal ?? 0;
-    if (reps > 0) parts.add(t.sessionReps(reps));
-    return parts.join(' · ');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final n = context.notebook;
-
-    DateTime? start;
-    try {
-      if (completion.startedAt != null) start = DateTime.parse(completion.startedAt!);
-    } catch (_) {}
-    final elapsed =
-        (completion.durationMinutes ?? 0) * 60 + (completion.pausedSeconds ?? 0);
-    final end = start?.add(Duration(seconds: elapsed));
-    final totals = _totals(t);
-    final paused = completion.pausedSeconds ?? 0;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.72),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                formatCompletionDt(completion.completedOn),
-                style: TextStyle(
-                  fontFamily: 'Caveat',
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: n.ink,
-                ),
-              ),
-              const SizedBox(height: 6),
-              if (start != null && end != null)
-                _meta(n, '${t.startTimeLabel} ${_hm(start)}  ·  ${t.endTimeLabel} ${_hm(end)}'),
-              if (completion.durationMinutes != null)
-                _meta(
-                  n,
-                  '${t.totalDurationLabel}: ${formatDurationMinutes(completion.durationMinutes!)}'
-                  '${paused > 0 ? '  ·  ${t.timePausedLabel} ${formatDuration(paused)}' : ''}',
-                ),
-              if (totals.isNotEmpty) _meta(n, totals),
-              const SizedBox(height: 10),
-              FutureBuilder<List<models.CompletionSet>>(
-                future: provider.completionSets(completion.id),
-                builder: (context, snapshot) {
-                  final sets = snapshot.data;
-                  if (sets == null) return const SizedBox(height: 24);
-                  if (sets.isEmpty) {
-                    return _meta(n, t.noSetDetails);
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        t.breakdownHeading,
-                        style: TextStyle(
-                          fontFamily: 'Caveat',
-                          fontSize: 19,
-                          fontWeight: FontWeight.w700,
-                          color: n.ink,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      ..._breakdown(context, t, sets),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _meta(NotebookPalette n, String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Text(
-          text,
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: n.sec),
-        ),
-      );
-
-  List<Widget> _breakdown(
-      BuildContext context, AppLocalizations t, List<models.CompletionSet> sets) {
-    final n = context.notebook;
-    final widgets = <Widget>[];
-    String? current;
-    for (final s in sets) {
-      if (s.exerciseName != current) {
-        current = s.exerciseName;
-        if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 6));
-        widgets.add(Text(
-          s.exerciseName,
-          style: TextStyle(
-            fontFamily: 'Caveat',
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: n.ink,
-          ),
-        ));
-      }
-      final reps = s.reps == null ? '—' : '${s.reps} ${repUnitLabel(t, s.unit)}';
-      final load = s.weightKg == null
-          ? ''
-          : '  ×  ${formatMeasurement(s.weightKg!, _weightMetric, provider.units, unitLabelsFor(t))}';
-      widgets.add(Padding(
-        padding: const EdgeInsets.only(left: 14, top: 1),
-        child: Text(
-          '${t.setLabel(s.setIndex)}  —  $reps$load',
-          style: TextStyle(fontFamily: 'Caveat', fontSize: 18, color: n.sec),
-        ),
-      ));
-    }
-    return widgets;
   }
 }

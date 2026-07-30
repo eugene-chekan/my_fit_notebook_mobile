@@ -5,7 +5,9 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:my_fit_notebook_mobile/data/db/app_database.dart';
+import 'package:my_fit_notebook_mobile/data/models/profile.dart';
 import 'package:my_fit_notebook_mobile/data/repositories/exercise_repository.dart';
+import 'package:my_fit_notebook_mobile/data/repositories/profile_repository.dart';
 
 /// Migrations are the one part of this schema that runs against data someone
 /// already has, so they are tested against a real file: an in-memory database
@@ -31,8 +33,8 @@ void main() {
     if (await dir.exists()) await dir.delete(recursive: true);
   });
 
-  /// The shape of the set-logging tables before v16, with one routine, one
-  /// exercise and one logged set already in them.
+  /// The v15 shape of every table a later migration touches, with one routine,
+  /// one exercise, one logged set and a filled-in profile already in them.
   Future<void> layDownV15() async {
     final db = await databaseFactoryFfi.openDatabase(
       dbPath,
@@ -86,6 +88,28 @@ void main() {
       )
     ''');
 
+    // v15 shape: no font_scale.
+    await db.execute('''
+      CREATE TABLE profile (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        name TEXT NOT NULL DEFAULT '',
+        birth_date TEXT,
+        height_cm REAL,
+        units TEXT NOT NULL DEFAULT 'metric',
+        language TEXT NOT NULL DEFAULT 'system',
+        theme TEXT NOT NULL DEFAULT 'paper',
+        paper_styles TEXT NOT NULL DEFAULT '{}',
+        photo_path TEXT
+      )
+    ''');
+
+    await db.insert('profile', {
+      'id': 1,
+      'name': 'Sam',
+      'height_cm': 178.0,
+      'units': 'imperial',
+      'theme': 'blueprint',
+    });
     await db.insert('routines', {
       'name': 'Leg day',
       'created_at': '2026-01-01T00:00:00',
@@ -138,5 +162,32 @@ void main() {
 
     final reloaded = (await exercises.listSetsForRoutine(1))[1]!.single;
     expect(reloaded.weightKg, 90);
+  });
+
+  test('v16 → v17 adds font_scale without disturbing the rest of the profile',
+      () async {
+    await layDownV15();
+
+    final db = await AppDatabase.instance
+        .openForTesting(databaseFactoryFfi, path: dbPath);
+    expect(await columnsOf(db, 'profile'), contains('font_scale'));
+
+    // An existing reader keeps everything they had set, and lands on the size
+    // they were already reading at rather than a surprise resize.
+    final profile = await ProfileRepository().getProfile();
+    expect(profile.name, 'Sam');
+    expect(profile.units, Units.imperial);
+    expect(profile.theme, AppTheme.blueprint);
+    expect(profile.fontScale, AppFontScale.normal);
+  });
+
+  test('a text size can be chosen the moment the upgrade lands', () async {
+    await layDownV15();
+    await AppDatabase.instance.openForTesting(databaseFactoryFfi, path: dbPath);
+
+    final profiles = ProfileRepository();
+    await profiles.setFontScale(AppFontScale.large);
+
+    expect((await profiles.getProfile()).fontScale, AppFontScale.large);
   });
 }

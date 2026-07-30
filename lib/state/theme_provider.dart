@@ -24,10 +24,16 @@ class ThemeProvider extends ChangeNotifier {
   /// Whether the app draws a graph grid instead of horizontal ruling.
   bool get graphGrid => _paperStyle == PaperStyle.grid;
 
+  /// Selected text size. Applied as a [TextScaler] above [MaterialApp], so it
+  /// reaches every string *and* the ruled grid in one place.
+  FontScale _fontScale = FontScale.normal;
+  FontScale get fontScale => _fontScale;
+
   Future<void> load() async {
     final profile = await _repository.getProfile();
     _themeId = ThemeId.fromName(profile.theme);
     _paperStyle = profile.paperStyle;
+    _fontScale = FontScale.fromName(profile.fontScale);
     notifyListeners();
   }
 
@@ -43,5 +49,12 @@ class ThemeProvider extends ChangeNotifier {
     _paperStyle = style;
     notifyListeners();
     await _repository.setPaperStyle(style);
+  }
+
+  Future<void> setFontScale(FontScale scale) async {
+    if (_fontScale == scale) return;
+    _fontScale = scale;
+    notifyListeners();
+    await _repository.setFontScale(scale.name);
   }
 }

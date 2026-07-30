@@ -265,7 +265,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         return false; // provider reload rebuilds the list authoritatively
       },
       child: SizedBox(
-        height: kNotebookLine,
+        height: notebookLine(context),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [

@@ -123,7 +123,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
         return confirmed;
       },
       child: SizedBox(
-        height: kNotebookLine,
+        height: notebookLine(context),
         child: InkWell(
           onTap: () => _open(program),
           child: Container(
@@ -156,7 +156,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
     final t = AppLocalizations.of(context);
     if (!_adding) {
       return SizedBox(
-        height: kNotebookLine,
+        height: notebookLine(context),
         child: InkWell(
           onTap: () => setState(() => _adding = true),
           child: Container(
@@ -175,7 +175,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
       );
     }
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

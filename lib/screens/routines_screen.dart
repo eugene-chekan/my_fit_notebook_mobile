@@ -249,7 +249,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
         return confirmed;
       },
       child: SizedBox(
-        height: kNotebookLine,
+        height: notebookLine(context),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -299,7 +299,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     final t = AppLocalizations.of(context);
     if (!_adding) {
       return SizedBox(
-        height: kNotebookLine,
+        height: notebookLine(context),
         child: InkWell(
           onTap: () => setState(() => _adding = true),
           child: Container(
@@ -318,7 +318,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
       );
     }
     return SizedBox(
-      height: kNotebookLine,
+      height: notebookLine(context),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

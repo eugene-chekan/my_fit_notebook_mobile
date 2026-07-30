@@ -29,6 +29,77 @@ enum ThemeId {
   }
 }
 
+/// Selectable text sizes. The app pins its rows to the ruled grid, so the
+/// chosen scale drives *both* the type and the ruling — see
+/// `notebookLine(context)` — and the page keeps reading as handwriting on
+/// lines at every size.
+enum FontScale {
+  small(0.88),
+  normal(1.0),
+  large(1.18);
+
+  const FontScale(this.factor);
+
+  /// Multiplier applied on top of the device's own text scale.
+  final double factor;
+
+  /// Parses a persisted id, falling back to [normal] for anything unknown.
+  static FontScale fromName(String? name) {
+    return FontScale.values.firstWhere(
+      (scale) => scale.name == name,
+      orElse: () => FontScale.normal,
+    );
+  }
+
+  /// Folds this preference into the *device's* text scale rather than
+  /// replacing it, so a reader who has already turned the system font up keeps
+  /// that and this setting nudges from there.
+  TextScaler applyTo(TextScaler device) => _NotebookTextScaler(
+    device,
+    factor,
+  ).clamp(minScaleFactor: kMinTextScale, maxScaleFactor: kMaxTextScale);
+}
+
+/// Bounds on the *combined* device + preference text scale. The page is built
+/// from fixed pixel geometry — a margin rule at a set x, a Polaroid, calendar
+/// cells — which stops reading as ruled paper well before the type stops being
+/// legible, so the notebook caps what it will stretch to.
+const double kMinTextScale = 0.8;
+const double kMaxTextScale = 1.6;
+
+/// The device's own text scale multiplied by the app's preference. Folding the
+/// two together (rather than overriding the device's) keeps a reader who has
+/// already turned the system font up — this setting nudges from wherever they
+/// are. [FontScale.applyTo] wraps the result in the bounds above.
+///
+/// Equality is defined because the framework compares scalers to decide
+/// whether text needs re-laying-out.
+@immutable
+class _NotebookTextScaler extends TextScaler {
+  const _NotebookTextScaler(this.device, this.factor);
+
+  final TextScaler device;
+  final double factor;
+
+  @override
+  double scale(double fontSize) => device.scale(fontSize) * factor;
+
+  // Required by TextScaler, deprecated there in favour of scale(). Only the
+  // legacy paths that still read a single factor ever reach it.
+  @override
+  // ignore: deprecated_member_use
+  double get textScaleFactor => device.textScaleFactor * factor;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _NotebookTextScaler &&
+      other.device == device &&
+      other.factor == factor;
+
+  @override
+  int get hashCode => Object.hash(device, factor);
+}
+
 /// The runtime colour tokens of a notebook theme. One `const` instance exists
 /// per [ThemeId]; the active one is registered in [ThemeData.extensions] and
 /// read via `context.notebook`.

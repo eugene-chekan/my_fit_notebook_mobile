@@ -82,6 +82,23 @@ class CompletionRepository {
     return rows.map(CompletionSet.fromMap).toList();
   }
 
+  /// Every workout that has at least one logged session, with how many and
+  /// when the last one was — most recently trained first. Backs the Training
+  /// log's index; workouts never trained simply don't appear.
+  Future<List<LoggedRoutine>> loggedRoutines() async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT r.id AS id, r.name AS name,
+             COUNT(c.id) AS session_count,
+             MAX(c.completed_on) AS last_completed_on
+      FROM routines r
+      JOIN completions c ON c.routine_id = r.id
+      GROUP BY r.id, r.name
+      ORDER BY last_completed_on DESC, r.name
+    ''');
+    return rows.map(LoggedRoutine.fromMap).toList();
+  }
+
   Future<List<Completion>> listForRoutine(int routineId) async {
     final db = await _db;
     final rows = await db.rawQuery(

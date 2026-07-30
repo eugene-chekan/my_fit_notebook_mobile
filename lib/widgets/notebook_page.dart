@@ -2,9 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../theme/notebook_theme.dart';
 
-/// Vertical rhythm of the ruled paper. Content that should sit "on the
-/// lines" (list rows, headings) sizes itself to a multiple of this.
+/// Vertical rhythm of the ruled paper at the default text size. Nothing lays
+/// out against this directly — use [notebookLine], which scales it with the
+/// reader's text size.
 const double kNotebookLine = 36.0;
+
+/// Vertical rhythm of the ruled paper *as currently rendered*.
+///
+/// Every row in the app is a fixed-height box sized to the ruling, so text and
+/// ruling have to grow together: scale the type alone and the words overflow
+/// their line; scale the ruling alone and the writing floats off it. Both come
+/// from the one [TextScaler] installed above `MaterialApp` (device text size
+/// folded together with the app's own [FontScale] setting).
+double notebookLine(BuildContext context) =>
+    MediaQuery.textScalerOf(context).scale(kNotebookLine);
 
 /// Grid pitch for the Carbon theme's engineering graph paper (both axes).
 const double kGraphGrid = 28.0;
@@ -18,11 +29,16 @@ const double kMarginRuleX = 52.0;
 class RuledPaperPainter extends CustomPainter {
   const RuledPaperPainter(
     this.palette, {
+    required this.line,
     this.marginOnRight = false,
     this.showMargin = true,
   });
 
   final NotebookPalette palette;
+
+  /// Spacing between rules — [notebookLine] for the caller's context, so the
+  /// ruling tracks the reader's text size.
+  final double line;
 
   /// When true the brick double margin rule is painted at the right edge
   /// instead of at [kMarginRuleX] — used by the drawer, which reads as the
@@ -50,7 +66,7 @@ class RuledPaperPainter extends CustomPainter {
         canvas.drawLine(Offset(x, 0), Offset(x, size.height), linePaint);
       }
     } else {
-      for (double y = kNotebookLine; y < size.height; y += kNotebookLine) {
+      for (double y = line; y < size.height; y += line) {
         canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
       }
     }
@@ -88,6 +104,7 @@ class RuledPaperPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant RuledPaperPainter oldDelegate) =>
       oldDelegate.palette != palette ||
+      oldDelegate.line != line ||
       oldDelegate.marginOnRight != marginOnRight ||
       oldDelegate.showMargin != showMargin;
 }
@@ -109,12 +126,13 @@ class NotebookPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final line = notebookLine(context);
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: CustomPaint(
-            painter: RuledPaperPainter(context.notebook),
+            painter: RuledPaperPainter(context.notebook, line: line),
             child: Stack(
               children: [
                 Padding(
@@ -124,7 +142,7 @@ class NotebookPage extends StatelessWidget {
                 if (marginChild != null)
                   Positioned(
                     left: 0,
-                    top: kNotebookLine + 2,
+                    top: line + 2,
                     width: kMarginRuleX,
                     child: Center(child: marginChild),
                   ),
@@ -146,7 +164,7 @@ class HeadingLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: kNotebookLine,
+      height: notebookLine(context),
       alignment: Alignment.bottomLeft,
       padding: const EdgeInsets.only(bottom: 3),
       child: Text(
@@ -171,7 +189,7 @@ class MutedLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: kNotebookLine,
+      height: notebookLine(context),
       alignment: Alignment.bottomLeft,
       padding: const EdgeInsets.only(bottom: 3),
       child: Text(
