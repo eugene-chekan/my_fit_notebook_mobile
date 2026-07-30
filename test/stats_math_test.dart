@@ -79,17 +79,4 @@ void main() {
       expect(averageMinutes([_c('2026-07-01'), _c('2026-07-02')]), isNull);
     });
   });
-
-  group('bmi', () {
-    test('computes a known value', () {
-      expect(bmi(72, 180), closeTo(22.22, 0.01));
-    });
-
-    test('null when weight or height is missing or non-positive', () {
-      expect(bmi(null, 180), isNull);
-      expect(bmi(72, null), isNull);
-      expect(bmi(0, 180), isNull);
-      expect(bmi(72, 0), isNull);
-    });
-  });
 }

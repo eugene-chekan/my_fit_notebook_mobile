@@ -39,7 +39,6 @@ class StatsProvider extends ChangeNotifier {
   Map<String, double> targets = {};
   /// Per-metric dated history, oldest first (charting order).
   Map<String, List<Measurement>> series = {};
-  double? bmiValue;
 
   String get units => profile?.units ?? Units.metric;
 
@@ -71,7 +70,6 @@ class StatsProvider extends ChangeNotifier {
       loaded[metric.key] = history.reversed.toList(); // oldest first
     }
     series = loaded;
-    bmiValue = bmi(latest['weight']?.value, profile?.heightCm);
 
     loading = false;
     notifyListeners();

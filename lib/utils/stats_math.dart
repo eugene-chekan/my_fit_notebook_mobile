@@ -81,16 +81,6 @@ double? averageMinutes(List<Completion> completions) {
   return durations.reduce((a, b) => a + b) / durations.length;
 }
 
-/// Body-mass index from a weight (kg) and height (cm); null when either is
-/// missing or non-positive.
-double? bmi(double? weightKg, double? heightCm) {
-  if (weightKg == null || heightCm == null || weightKg <= 0 || heightCm <= 0) {
-    return null;
-  }
-  final heightM = heightCm / 100;
-  return weightKg / (heightM * heightM);
-}
-
 /// The Monday (date-only) of the week containing [d].
 DateTime _mondayOf(DateTime d) {
   final day = _dateOnly(d);

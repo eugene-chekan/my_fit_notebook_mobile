@@ -156,13 +156,12 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
 
     final widgets = <Widget>[];
 
-    // Weight is the marquee: latest + BMI, then the full trend line.
+    // Weight is the marquee: the latest reading, then the full trend line.
     final weightLatest = s.latest['weight'];
     if (weightLatest != null) {
-      final bmiText = s.bmiValue != null ? ' · BMI ${s.bmiValue!.toStringAsFixed(1)}' : '';
       widgets.add(_statRow(
         localizedMetric(context, 'weight'),
-        '${formatMeasurement(weightLatest.value, weightMetric, s.units, unitLabelsFor(t))}$bmiText',
+        formatMeasurement(weightLatest.value, weightMetric, s.units, unitLabelsFor(t)),
       ));
     }
     if (weightSeries.length >= 2) {
