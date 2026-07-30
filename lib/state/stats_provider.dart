@@ -35,6 +35,9 @@ class StatsProvider extends ChangeNotifier {
 
   // --- Body trends ---
   Profile? profile;
+  /// The rolling 7-day body-weight mean, or null when the week is too sparse
+  /// to average honestly.
+  WeightAverage? weightAvg;
   Map<String, Measurement> latest = {};
   Map<String, double> targets = {};
   /// Per-metric dated history, oldest first (charting order).
@@ -63,6 +66,7 @@ class StatsProvider extends ChangeNotifier {
 
     profile = await _profiles.getProfile();
     latest = await _profiles.latestByMetric();
+    weightAvg = weightAverage(await _profiles.history('weight'));
     targets = await _profiles.targets();
     final loaded = <String, List<Measurement>>{};
     for (final metric in kBodyMetrics) {

@@ -74,6 +74,8 @@
   "noMeasurements": "замеров пока нет — добавь их на странице профиля",
   "logWeightAgain": "запиши вес ещё раз, чтобы построить график",
   "statsGoal": "цель {value}",
+  "weekAvgLabel": "среднее за 7 дней",
+  "weekAvgDays": "{count} из {window} дней",
   "barThisWeek": "эта неделя",
 
   "newRoutine": "+ новая тренировка…",

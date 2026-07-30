@@ -98,6 +98,11 @@
   "@statsGoal": {
     "placeholders": { "value": { "type": "String" } }
   },
+  "weekAvgLabel": "7-day avg",
+  "weekAvgDays": "{count} of {window} days",
+  "@weekAvgDays": {
+    "placeholders": { "count": { "type": "int" }, "window": { "type": "int" } }
+  },
   "barThisWeek": "this week",
 
   "newRoutine": "+ new workout…",

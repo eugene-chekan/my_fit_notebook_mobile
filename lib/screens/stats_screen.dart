@@ -164,6 +164,32 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
         formatMeasurement(weightLatest.value, weightMetric, s.units, unitLabelsFor(t)),
       ));
     }
+    // The rolling mean, with the change against the week before it: daily
+    // weight is noisy enough that a single reading says little on its own.
+    final avg = s.weightAvg;
+    if (avg != null) {
+      final delta = avg.delta;
+      widgets.add(_statRow(
+        t.weekAvgLabel,
+        formatMeasurement(avg.mean, weightMetric, s.units, unitLabelsFor(t)) +
+            (delta == null
+                ? ''
+                : '  ${_signedWeight(toDisplay(delta.abs(), weightMetric, s.units), delta)}'),
+        accent: delta != null,
+      ));
+      widgets.add(Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text(
+          t.weekAvgDays(avg.days, avg.window),
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 15,
+            fontStyle: FontStyle.italic,
+            color: context.notebook.sec,
+          ),
+        ),
+      ));
+    }
     if (weightSeries.length >= 2) {
       final values = [
         for (final m in weightSeries) toDisplay(m.value, weightMetric, s.units),
@@ -195,6 +221,12 @@ class _StatsScreenState extends State<StatsScreen> with RouteAware {
     }
     return widgets;
   }
+
+  /// "-0.6" / "+0.4" for a weight change, taking the magnitude already
+  /// converted to display units and the sign from the original delta. Uses the
+  /// same +/- convention as the month delta above it.
+  String _signedWeight(double displayMagnitude, double change) =>
+      '${change > 0 ? '+' : '-'}${formatNumber(displayMagnitude)}';
 
   Widget _metricRow(BodyMetric metric, StatsProvider s) {
     final data = s.series[metric.key] ?? const [];

@@ -34,6 +34,8 @@ void main() {
     expect(t.programWorkoutsCount(0), 'no workouts');
     expect(t.programWorkoutsCount(1), '1 workout');
     expect(t.programWorkoutsCount(4), '4 workouts');
+    expect(t.weekAvgLabel, '7-day avg');
+    expect(t.weekAvgDays(5, 7), '5 of 7 days');
   });
 
   testWidgets('Russian strings resolve with one/few/many plural forms', (tester) async {
@@ -50,5 +52,6 @@ void main() {
     expect(t.programWorkoutsCount(1), '1 тренировка');
     expect(t.programWorkoutsCount(2), '2 тренировки');
     expect(t.programWorkoutsCount(5), '5 тренировок');
+    expect(t.weekAvgDays(5, 7), '5 из 7 дней');
   });
 }

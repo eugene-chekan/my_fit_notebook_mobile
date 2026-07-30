@@ -257,6 +257,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get weekAvgLabel => '7-day avg';
+
+  @override
+  String weekAvgDays(int count, int window) {
+    return '$count of $window days';
+  }
+
+  @override
   String get barThisWeek => 'this week';
 
   @override

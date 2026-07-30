@@ -518,6 +518,18 @@ abstract class AppLocalizations {
   /// **'goal {value}'**
   String statsGoal(String value);
 
+  /// No description provided for @weekAvgLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day avg'**
+  String get weekAvgLabel;
+
+  /// No description provided for @weekAvgDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {window} days'**
+  String weekAvgDays(int count, int window);
+
   /// No description provided for @barThisWeek.
   ///
   /// In en, this message translates to:

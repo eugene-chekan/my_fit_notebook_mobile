@@ -263,6 +263,14 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get weekAvgLabel => 'среднее за 7 дней';
+
+  @override
+  String weekAvgDays(int count, int window) {
+    return '$count из $window дней';
+  }
+
+  @override
   String get barThisWeek => 'эта неделя';
 
   @override
