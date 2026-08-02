@@ -206,6 +206,8 @@
   "languageLabel": "language:",
   "themeLabel": "theme:",
   "themePaper": "Paper",
+  "themePencil": "Pencil",
+  "themeManuscript": "Manuscript",
   "themeBlueprint": "Blueprint",
   "themeChalkboard": "Chalkboard",
   "themeLamp": "Aged lamp",

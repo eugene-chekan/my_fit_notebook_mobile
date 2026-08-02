@@ -520,6 +520,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themePaper => 'Paper';
 
   @override
+  String get themePencil => 'Pencil';
+
+  @override
+  String get themeManuscript => 'Manuscript';
+
+  @override
   String get themeBlueprint => 'Blueprint';
 
   @override

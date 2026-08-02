@@ -537,6 +537,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get themePaper => 'Бумага';
 
   @override
+  String get themePencil => 'Карандаш';
+
+  @override
+  String get themeManuscript => 'Манускрипт';
+
+  @override
   String get themeBlueprint => 'Чертёж';
 
   @override

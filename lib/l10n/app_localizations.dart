@@ -932,6 +932,18 @@ abstract class AppLocalizations {
   /// **'Paper'**
   String get themePaper;
 
+  /// No description provided for @themePencil.
+  ///
+  /// In en, this message translates to:
+  /// **'Pencil'**
+  String get themePencil;
+
+  /// No description provided for @themeManuscript.
+  ///
+  /// In en, this message translates to:
+  /// **'Manuscript'**
+  String get themeManuscript;
+
   /// No description provided for @themeBlueprint.
   ///
   /// In en, this message translates to:

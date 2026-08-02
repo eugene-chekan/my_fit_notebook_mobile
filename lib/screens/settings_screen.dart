@@ -111,6 +111,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     switch (id) {
       case ThemeId.paper:
         return t.themePaper;
+      case ThemeId.pencil:
+        return t.themePencil;
+      case ThemeId.manuscript:
+        return t.themeManuscript;
       case ThemeId.blueprint:
         return t.themeBlueprint;
       case ThemeId.chalkboard:

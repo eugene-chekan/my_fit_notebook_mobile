@@ -9,11 +9,14 @@ library;
 
 import 'package:flutter/material.dart';
 
-/// The selectable themes: the light default ([ThemeId.paper]) and four dark
-/// "ink-on-paper" grounds — [blueprint], [chalkboard], [lamp], and [carbon]
-/// (the last swaps the ruled lines for an engineering graph grid).
+/// The selectable themes: three light grounds — the default [ThemeId.paper],
+/// graphite-on-a-draft-pad [pencil], and browned [manuscript] — and four dark
+/// "ink-on-paper" ones: [blueprint], [chalkboard], [lamp], and [carbon] (the
+/// last swaps the ruled lines for an engineering graph grid).
 enum ThemeId {
   paper,
+  pencil,
+  manuscript,
   blueprint,
   chalkboard,
   lamp,
@@ -239,6 +242,57 @@ class NotebookTheme {
     isDark: false,
   );
 
+  /// Light "pencil" ground — graphite on a draughtsman's putty pad.
+  ///
+  /// Graphite is never black: [ink] is a warm-neutral dark grey landing near
+  /// 9:1 on the stock rather than the 12:1 a real ink would, which is what
+  /// makes the page read as pencil rather than as a grey theme. The paper is
+  /// deliberately grey-*green* — a blue-grey pad would sit in Blueprint's
+  /// family and the two swatches would stop telling themselves apart.
+  ///
+  /// Graphite has no colour of its own, so the accent comes from the red
+  /// col-erase pencil you would actually mark a draft up with.
+  static const pencil = NotebookPalette(
+    bg: Color(0xFFE8E9E1),
+    ink: Color(0xFF3D3E3A),
+    sec: Color(0xFF62645C),
+    accent: Color(0xFFB4453A),
+    ruleTint: Color(0x213D3E3A), // graphite @ ~.13
+    marginRule: Color(0xFFB4453A),
+    trainedFill: Color(0x243D3E3A), // graphite @ ~.14
+    cardFill: Color(0x26FFFFFF), // white @ .15
+    shadow: Color(0x2E3D3E3A), // graphite @ ~.18
+    desk: Color(0xFFC6C7BC),
+    // Cool, unlike the warm dab the other light grounds use — a warm edge on
+    // putty paper reads as a stain rather than as shading.
+    vignette: Color(0x1C4A4C44),
+    isDark: false,
+  );
+
+  /// Light "manuscript" ground — iron-gall ink oxidised to brown-black on a
+  /// tea-stained page.
+  ///
+  /// Two departures from [paper]. The accent is *more* saturated, not less:
+  /// the ink here is already warm brown, so a muted brick would sink into it
+  /// and stop separating — vermilion is both louder and the red manuscripts
+  /// actually used for rubrics. And the vignette does real work for the first
+  /// time (≈.18 against paper's ≈.11); it is what says the page has browned at
+  /// its edges rather than merely being beige.
+  static const manuscript = NotebookPalette(
+    bg: Color(0xFFEDE0C8),
+    ink: Color(0xFF3B2E22),
+    sec: Color(0xFF6B5539),
+    accent: Color(0xFFA8402B),
+    ruleTint: Color(0x213B2E22), // brown ink @ ~.13
+    marginRule: Color(0xFFA8402B),
+    trainedFill: Color(0x243B2E22), // brown ink @ ~.14
+    cardFill: Color(0x26FFFFFF), // white @ .15
+    shadow: Color(0x2E3B2E22), // brown ink @ ~.18
+    desk: Color(0xFFC8B492),
+    vignette: Color(0x2E6B4A1E), // foxed edges
+    isDark: false,
+  );
+
   /// Dark "blueprint" ground — cool ink lines on deep navy, brick accent,
   /// with rule/fill/vignette derived from ink & accent at low alpha.
   static const blueprint = NotebookPalette(
@@ -291,14 +345,18 @@ class NotebookTheme {
 
   /// Dark "carbon" ground — cool grey on charcoal with a brick accent. Its
   /// paper style (ruled vs 28px graph grid) follows the global setting.
+  ///
+  /// Both inks are lighter than they first shipped: at #95999F/#626A74 the
+  /// secondary landed at 2.87:1 on this ground, so muted labels and hints were
+  /// below the legibility floor the other six grounds all clear.
   static const carbon = NotebookPalette(
     bg: Color(0xFF202329),
-    ink: Color(0xFF95999F),
-    sec: Color(0xFF626A74),
+    ink: Color(0xFFB4B8BE),
+    sec: Color(0xFF8C9299),
     accent: Color(0xFFC24A3E),
-    ruleTint: Color(0x1F95999F), // ink @ ~.12
+    ruleTint: Color(0x1FB4B8BE), // ink @ ~.12
     marginRule: Color(0xFFC24A3E),
-    trainedFill: Color(0x2495999F), // ink @ ~.14
+    trainedFill: Color(0x24B4B8BE), // ink @ ~.14
     cardFill: Color(0x0FFFFFFF), // white @ ~.06
     shadow: Color(0x66000000),
     desk: Color(0xFF17191E),
@@ -310,6 +368,10 @@ class NotebookTheme {
     switch (id) {
       case ThemeId.paper:
         return paper;
+      case ThemeId.pencil:
+        return pencil;
+      case ThemeId.manuscript:
+        return manuscript;
       case ThemeId.blueprint:
         return blueprint;
       case ThemeId.chalkboard:

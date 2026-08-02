@@ -157,14 +157,21 @@ class PolaroidPhoto extends StatelessWidget {
 
 /// The print's own inks, resolved per theme.
 ///
-/// A Polaroid is white in daylight, and on the light grounds that is exactly
-/// what it stays. On the dark grounds a white card is a floodlight: the stock
-/// lands near 0.96 relative luminance while the page's own ink tops out around
-/// 0.53, so the print reads as lit for a different room than the page it is
-/// taped to. There the stock is derived from the palette's [NotebookPalette.ink]
-/// instead, lightened just enough to sit above it — still unmistakably paper,
-/// no longer glowing, and hue-matched to each theme for free (cool on
-/// blueprint, chalky on chalkboard, warm sepia on lamp, neutral on carbon).
+/// A Polaroid is white in daylight, and on the light grounds it stays near
+/// white — but not a *fixed* white. A stark card on a toned page (putty on
+/// Pencil, tea-stained on Manuscript) reads as a sticker dropped onto the
+/// paper rather than a print resting on it, which is the same complaint the
+/// dark grounds had in a milder key. So on light themes the stock is the
+/// page's own paper carried most of the way to white: still obviously
+/// brighter than the page, still hue-matched to it.
+///
+/// On the dark grounds a white card is a floodlight: the stock lands near 0.96
+/// relative luminance while the page's own ink tops out around 0.53, so the
+/// print reads as lit for a different room. There the stock is derived from
+/// the palette's [NotebookPalette.ink] instead, lightened just enough to sit
+/// above it — still unmistakably paper, no longer glowing, and hue-matched to
+/// each theme for free (cool on blueprint, chalky on chalkboard, warm sepia on
+/// lamp, neutral on carbon).
 class _PrintInks {
   const _PrintInks({
     required this.stock,
@@ -208,13 +215,18 @@ class _PrintInks {
 
   factory _PrintInks.of(NotebookPalette palette) {
     if (!palette.isDark) {
-      return const _PrintInks(
-        stock: Color(0xFFFCFAF3), // warm photo-paper white
-        captionInk: Color(0xFF2B3A63), // navy pen
-        photoTint: Color(0xFFE7E4D8),
-        frameLine: Color(0x1F2B3A63),
-        tape: Color(0x59D8C48F), // translucent masking tape
-        tapeEdge: Color(0x24A88A4B),
+      return _PrintInks(
+        // Photo-paper white, but the *page's* white: 88% of the way from the
+        // paper to pure, which keeps the card clearly above the page while
+        // leaving it the page's own cast.
+        stock: Color.lerp(palette.bg, Colors.white, 0.88)!,
+        captionInk: palette.ink, // written in whatever the page is written in
+        photoTint: Color.lerp(palette.bg, palette.ink, 0.08)!,
+        frameLine: palette.ink.withValues(alpha: 0.12),
+        // Masking tape is tan whatever it is stuck to, and it is translucent
+        // enough that the page tints it on its own.
+        tape: const Color(0x59D8C48F),
+        tapeEdge: const Color(0x24A88A4B),
         shadowBlur: 9,
       );
     }

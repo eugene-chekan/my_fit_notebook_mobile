@@ -100,12 +100,54 @@ void main() {
     expect(height, lessThan(budget));
   });
 
-  testWidgets('on a light theme the stock stays warm photo-paper white',
-      (tester) async {
-    await tester.pumpWidget(
-      _host(PolaroidPhoto(semanticLabel: 'Profile photo', onTap: () {})),
-    );
-    expect(_stockOf(tester), const Color(0xFFFCFAF3));
+  group('on the light themes the stock is the page carried to white', () {
+    // Near-white, but not a *fixed* white: a stark card on toned paper reads
+    // as a sticker dropped onto the page rather than a print resting on it.
+    for (final (id, palette) in [
+      (ThemeId.paper, NotebookTheme.paper),
+      (ThemeId.pencil, NotebookTheme.pencil),
+      (ThemeId.manuscript, NotebookTheme.manuscript),
+    ]) {
+      testWidgets(id.name, (tester) async {
+        await tester.pumpWidget(
+          _host(
+            PolaroidPhoto(semanticLabel: 'Profile photo', onTap: () {}),
+            theme: id,
+          ),
+        );
+        final stock = _stockOf(tester);
+
+        // Daylight-bright, and clearly above the page it is taped to.
+        expect(stock.computeLuminance(), greaterThan(0.9));
+        expect(
+          stock.computeLuminance(),
+          greaterThan(palette.bg.computeLuminance()),
+        );
+        // Still carrying the page's own cast rather than an imported white.
+        expect((stock.r - stock.b).sign, (palette.bg.r - palette.bg.b).sign);
+      });
+    }
+
+    testWidgets('so a toned page does not get the cream page\'s card',
+        (tester) async {
+      await tester.pumpWidget(
+        _host(
+          PolaroidPhoto(semanticLabel: 'Profile photo', onTap: () {}),
+          theme: ThemeId.paper,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final onPaper = _stockOf(tester);
+
+      await tester.pumpWidget(
+        _host(
+          PolaroidPhoto(semanticLabel: 'Profile photo', onTap: () {}),
+          theme: ThemeId.pencil,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(_stockOf(tester), isNot(onPaper));
+    });
   });
 
   group('on the dark themes the stock is exposed for the room', () {

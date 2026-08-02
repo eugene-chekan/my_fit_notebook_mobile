@@ -149,6 +149,8 @@
   "languageLabel": "язык:",
   "themeLabel": "тема:",
   "themePaper": "Бумага",
+  "themePencil": "Карандаш",
+  "themeManuscript": "Манускрипт",
   "themeBlueprint": "Чертёж",
   "themeChalkboard": "Доска",
   "themeLamp": "Лампа",
