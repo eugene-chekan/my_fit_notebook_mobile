@@ -88,7 +88,7 @@ class CompletionRepository {
   Future<List<LoggedRoutine>> loggedRoutines() async {
     final db = await _db;
     final rows = await db.rawQuery('''
-      SELECT r.id AS id, r.name AS name,
+      SELECT r.id AS id, r.name AS name, r.is_adhoc AS is_adhoc,
              COUNT(c.id) AS session_count,
              MAX(c.completed_on) AS last_completed_on
       FROM routines r

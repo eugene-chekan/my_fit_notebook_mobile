@@ -22,7 +22,7 @@ class AppDatabase {
   }
 
   /// Current schema version. Bump alongside a new entry in [_onUpgrade].
-  static const schemaVersion = 17;
+  static const schemaVersion = 18;
 
   Future<Database> _open() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -70,6 +70,7 @@ class AppDatabase {
     if (oldVersion < 15) await _createProgramTables(db);
     if (oldVersion < 16) await _migrateToSetWeight(db);
     if (oldVersion < 17) await _migrateToFontScale(db);
+    if (oldVersion < 18) await _migrateToAdhocRoutine(db);
   }
 
   /// Opens a throwaway database through [factory] (an in-memory one under
@@ -118,9 +119,11 @@ class AppDatabase {
         description TEXT NOT NULL DEFAULT '',
         started_at TEXT,
         paused_at TEXT,
-        paused_seconds INTEGER NOT NULL DEFAULT 0
+        paused_seconds INTEGER NOT NULL DEFAULT 0,
+        is_adhoc INTEGER NOT NULL DEFAULT 0
       )
     ''');
+    await _seedAdhocRoutine(db);
     await db.execute('''
       CREATE TABLE exercises (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -468,5 +471,41 @@ class AppDatabase {
     await db.execute(
       "ALTER TABLE profile ADD COLUMN font_scale TEXT NOT NULL DEFAULT 'normal'",
     );
+  }
+
+  /// v17 → v18: the built-in freestyle workout — an always-present routine you
+  /// start empty and fill in as you train. It is an ordinary `routines` row
+  /// carrying a flag, so the whole workout lifecycle (timer, notification,
+  /// completion snapshot, stats, training log) applies to it unchanged; only
+  /// the rules around its *exercises* differ. Additive, and seeds the one row.
+  Future<void> _migrateToAdhocRoutine(Database db) async {
+    await db.execute(
+      'ALTER TABLE routines ADD COLUMN is_adhoc INTEGER NOT NULL DEFAULT 0',
+    );
+    await _seedAdhocRoutine(db);
+  }
+
+  /// Inserts the single freestyle routine if it is not already there. Idempotent
+  /// so it can be called from both [_onCreate] and the v18 upgrade without a
+  /// fresh install ending up with two.
+  ///
+  /// The stored name is a fallback only — every screen that knows the row is
+  /// flagged shows a localized label instead, so the name does not go stale
+  /// when the app language changes.
+  Future<void> _seedAdhocRoutine(Database db) async {
+    final existing = await db.query(
+      'routines',
+      columns: ['id'],
+      where: 'is_adhoc = 1',
+      limit: 1,
+    );
+    if (existing.isNotEmpty) return;
+    await db.insert('routines', {
+      'name': 'Freestyle',
+      // Sorts first; the list pins it above the rest regardless.
+      'sort_order': -1,
+      'created_at': DateTime.now().toIso8601String(),
+      'is_adhoc': 1,
+    });
   }
 }

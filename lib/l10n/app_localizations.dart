@@ -680,6 +680,36 @@ abstract class AppLocalizations {
   /// **'Time to train'**
   String get reminderTitle;
 
+  /// No description provided for @adhocWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Freestyle'**
+  String get adhocWorkout;
+
+  /// No description provided for @adhocSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'start empty, write it down as you go'**
+  String get adhocSubtitle;
+
+  /// No description provided for @adhocAddAsYouGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet — add what you do, as you do it.'**
+  String get adhocAddAsYouGo;
+
+  /// No description provided for @adhocStartToBegin.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the session, then add exercises as you go.'**
+  String get adhocStartToBegin;
+
+  /// No description provided for @adhocAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+ what did you just do?…'**
+  String get adhocAddHint;
+
   /// No description provided for @addExercises.
   ///
   /// In en, this message translates to:

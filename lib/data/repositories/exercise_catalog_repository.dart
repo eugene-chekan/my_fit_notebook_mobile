@@ -43,6 +43,26 @@ class ExerciseCatalogRepository {
     return CatalogEntry.fromMap(rows.first);
   }
 
+  /// The catalog entry for [name] if one already exists, or null — the
+  /// lookup half of [ensure], without the create half. Case-insensitive, the
+  /// same way [ensure] resolves.
+  ///
+  /// This is what lets a freestyle session tell "the squat you already have"
+  /// from "something I am typing once and never again": a hit links the
+  /// exercise to the library, a miss leaves it unregistered.
+  Future<CatalogEntry?> findByName(String name) async {
+    final db = await _db;
+    final rows = await db.query(
+      'exercise_catalog',
+      columns: _catalogColumns.split(', '),
+      where: 'name = ? COLLATE NOCASE',
+      whereArgs: [name.trim()],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return CatalogEntry.fromMap(rows.first);
+  }
+
   /// All catalog names, alphabetical — the option pool for autocomplete.
   Future<List<String>> allNames() async {
     final db = await _db;

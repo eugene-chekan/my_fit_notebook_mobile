@@ -77,8 +77,20 @@ class WorkoutService {
   /// Starts (or restarts) a workout: clears exercise checkmarks and stamps
   /// `started_at`. Mirrors `reset_workout` in the Python service — the name
   /// there refers to resetting exercise state, not the timer.
+  ///
+  /// A freestyle session opens on a blank sheet instead: its exercises belong
+  /// to the session, not to the routine.
   Future<void> startWorkout(int routineId) async {
-    await _exercises.resetExercises(routineId);
+    final routine = await _routines.getRoutine(routineId);
+    if (routine?.isAdhoc ?? false) {
+      // Finishing already clears the sheet, so this only bites when the last
+      // session was abandoned rather than finished — without it, yesterday's
+      // half-done exercises would be sitting there waiting to be logged as
+      // part of today's.
+      await _exercises.clearExercises(routineId);
+    } else {
+      await _exercises.resetExercises(routineId);
+    }
     await _routines.setStartedAt(routineId, DateTime.now());
   }
 
@@ -142,7 +154,14 @@ class WorkoutService {
         completionId,
       );
     }
-    await _exercises.resetExercises(routineId);
+    if (routine.isAdhoc) {
+      // The snapshot above is now the only record of what was done, which is
+      // the point: a name typed once for one session never joins the library
+      // and never reappears on the next session's blank sheet.
+      await _exercises.clearExercises(routineId);
+    } else {
+      await _exercises.resetExercises(routineId);
+    }
     await _routines.clearStartedAt(routineId);
     return stats;
   }

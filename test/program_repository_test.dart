@@ -79,7 +79,10 @@ void main() {
     await programs.deleteProgram(id);
 
     expect(await programs.listPrograms(), isEmpty);
-    expect((await routines.listRoutines()).map((r) => r.name), ['Push']);
+    expect(
+      (await routines.listRoutines()).where((r) => !r.isAdhoc).map((r) => r.name),
+      ['Push'],
+    );
     expect(await programs.programIdsFor(push), isEmpty); // link cascaded away
   });
 
@@ -116,7 +119,10 @@ void main() {
     expect(all.map((p) => p.name), ['Split', 'Split (copy)']);
     expect(all.last.workoutCount, 1);
     // The workout itself was not cloned — both programs point at the one row.
-    expect((await routines.listRoutines()).length, 1);
+    expect(
+      (await routines.listRoutines()).where((r) => !r.isAdhoc).length,
+      1,
+    );
   });
 
   test('reordering membership sticks', () async {

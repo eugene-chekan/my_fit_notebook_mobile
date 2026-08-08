@@ -7,8 +7,8 @@ import '../data/models/rep_unit.dart';
 import '../l10n/app_localizations.dart';
 import '../state/routine_detail_provider.dart';
 import '../theme/notebook_theme.dart';
-import '../utils/exercise_suggestions.dart';
 import '../utils/formatters.dart';
+import '../widgets/add_exercise_row.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
@@ -64,11 +64,6 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
   Future<void> _saveDetails() async {
     await _provider.updateDetails(_nameController.text, _descriptionController.text);
     if (mounted) FocusScope.of(context).unfocus();
-  }
-
-  /// Adds whatever is typed in the field (Enter or the ✓ button).
-  Future<void> _addExercise() async {
-    await _addNamed(_newExerciseController.text);
   }
 
   /// Adds [name] (typed submit or a tapped suggestion): opens the sets/reps
@@ -230,7 +225,13 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
                     ),
                     const SizedBox(height: 16),
                     HeadingLine(t.navExercises),
-                    _addExerciseRow(),
+                    AddExerciseRow(
+                      controller: _newExerciseController,
+                      focusNode: _newExerciseFocus,
+                      catalogNames: _provider.catalogNames,
+                      existingNames: _provider.exercises.map((e) => e.name),
+                      onSubmit: _addNamed,
+                    ),
                     if (provider.exercises.isEmpty)
                       MutedLine(t.noExercisesManage)
                     else
@@ -291,135 +292,6 @@ class _ManageRoutineScreenState extends State<ManageRoutineScreen> {
       ),
       focusedBorder: UnderlineInputBorder(
         borderSide: BorderSide(color: context.notebook.ink, width: 2),
-      ),
-    );
-  }
-
-  Widget _addExerciseRow() {
-    return SizedBox(
-      height: notebookLine(context),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) => RawAutocomplete<String>(
-                textEditingController: _newExerciseController,
-                focusNode: _newExerciseFocus,
-                optionsBuilder: (value) => filterExerciseSuggestions(
-                  query: value.text,
-                  catalog: _provider.catalogNames,
-                  existing: _provider.exercises.map((e) => e.name),
-                ),
-                onSelected: _addNamed,
-                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      maxLength: 200,
-                      cursorColor: context.notebook.ink,
-                      style: TextStyle(
-                        fontFamily: 'Caveat',
-                        fontSize: 19,
-                        color: context.notebook.ink,
-                      ),
-                      decoration: InputDecoration(
-                        isCollapsed: true,
-                        counterText: '',
-                        hintText: AppLocalizations.of(context).addExerciseHint,
-                        hintStyle: TextStyle(
-                          fontFamily: 'Caveat',
-                          fontSize: 19,
-                          color: context.notebook.sec,
-                        ),
-                        border: InputBorder.none,
-                      ),
-                      onSubmitted: (_) => _addExercise(),
-                    ),
-                  );
-                },
-                optionsViewBuilder: (context, onSelected, options) =>
-                    _SuggestionsOverlay(
-                      onSelected: onSelected,
-                      options: options.toList(),
-                      width: constraints.maxWidth,
-                    ),
-              ),
-            ),
-          ),
-          GlyphButton(
-            glyph: '✓',
-            color: context.notebook.ink,
-            semanticLabel: AppLocalizations.of(context).addExerciseSemantic,
-            onTap: _addExercise,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The floating suggestion list under the add-exercise field, styled as a
-/// small paper note (paper fill, 2px ink border, slightly uneven corners).
-class _SuggestionsOverlay extends StatelessWidget {
-  const _SuggestionsOverlay({
-    required this.onSelected,
-    required this.options,
-    required this.width,
-  });
-
-  final void Function(String) onSelected;
-  final List<String> options;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          width: width,
-          constraints: const BoxConstraints(maxHeight: 216),
-          decoration: BoxDecoration(
-            color: context.notebook.bg,
-            border: Border.all(color: context.notebook.ink, width: 2),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(4),
-              topRight: Radius.circular(6),
-              bottomRight: Radius.circular(5),
-              bottomLeft: Radius.circular(4),
-            ),
-            boxShadow: [
-              BoxShadow(color: context.notebook.shadow, blurRadius: 10, offset: const Offset(0, 3)),
-            ],
-          ),
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            shrinkWrap: true,
-            itemCount: options.length,
-            itemBuilder: (context, index) {
-              final name = options[index];
-              return InkWell(
-                onTap: () => onSelected(name),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontFamily: 'Caveat',
-                      fontSize: 19,
-                      color: context.notebook.ink,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
       ),
     );
   }

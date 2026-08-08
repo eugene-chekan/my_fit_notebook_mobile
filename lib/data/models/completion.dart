@@ -61,11 +61,17 @@ class LoggedRoutine {
     required this.name,
     required this.sessionCount,
     required this.lastCompletedOn,
+    this.isAdhoc = false,
   });
 
   final int routineId;
   final String name;
   final int sessionCount;
+
+  /// The freestyle workout, whose stored name is a fallback — the log shows a
+  /// localized label for it instead, so it does not sit in English on a
+  /// Russian page.
+  final bool isAdhoc;
 
   /// The newest session's `completed_on` — either `yyyy-MM-dd` or
   /// `yyyy-MM-ddTHH:mm`, matching how completions are stored.
@@ -77,6 +83,7 @@ class LoggedRoutine {
       name: map['name'] as String,
       sessionCount: map['session_count'] as int,
       lastCompletedOn: map['last_completed_on'] as String,
+      isAdhoc: ((map['is_adhoc'] as int?) ?? 0) == 1,
     );
   }
 }

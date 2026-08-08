@@ -211,6 +211,27 @@ class RoutineDetailProvider extends ChangeNotifier {
     await load();
   }
 
+  /// Adds an exercise to a freestyle session as it happens: linked to the
+  /// library if it already knows the name, otherwise session-only and never
+  /// registered. See [ExerciseRepository.addAdhocExercise].
+  Future<void> addAdhocExercise(
+    String name, {
+    int? sets,
+    int? repsMin,
+    int? repsMax,
+    String unit = RepUnit.reps,
+  }) async {
+    await _exerciseRepository.addAdhocExercise(
+      routineId,
+      name,
+      sets: sets,
+      repsMin: repsMin,
+      repsMax: repsMax,
+      unit: unit,
+    );
+    await load();
+  }
+
   Future<void> updatePrescription(
     int exerciseId, {
     int? sets,

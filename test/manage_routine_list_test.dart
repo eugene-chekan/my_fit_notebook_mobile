@@ -26,7 +26,9 @@ void main() {
     // inside it, the whole list rendered as a grey error box.
     final routines = RoutineRepository();
     await routines.addRoutine('Cycling');
-    final routine = (await routines.listRoutines()).single;
+    // Skip the built-in freestyle row every database is seeded with.
+    final routine =
+        (await routines.listRoutines()).firstWhere((r) => !r.isAdhoc);
     final exercises = ExerciseRepository();
     await exercises.addExercise(routine.id, 'Warm up', sets: 1, repsMin: 10);
     await exercises.addExercise(routine.id, 'Intervals', sets: 5, repsMin: 60);

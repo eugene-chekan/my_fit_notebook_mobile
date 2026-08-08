@@ -16,6 +16,7 @@ import '../utils/formatters.dart';
 import '../utils/metric_labels.dart';
 import '../utils/set_progress.dart';
 import '../utils/units.dart';
+import '../widgets/add_exercise_row.dart';
 import '../widgets/glyph_button.dart';
 import '../widgets/notebook_drawer.dart';
 import '../widgets/notebook_header.dart';
@@ -23,6 +24,7 @@ import '../widgets/notebook_page.dart';
 import '../widgets/paper_dialog.dart';
 import '../widgets/pen_button.dart';
 import '../widgets/session_log.dart';
+import '../widgets/sets_reps_dialog.dart';
 import 'manage_routine_screen.dart';
 import 'training_log_screen.dart';
 
@@ -49,6 +51,10 @@ class _RoutineScreenState extends State<RoutineScreen> {
   late final RoutineDetailProvider _provider;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// The mid-session add-exercise field (freestyle sessions only).
+  final _adhocController = TextEditingController();
+  final _adhocFocus = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -57,8 +63,38 @@ class _RoutineScreenState extends State<RoutineScreen> {
 
   @override
   void dispose() {
+    _adhocController.dispose();
+    _adhocFocus.dispose();
     _provider.dispose();
     super.dispose();
+  }
+
+  /// Records an exercise mid-session. The sets/reps form opens prefilled from
+  /// the library when it knows the name, and empty when it does not — a name
+  /// the library has never seen is exactly the case that stays session-only.
+  Future<void> _addAdhocExercise(String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    final defaults = _provider.catalogEntryFor(trimmed);
+    final rx = await showSetsRepsDialog(
+      context,
+      title: AppLocalizations.of(context).addNamedTitle(trimmed),
+      sets: defaults?.defaultSets,
+      repsMin: defaults?.defaultReps,
+      repsMax: defaults?.defaultRepsMax,
+      unit: defaults?.defaultUnit ?? RepUnit.reps,
+    );
+    if (rx == null) return; // cancelled
+    await _provider.addAdhocExercise(
+      trimmed,
+      sets: rx.sets,
+      repsMin: rx.repsMin,
+      repsMax: rx.repsMax,
+      unit: rx.unit,
+    );
+    if (!mounted) return;
+    _adhocController.clear();
+    _adhocFocus.requestFocus();
   }
 
   Future<void> _openManage() async {
@@ -381,13 +417,21 @@ class _RoutineScreenState extends State<RoutineScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 NotebookHeader(
-                                  title: routine.name,
+                                  title: routine.isAdhoc
+                                      ? t.adhocWorkout
+                                      : routine.name,
                                   leading: const BackGlyph(),
-                                  trailing: GlyphButton(
-                                    glyph: '✐',
-                                    semanticLabel: t.manageRoutineSemantic,
-                                    onTap: _openManage,
-                                  ),
+                                  // Nothing on the manage page applies to a
+                                  // freestyle session: its exercise list is
+                                  // session-scoped, and its name, description
+                                  // and existence are not the user's to edit.
+                                  trailing: routine.isAdhoc
+                                      ? null
+                                      : GlyphButton(
+                                          glyph: '✐',
+                                          semanticLabel: t.manageRoutineSemantic,
+                                          onTap: _openManage,
+                                        ),
                                 ),
                                 if (routine.description.isNotEmpty)
                                   Padding(
@@ -404,7 +448,13 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                 const SizedBox(height: 4),
                                 HeadingLine(t.navExercises),
                                 if (provider.exercises.isEmpty)
-                                  MutedLine(t.noExercisesWorkout)
+                                  MutedLine(
+                                    routine.isAdhoc
+                                        ? (active
+                                              ? t.adhocAddAsYouGo
+                                              : t.adhocStartToBegin)
+                                        : t.noExercisesWorkout,
+                                  )
                                 else
                                   ...provider.exercises.map(
                                     (ex) => provider.isPrescribed(ex)
@@ -432,6 +482,20 @@ class _RoutineScreenState extends State<RoutineScreen> {
                                               provider.toggleExercise(ex.id);
                                             },
                                           ),
+                                  ),
+                                // Only while the session is live: starting one
+                                // wipes the sheet, so a row jotted beforehand
+                                // would vanish the moment you pressed Start.
+                                if (routine.isAdhoc && active)
+                                  AddExerciseRow(
+                                    controller: _adhocController,
+                                    focusNode: _adhocFocus,
+                                    catalogNames: provider.catalogNames,
+                                    existingNames: provider.exercises.map(
+                                      (e) => e.name,
+                                    ),
+                                    onSubmit: _addAdhocExercise,
+                                    hintText: t.adhocAddHint,
                                   ),
                                 HeadingLine(t.recentSessions),
                                 if (provider.completions.isEmpty)
@@ -477,7 +541,10 @@ class _RoutineScreenState extends State<RoutineScreen> {
                       right: 0,
                       bottom: 18,
                       child: Center(
-                        child: provider.exercises.isEmpty
+                        // An empty freestyle routine is the normal state, not
+                        // a routine waiting to be filled in — starting it is
+                        // exactly how you fill it in.
+                        child: provider.exercises.isEmpty && !routine.isAdhoc
                             ? PenButtonFilled(
                                 label: t.addExercises,
                                 onPressed: _openManage,

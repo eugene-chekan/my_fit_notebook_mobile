@@ -347,6 +347,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderTitle => 'Time to train';
 
   @override
+  String get adhocWorkout => 'Freestyle';
+
+  @override
+  String get adhocSubtitle => 'start empty, write it down as you go';
+
+  @override
+  String get adhocAddAsYouGo => 'Nothing yet — add what you do, as you do it.';
+
+  @override
+  String get adhocStartToBegin =>
+      'Start the session, then add exercises as you go.';
+
+  @override
+  String get adhocAddHint => '+ what did you just do?…';
+
+  @override
   String get addExercises => 'Add exercises';
 
   @override

@@ -9,6 +9,7 @@ class Routine {
     this.startedAt,
     this.pausedAt,
     this.pausedSeconds = 0,
+    this.isAdhoc = false,
   });
 
   final int id;
@@ -19,6 +20,12 @@ class Routine {
   final String? startedAt;
   final String? pausedAt;
   final int pausedSeconds;
+
+  /// The built-in freestyle workout: started empty and filled in as you train.
+  /// Exactly one row carries this. Its exercises are session-scoped — wiped
+  /// when a session starts and again when it finishes — so the page is blank
+  /// every time and the record lives in the log instead.
+  final bool isAdhoc;
 
   bool get isStarted => startedAt != null;
   bool get isPaused => pausedAt != null;
@@ -40,6 +47,7 @@ class Routine {
       startedAt: identical(startedAt, _unset) ? this.startedAt : startedAt as String?,
       pausedAt: identical(pausedAt, _unset) ? this.pausedAt : pausedAt as String?,
       pausedSeconds: pausedSeconds ?? this.pausedSeconds,
+      isAdhoc: isAdhoc,
     );
   }
 
@@ -55,6 +63,7 @@ class Routine {
       startedAt: map['started_at'] as String?,
       pausedAt: map['paused_at'] as String?,
       pausedSeconds: (map['paused_seconds'] as int?) ?? 0,
+      isAdhoc: ((map['is_adhoc'] as int?) ?? 0) == 1,
     );
   }
 
@@ -67,5 +76,6 @@ class Routine {
     'started_at': startedAt,
     'paused_at': pausedAt,
     'paused_seconds': pausedSeconds,
+    'is_adhoc': isAdhoc ? 1 : 0,
   };
 }

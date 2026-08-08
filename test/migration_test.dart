@@ -8,6 +8,7 @@ import 'package:my_fit_notebook_mobile/data/db/app_database.dart';
 import 'package:my_fit_notebook_mobile/data/models/profile.dart';
 import 'package:my_fit_notebook_mobile/data/repositories/exercise_repository.dart';
 import 'package:my_fit_notebook_mobile/data/repositories/profile_repository.dart';
+import 'package:my_fit_notebook_mobile/data/repositories/routine_repository.dart';
 
 /// Migrations are the one part of this schema that runs against data someone
 /// already has, so they are tested against a real file: an in-memory database
@@ -179,6 +180,22 @@ void main() {
     expect(profile.units, Units.imperial);
     expect(profile.theme, AppTheme.blueprint);
     expect(profile.fontScale, AppFontScale.normal);
+  });
+
+  test('v17 → v18 seeds the freestyle workout beside the existing ones',
+      () async {
+    await layDownV15();
+
+    final db = await AppDatabase.instance
+        .openForTesting(databaseFactoryFfi, path: dbPath);
+    expect(await columnsOf(db, 'routines'), contains('is_adhoc'));
+
+    final all = await RoutineRepository().listRoutines();
+    // The workout the user already had is untouched, and is not the new one.
+    expect(all.where((r) => !r.isAdhoc).map((r) => r.name), ['Leg day']);
+    expect(all.where((r) => r.isAdhoc), hasLength(1));
+    // It sorts ahead of everything already in the book.
+    expect(all.first.isAdhoc, isTrue);
   });
 
   test('a text size can be chosen the moment the upgrade lands', () async {

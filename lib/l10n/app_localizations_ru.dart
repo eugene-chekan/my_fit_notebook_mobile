@@ -353,6 +353,22 @@ class AppLocalizationsRu extends AppLocalizations {
   String get reminderTitle => 'Пора тренироваться';
 
   @override
+  String get adhocWorkout => 'Свободная';
+
+  @override
+  String get adhocSubtitle => 'начни с пустой страницы и записывай по ходу';
+
+  @override
+  String get adhocAddAsYouGo => 'Пока пусто — записывай упражнения по ходу.';
+
+  @override
+  String get adhocStartToBegin =>
+      'Начни тренировку, а упражнения добавляй по ходу.';
+
+  @override
+  String get adhocAddHint => '+ что только что сделал?…';
+
+  @override
   String get addExercises => 'Добавить упражнения';
 
   @override

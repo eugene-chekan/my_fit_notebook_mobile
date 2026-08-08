@@ -26,7 +26,9 @@ void main() {
   /// A routine with one prescribed exercise, and its seeded set rows.
   Future<(int routineId, int exerciseId)> seed() async {
     await routines.addRoutine('Leg day');
-    final routine = (await routines.listRoutines()).single;
+    // Skip the built-in freestyle row every database is seeded with.
+    final routine =
+        (await routines.listRoutines()).firstWhere((r) => !r.isAdhoc);
     await exercises.addExercise(routine.id, 'Squat', sets: 3, repsMin: 5);
     final exercise = (await exercises.listExercises(routine.id)).single;
     return (routine.id, exercise.id);

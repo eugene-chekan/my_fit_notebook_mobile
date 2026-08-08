@@ -217,7 +217,13 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 4),
-                        for (final routine in provider.routines) _routineRow(routine),
+                        for (final routine in provider.routines) ...[
+                          _routineRow(routine),
+                          // A rule's worth of air under the freestyle row (it
+                          // sorts first) so it reads as the page's standing
+                          // option rather than as one of your workouts.
+                          if (routine.isAdhoc) const SizedBox(height: 8),
+                        ],
                         _newRoutineRow(),
                       ],
                     );
@@ -234,6 +240,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   /// Swipe right to duplicate, swipe left to delete (after confirmation).
   Widget _routineRow(Routine routine) {
     final t = AppLocalizations.of(context);
+    if (routine.isAdhoc) return _adhocRow(routine);
     return SwipeableRow(
       itemKey: ValueKey('routine-${routine.id}'),
       onCopy: () => _provider.duplicateRoutine(routine.id),
@@ -291,6 +298,74 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// The built-in freestyle workout, pinned at the top of the page.
+  ///
+  /// Deliberately plainer than the rows below it: no swipes (it cannot be
+  /// deleted or copied), no ✐ (there is nothing to manage), and no long-press
+  /// filing — a program is a plan, and this row is the opposite of one. What
+  /// it gets instead is a second line saying what it is for, since "Freestyle"
+  /// alone does not explain itself the first time you see it.
+  Widget _adhocRow(Routine routine) {
+    final t = AppLocalizations.of(context);
+    return InkWell(
+      onTap: () => _openRoutine(routine),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: notebookLine(context),
+            child: Container(
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (routine.isStarted)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Icon(
+                        Icons.fiber_manual_record,
+                        size: 9,
+                        color: context.notebook.ink,
+                      ),
+                    ),
+                  Flexible(
+                    child: Text(
+                      t.adhocWorkout,
+                      style: TextStyle(
+                        fontFamily: 'Caveat',
+                        fontSize: 21,
+                        color: context.notebook.ink,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            height: notebookLine(context),
+            child: Container(
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.only(left: 2, bottom: 3),
+              child: Text(
+                t.adhocSubtitle,
+                style: TextStyle(
+                  fontFamily: 'Caveat',
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  color: context.notebook.sec,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

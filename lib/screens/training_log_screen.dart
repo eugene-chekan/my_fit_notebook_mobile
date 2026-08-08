@@ -46,7 +46,9 @@ class _TrainingLogScreenState extends State<TrainingLogScreen> {
       MaterialPageRoute(
         builder: (_) => WorkoutLogScreen(
           routineId: entry.routineId,
-          routineName: entry.name,
+          routineName: entry.isAdhoc
+              ? AppLocalizations.of(context).adhocWorkout
+              : entry.name,
         ),
       ),
     );
@@ -102,7 +104,7 @@ class _TrainingLogScreenState extends State<TrainingLogScreen> {
               alignment: Alignment.bottomLeft,
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(
-                entry.name,
+                entry.isAdhoc ? t.adhocWorkout : entry.name,
                 style: TextStyle(
                   fontFamily: 'Caveat',
                   fontSize: 21,

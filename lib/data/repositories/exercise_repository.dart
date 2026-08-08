@@ -70,6 +70,60 @@ class ExerciseRepository {
     await _seedSets(db, exerciseId, sets, repsMin, repsMax);
   }
 
+  /// Adds an exercise to a freestyle session, mid-workout.
+  ///
+  /// Differs from [addExercise] in two ways that matter, both of them about
+  /// what survives the session:
+  ///
+  /// * The catalog is **looked up, never written**. A name that already exists
+  ///   links to its entry (and inherits nothing else); a name that does not is
+  ///   inserted with a null `catalog_id` and is never registered. That is what
+  ///   makes a typed-once exercise leave no trace in the library — the row
+  ///   itself is wiped when the session ends, so the log is all that remains.
+  /// * At least one set is always seeded. [snapshotDoneSets] only carries
+  ///   exercises that *have* sets into `completion_sets`; a bare checkbox
+  ///   contributes to the session's exercise count and nothing else, so its
+  ///   name would be lost the moment the row is wiped.
+  Future<void> addAdhocExercise(
+    int routineId,
+    String name, {
+    int? sets,
+    int? repsMin,
+    int? repsMax,
+    String unit = RepUnit.reps,
+  }) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    final known = await _catalog.findByName(trimmed);
+    final seededSets = (sets == null || sets <= 0) ? 1 : sets;
+    final db = await _db;
+    final maxOrderRows = await db.rawQuery(
+      'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order '
+      'FROM exercises WHERE routine_id = ?',
+      [routineId],
+    );
+    final exerciseId = await db.insert('exercises', {
+      'routine_id': routineId,
+      // Canonical casing when the library knows it, otherwise as typed.
+      'name': known?.name ?? trimmed,
+      'sort_order': maxOrderRows.first['next_order'] as int,
+      'is_done': 0,
+      'catalog_id': known?.id,
+      'sets': seededSets,
+      'reps_min': repsMin,
+      'reps_max': repsMax,
+      'unit': unit,
+    });
+    await _seedSets(db, exerciseId, seededSets, repsMin, repsMax);
+  }
+
+  /// Removes every exercise from a routine (its sets cascade). Used to blank
+  /// the freestyle sheet between sessions — the record is in the log by then.
+  Future<void> clearExercises(int routineId) async {
+    final db = await _db;
+    await db.delete('exercises', where: 'routine_id = ?', whereArgs: [routineId]);
+  }
+
   /// Seeds one `exercise_sets` row per prescribed set (1-based), reps
   /// prefilled from the prescription, all unchecked. No-op when [sets] is
   /// null or non-positive (a bare exercise keeps its single checkbox).

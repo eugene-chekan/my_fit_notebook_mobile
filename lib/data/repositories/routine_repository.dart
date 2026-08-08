@@ -4,7 +4,8 @@ import '../db/app_database.dart';
 import '../models/routine.dart';
 
 const _routineColumns =
-    'id, name, sort_order, created_at, description, started_at, paused_at, paused_seconds';
+    'id, name, sort_order, created_at, description, started_at, paused_at, '
+    'paused_seconds, is_adhoc';
 
 /// SQL access for routines — a Dart port of repositories/routines.py.
 class RoutineRepository {
@@ -54,9 +55,27 @@ class RoutineRepository {
     );
   }
 
+  /// The built-in freestyle routine, or null on a database that predates it.
+  Future<Routine?> adhocRoutine() async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+      'SELECT $_routineColumns FROM routines WHERE is_adhoc = 1 LIMIT 1',
+    );
+    if (rows.isEmpty) return null;
+    return Routine.fromMap(rows.first);
+  }
+
+  /// Deletes a routine. The freestyle row is permanent — it is seeded by the
+  /// schema, not by the user, and nothing in the UI offers to remove it — so a
+  /// stray call is refused here rather than silently leaving the app without
+  /// one.
   Future<void> deleteRoutine(int routineId) async {
     final db = await _db;
-    await db.delete('routines', where: 'id = ?', whereArgs: [routineId]);
+    await db.delete(
+      'routines',
+      where: 'id = ? AND is_adhoc = 0',
+      whereArgs: [routineId],
+    );
   }
 
   /// Copies a routine (name + " (copy)", description, exercises with their

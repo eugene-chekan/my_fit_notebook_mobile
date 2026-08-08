@@ -161,7 +161,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   /// default sets/reps across so the prescription arrives filled in.
   Future<void> _addToRoutine(CatalogEntry entry) async {
     final t = AppLocalizations.of(context);
-    final routines = await _routineRepository.listRoutines();
+    // Freestyle is not a target: its exercise list is session-scoped, so
+    // anything filed into it now would be wiped the next time it starts.
+    final routines = (await _routineRepository.listRoutines())
+        .where((r) => !r.isAdhoc)
+        .toList();
     if (!mounted) return;
 
     final choice = await showPickTarget(
